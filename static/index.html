@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simvest — Paper Trading Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="logo">
+        <span class="logo-mark">🔷</span>
+        <span class="logo-text">Simvest</span>
+      </div>
+
+      <nav class="topbar-nav">
+        <ul>
+          <li><a href="#">Home</a></li>
+          <li><a href="#">Markets</a></li>
+          <li><a href="#">Portfolio</a></li>
+          <li><a href="#">Orders</a></li>
+          <li><a href="#">Reports</a></li>
+        </ul>
+      </nav>
+
+      <div class="top-actions">
+        <div class="search">
+          <input id="search" type="search" placeholder="Search tickers..." />
+        </div>
+        <a href="#" class="icon-btn notifications">
+          <svg class="icon">
+            <use href="#notification-icon"></use>
+          </svg>
+          <span class="badge">3</span>
+        </a>
+        <a href="#" class="avatar">
+          <img alt="Profile avatar" src="" />
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <nav>
+        <ul>
+          <li><a href="#"><span class="nav-ico">🏠</span>Dashboard</a></li>
+          <li><a href="#"><span class="nav-ico">📊</span>Markets</a></li>
+          <li><a href="#"><span class="nav-ico">💼</span>Portfolio</a></li>
+          <li><a href="#"><span class="nav-ico">🏆</span>Leaderboard</a></li>
+          <li><a href="#"><span class="nav-ico">⚙️</span>Settings</a></li>
+        </ul>
+      </nav>
+
+      <div class="pro-banner">
+        <div class="pro-content">
+          <strong>Pro Mode</strong>
+          <p>Unlock advanced charts & real-time data</p>
+          <a class="upgrade" href="#">Upgrade</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main" id="main" tabindex="-1">
+      <article class="hero card" aria-labelledby="portfolio-heading">
+        <div class="hero-left">
+          <h2 id="portfolio-heading">Total Portfolio Value</h2>
+          <div class="portfolio-value">$104,200.50</div>
+          <div class="portfolio-change positive">+ $1,200 (1.2%)</div>
+        </div>
+        <div class="hero-right">
+          <a class="cta" href="#">Deposit</a>
+          <a class="cta ghost" href="#">Withdraw</a>
+        </div>
+      </article>
+
+      <article class="chart card" aria-labelledby="chart-heading">
+        <h3 id="chart-heading">Portfolio Chart</h3>
+        <div class="chart-placeholder" role="img" aria-label="Stock chart placeholder">
+          <!-- Simulated graph via CSS gradient -->
+        </div>
+      </article>
+
+       <article class="media card" aria-labelledby="media-heading">
+        <h3 id="media-heading">Media & Resources</h3>
+        <div class="media-grid">
+          <figure>
+            <img src="./assets/pictures/stockimage.webp" alt="Stock visual" />
+            <figcaption>Market snapshot</figcaption>
+          </figure>
+
+          <figure>
+            <video controls preload="metadata" poster="https://via.placeholder.com/480x260.png?text=Video">
+              <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
+              Your browser does not support the video element.
+            </video>
+            <figcaption>Quick tutorial</figcaption>
+          </figure>
+
+          <div class="media-info">
+            <p>Helpful resources, guides and snapshots for paper trading. <a href="https://example.com/learn" target="_blank" rel="noopener">Learn more →</a></p>
+          </div>
+        </div>
+      </article>
+
+      <article class="holdings card" aria-labelledby="holdings-heading">
+        <h3 id="holdings-heading">Holdings</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Ticker</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>P&L</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>AAPL</strong> <small>Apple Inc.</small></td>
+              <td>40</td>
+              <td>$168.20</td>
+              <td><span class="pill positive">+4.2%</span></td>
+            </tr>
+            <tr>
+              <td><strong>TSLA</strong> <small>Tesla</small></td>
+              <td>8</td>
+              <td>$730.50</td>
+              <td><span class="pill negative">-2.8%</span></td>
+            </tr>
+            <tr>
+              <td><strong>NVDA</strong> <small>NVIDIA</small></td>
+              <td>12</td>
+              <td>$310.10</td>
+              <td><span class="pill positive">+6.9%</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+    </main>
+
+    <section class="right-panel" aria-label="Action center">
+      <div class="card order-card">
+        <h3>Place Order</h3>
+
+        <div class="tabs" role="tablist" aria-label="Order type">
+          <input type="radio" name="side" id="buy" checked />
+          <label for="buy" class="tab buy">Buy</label>
+
+          <input type="radio" name="side" id="sell" />
+          <label for="sell" class="tab sell">Sell</label>
+        </div>
+
+        <form class="order-form" action="#" method="post" onsubmit="return false;">
+          <label for="symbol">Symbol</label>
+          <input id="symbol" name="symbol" type="text" placeholder="e.g., AAPL" required />
+
+          <div class="inline-row">
+            <div>
+              <label for="qty">Quantity</label>
+              <input id="qty" name="qty" type="number" min="1" value="1" required />
+            </div>
+            <div>
+              <label for="price">Limit Price</label>
+              <input id="price" name="price" type="number" step="0.01" placeholder="e.g., 150.00" required />
+            </div>
+          </div>
+
+          <button class="btn submit" type="submit">Submit Order</button>
+        </form>
+      </div>
+
+      <div class="card watchlist">
+        <h4>Watchlist</h4>
+        <ul>
+          <li><a href="#"><strong>AAPL</strong><span class="wl-price">$168.20</span><span class="trend up">▲</span></a></li>
+          <li><a href="#"><strong>TSLA</strong><span class="wl-price">$730.50</span><span class="trend down">▼</span></a></li>
+          <li><a href="#"><strong>NFLX</strong><span class="wl-price">$410.11</span><span class="trend up">▲</span></a></li>
+          <li><a href="#"><strong>NVDA</strong><span class="wl-price">$310.10</span><span class="trend up">▲</span></a></li>
+        </ul>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div>
+        <small>© 2026 TradeLab — Paper Trading Demo</small>
+      </div>
+      <div class="footer-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Support</a>
+      </div>
+    </footer>
+
+    <!-- Login/Signup Modal -->
+    <div id="auth-modal" class="modal-overlay visually-hidden">
+      <div class="modal-card card">
+        <div class="modal-tabs">
+          <button id="show-login" class="modal-tab active">Login</button>
+          <button id="show-signup" class="modal-tab">Sign Up</button>
+        </div>
+        <form id="login-form" class="auth-form" autocomplete="off">
+          <h3>Login</h3>
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" name="email" required placeholder="you@email.com" />
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" name="password" required minlength="6" placeholder="Password" />
+          <button type="submit" class="btn submit">Login</button>
+          <div class="form-message" id="login-message"></div>
+        </form>
+        <form id="signup-form" class="auth-form visually-hidden" autocomplete="off">
+          <h3>Sign Up</h3>
+          <label for="signup-email">Email</label>
+          <input type="email" id="signup-email" name="email" required placeholder="you@email.com" />
+          <label for="signup-password">Password</label>
+          <input type="password" id="signup-password" name="password" required minlength="6" placeholder="Password (min 6 chars)" />
+          <label for="signup-confirm">Confirm Password</label>
+          <input type="password" id="signup-confirm" name="confirm" required minlength="6" placeholder="Confirm Password" />
+          <button type="submit" class="btn submit">Sign Up</button>
+          <div class="form-message" id="signup-message"></div>
+        </form>
+        <button class="modal-close" id="close-modal" title="Close">×</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Small enhancement: keep focus outline accessible
+    (function(){
+      const tabs = document.querySelectorAll('.tabs input[type="radio"]');
+      tabs.forEach(r => r.addEventListener('change', ()=>{
+        document.querySelector('.tabs .tab.active')?.classList.remove('active');
+        const activeLabel = document.querySelector('.tabs label[for="'+r.id+'"]');
+        activeLabel.classList.add('active');
+      }));
+      // init
+      document.querySelector('.tabs label[for="buy"]').classList.add('active');
+    })();
+
+    // Auth Modal Logic & Validation
+    (function(){
+      const modal = document.getElementById('auth-modal');
+      const showLoginBtn = document.getElementById('show-login');
+      const showSignupBtn = document.getElementById('show-signup');
+      const loginForm = document.getElementById('login-form');
+      const signupForm = document.getElementById('signup-form');
+      const closeModalBtn = document.getElementById('close-modal');
+      const loginMsg = document.getElementById('login-message');
+      const signupMsg = document.getElementById('signup-message');
+
+      // Show modal on avatar click
+      document.querySelector('.avatar').addEventListener('click', e => {
+        e.preventDefault();
+        modal.classList.remove('visually-hidden');
+      });
+      // Close modal
+      closeModalBtn.addEventListener('click', ()=>{
+        modal.classList.add('visually-hidden');
+        loginMsg.textContent = '';
+        signupMsg.textContent = '';
+      });
+      // Switch tabs
+      showLoginBtn.addEventListener('click', ()=>{
+        showLoginBtn.classList.add('active');
+        showSignupBtn.classList.remove('active');
+        loginForm.classList.remove('visually-hidden');
+        signupForm.classList.add('visually-hidden');
+        loginMsg.textContent = '';
+      });
+      showSignupBtn.addEventListener('click', ()=>{
+        showSignupBtn.classList.add('active');
+        showLoginBtn.classList.remove('active');
+        signupForm.classList.remove('visually-hidden');
+        loginForm.classList.add('visually-hidden');
+        signupMsg.textContent = '';
+      });
+      // Basic login validation
+      loginForm.addEventListener('submit', function(e){
+        e.preventDefault();
+        loginMsg.textContent = '';
+        const email = loginForm.email.value.trim();
+        const pass = loginForm.password.value;
+        if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){
+          loginMsg.textContent = 'Enter a valid email.';
+          return;
+        }
+        if(pass.length < 6){
+          loginMsg.textContent = 'Password must be at least 6 characters.';
+          return;
+        }
+        loginMsg.textContent = 'Login successful! (Demo only)';
+        loginMsg.style.color = 'var(--accent)';
+      });
+      // Basic signup validation
+      signupForm.addEventListener('submit', function(e){
+        e.preventDefault();
+        signupMsg.textContent = '';
+        const email = signupForm.email.value.trim();
+        const pass = signupForm.password.value;
+        const confirm = signupForm.confirm.value;
+        if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){
+          signupMsg.textContent = 'Enter a valid email.';
+          return;
+        }
+        if(pass.length < 6){
+          signupMsg.textContent = 'Password must be at least 6 characters.';
+          return;
+        }
+        if(pass !== confirm){
+          signupMsg.textContent = 'Passwords do not match.';
+          return;
+        }
+        signupMsg.textContent = 'Signup successful! (Demo only)';
+        signupMsg.style.color = 'var(--accent)';
+      });
+      // Close modal on overlay click
+      modal.addEventListener('click', function(e){
+        if(e.target === modal) modal.classList.add('visually-hidden');
+      });
+    })();
+  </script>
+</body>
+</html>

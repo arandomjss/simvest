@@ -12,6 +12,10 @@ Simvest is a modern and interactive paper trading dashboard designed to simulate
 - **Leaderboard**: Compete with other users in simulated trading.
 - **Pro Mode**: Unlock advanced charts and real-time data.
 
+## Has 2 folders 
+1. real project files with proper immplementations
+2. the prototype with some basic html css and signup js
+
 ## How to Use
 
 1. Clone the repository to your local machine.
