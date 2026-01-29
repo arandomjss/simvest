@@ -1,0 +1,32 @@
+{
+  "name": "simvest-backend",
+  "version": "1.0.0",
+  "description": "SimVest Paper Trading Platform - Backend API",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest"
+  },
+  "keywords": ["trading", "paper-trading", "upstox", "stock-market"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1",
+    "protobufjs": "^7.2.5",
+    "@supabase/supabase-js": "^2.39.0",
+    "axios": "^1.6.5",
+    "ws": "^8.16.0",
+    "node-cache": "^5.1.2",
+    "dotenv": "^16.3.1",
+    "opossum": "^8.1.2",
+    "cors": "^2.8.5",
+    "compression": "^1.7.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "jest": "^29.7.0"
+  }
+}

@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-dark-border;
+  }
+  
+  body {
+    @apply bg-dark-bg text-dark-text-primary font-sans antialiased;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-dark-surface;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-dark-border rounded;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-dark-text-muted;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 bg-accent-blue text-dark-bg font-semibold rounded hover:bg-opacity-90 transition-all duration-200;
+  }
+
+  .btn-buy {
+    @apply px-4 py-2 bg-trading-buy text-dark-bg font-semibold rounded hover:bg-opacity-90 transition-all duration-200;
+  }
+
+  .btn-sell {
+    @apply px-4 py-2 bg-trading-sell text-dark-bg font-semibold rounded hover:bg-opacity-90 transition-all duration-200;
+  }
+
+  .card {
+    @apply bg-dark-surface border border-dark-border rounded-lg p-4;
+  }
+
+  .input-field {
+    @apply bg-dark-elevated border border-dark-border rounded px-3 py-2 text-dark-text-primary focus:outline-none focus:border-accent-blue transition-colors;
+  }
+
+  .text-profit {
+    @apply text-trading-profit;
+  }
+
+  .text-loss {
+    @apply text-trading-loss;
+  }
+}
+
+@layer utilities {
+  .glow-green {
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+  }
+
+  .glow-red {
+    box-shadow: 0 0 10px rgba(255, 0, 64, 0.5);
+  }
+
+  .terminal-border {
+    border: 1px solid #00ff41;
+    box-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
+  }
+}
