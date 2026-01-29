@@ -4,50 +4,56 @@ export default {
         "./index.html",
         "./src/**/*.{js,ts,jsx,tsx}",
     ],
-    darkMode: 'class',
     theme: {
         extend: {
             colors: {
-                // Terminal-style dark theme
-                dark: {
-                    bg: '#0a0a0a',
-                    surface: '#121212',
-                    elevated: '#1a1a1a',
-                    border: '#2a2a2a',
-                    text: {
-                        primary: '#e0e0e0',
-                        secondary: '#a0a0a0',
-                        muted: '#707070'
-                    }
+                // Zerodha Kite-inspired color palette
+                primary: {
+                    DEFAULT: '#387ed1',
+                    dark: '#2e6bb3',
+                    light: '#5a9ae0',
                 },
-                accent: {
-                    green: '#00ff41',
-                    red: '#ff0040',
-                    blue: '#00d4ff',
-                    yellow: '#ffd700',
-                    purple: '#b026ff'
+                success: {
+                    DEFAULT: '#00c48c',
+                    dark: '#00a876',
+                    light: '#33d0a3',
                 },
-                trading: {
-                    buy: '#00ff41',
-                    sell: '#ff0040',
-                    profit: '#00ff41',
-                    loss: '#ff0040'
-                }
+                danger: {
+                    DEFAULT: '#ff5b5b',
+                    dark: '#e64545',
+                    light: '#ff7b7b',
+                },
+                background: {
+                    DEFAULT: '#fafafa',
+                    dark: '#f5f5f5',
+                },
+                surface: {
+                    DEFAULT: '#ffffff',
+                    hover: '#f8f9fa',
+                },
+                text: {
+                    primary: '#424242',
+                    secondary: '#666666',
+                    muted: '#999999',
+                },
+                border: {
+                    DEFAULT: '#dddddd',
+                    light: '#eeeeee',
+                },
             },
             fontFamily: {
+                sans: ['Inter', 'system-ui', 'sans-serif'],
                 mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
-                sans: ['Inter', 'system-ui', 'sans-serif']
+            },
+            boxShadow: {
+                'sm': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                'DEFAULT': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                'md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
             },
             animation: {
                 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                'glow': 'glow 2s ease-in-out infinite alternate',
             },
-            keyframes: {
-                glow: {
-                    '0%': { boxShadow: '0 0 5px rgba(0, 255, 65, 0.5)' },
-                    '100%': { boxShadow: '0 0 20px rgba(0, 255, 65, 0.8)' }
-                }
-            }
         },
     },
     plugins: [],

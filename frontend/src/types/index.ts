@@ -1,0 +1,47 @@
+export interface User {
+    id: string;
+    email: string;
+}
+
+export interface Stock {
+    symbol: string;
+    instrumentKey: string;
+    ltp?: number;
+    change?: number;
+    changePercent?: number;
+}
+
+export interface PriceUpdate {
+    symbol: string;
+    instrumentKey: string;
+    ltp: number;
+    timestamp: number;
+}
+
+export interface Holding {
+    symbol: string;
+    instrumentKey: string;
+    quantity: number;
+    avgPrice: number;
+    currentPrice?: number;
+    pnl?: number;
+    pnlPercent?: number;
+}
+
+export interface Order {
+    id: string;
+    symbol: string;
+    type: 'BUY' | 'SELL';
+    quantity: number;
+    price: number;
+    timestamp: string;
+    status: string;
+}
+
+export interface Portfolio {
+    totalValue: number;
+    totalInvestment: number;
+    totalPnL: number;
+    totalPnLPercent: number;
+    holdings: Holding[];
+}

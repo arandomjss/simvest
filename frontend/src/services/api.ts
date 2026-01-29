@@ -1,0 +1,67 @@
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+// Create axios instance
+const api = axios.create({
+    baseURL: API_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
+// Add auth token to requests
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('supabase.auth.token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+export const apiService = {
+    // Trading endpoints
+    async executeTrade(symbol: string, instrumentKey: string, type: 'BUY' | 'SELL', quantity: number) {
+        const response = await api.post('/api/trade/execute', {
+            symbol,
+            instrumentKey,
+            type,
+            quantity,
+        });
+        return response.data;
+    },
+
+    async getPortfolio() {
+        const response = await api.get('/api/trade/portfolio');
+        return response.data.portfolio;
+    },
+
+    async getOrderHistory(limit = 50, offset = 0) {
+        const response = await api.get('/api/trade/orders/history', {
+            params: { limit, offset },
+        });
+        return response.data.orders;
+    },
+
+    // Market endpoints
+    async getInstruments() {
+        const response = await api.get('/api/market/instruments');
+        return response.data.instruments;
+    },
+
+    async getHistoricalData(instrumentKey: string, interval = '1minute') {
+        const response = await api.get(`/api/market/historical/${instrumentKey}`, {
+            params: { interval },
+        });
+        return response.data.candles;
+    },
+
+    async getMarketSignals(limit = 20) {
+        const response = await api.get('/api/market/signals', {
+            params: { limit },
+        });
+        return response.data.signals;
+    },
+};
+
+export default api;

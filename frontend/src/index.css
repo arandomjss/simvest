@@ -3,12 +3,8 @@
 @tailwind utilities;
 
 @layer base {
-  * {
-    @apply border-dark-border;
-  }
-  
   body {
-    @apply bg-dark-bg text-dark-text-primary font-sans antialiased;
+    @apply bg-background text-text-primary font-sans antialiased;
   }
 
   /* Custom scrollbar */
@@ -18,59 +14,54 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-dark-surface;
+    @apply bg-gray-100;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-dark-border rounded;
+    @apply bg-gray-300 rounded;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-dark-text-muted;
+    @apply bg-gray-400;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply px-4 py-2 bg-accent-blue text-dark-bg font-semibold rounded hover:bg-opacity-90 transition-all duration-200;
+    @apply px-4 py-2 bg-primary text-white font-medium rounded hover:bg-primary-dark transition-all duration-200;
   }
 
-  .btn-buy {
-    @apply px-4 py-2 bg-trading-buy text-dark-bg font-semibold rounded hover:bg-opacity-90 transition-all duration-200;
+  .btn-success {
+    @apply px-4 py-2 bg-success text-white font-medium rounded hover:bg-success-dark transition-all duration-200;
   }
 
-  .btn-sell {
-    @apply px-4 py-2 bg-trading-sell text-dark-bg font-semibold rounded hover:bg-opacity-90 transition-all duration-200;
+  .btn-danger {
+    @apply px-4 py-2 bg-danger text-white font-medium rounded hover:bg-danger-dark transition-all duration-200;
   }
 
   .card {
-    @apply bg-dark-surface border border-dark-border rounded-lg p-4;
+    @apply bg-surface border border-border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200;
   }
 
   .input-field {
-    @apply bg-dark-elevated border border-dark-border rounded px-3 py-2 text-dark-text-primary focus:outline-none focus:border-accent-blue transition-colors;
+    @apply bg-surface border border-border rounded px-3 py-2 text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors;
   }
 
-  .text-profit {
-    @apply text-trading-profit;
-  }
-
-  .text-loss {
-    @apply text-trading-loss;
+  .table-row {
+    @apply border-b border-gray-100 hover:bg-gray-50 transition-colors;
   }
 }
 
 @layer utilities {
-  .glow-green {
-    box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+  .text-profit {
+    @apply text-success;
   }
 
-  .glow-red {
-    box-shadow: 0 0 10px rgba(255, 0, 64, 0.5);
+  .text-loss {
+    @apply text-danger;
   }
 
-  .terminal-border {
-    border: 1px solid #00ff41;
-    box-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
+  .shadow-card {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   }
 }
