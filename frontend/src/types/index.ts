@@ -5,6 +5,7 @@ export interface User {
 
 export interface Stock {
     symbol: string;
+    name?: string; // Added optional name
     instrumentKey: string;
     ltp?: number;
     change?: number;
@@ -37,7 +38,7 @@ export interface Order {
     symbol: string;
     type: 'BUY' | 'SELL';
     quantity: number;
-    price: number;
+    execution_price: number;
     timestamp: string;
     status: string;
 }
@@ -48,4 +49,5 @@ export interface Portfolio {
     totalPnL: number;
     totalPnLPercent: number;
     holdings: Holding[];
+    cashBalance: number;
 }

@@ -1,6 +1,5 @@
 import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../stores/authStore';
 import { useMarketStore } from '../stores/marketStore';
 import { usePortfolioStore } from '../stores/portfolioStore';
 import { PerformanceMetrics } from '../components/PerformanceMetrics';
@@ -8,12 +7,13 @@ import { PortfolioPerformanceChart } from '../components/PortfolioPerformanceCha
 import { SectorAllocationChart } from '../components/SectorAllocationChart';
 import { TopGainersLosers } from '../components/TopGainersLosers';
 import { generatePortfolioHistory, getTodaysPnL } from '../services/portfolioHistory';
+import { Navbar } from '../components/Navbar';
+import { OrdersTable } from '../components/OrdersTable';
 
 export const PortfolioPage = () => {
     const navigate = useNavigate();
-    const { user, signOut } = useAuthStore();
-    const { prices, connectWebSocket, disconnectWebSocket } = useMarketStore();
-    const { portfolio, fetchPortfolio, updatePortfolioWithPrices } = usePortfolioStore();
+    const { prices, stocks, connectWebSocket, disconnectWebSocket } = useMarketStore();
+    const { portfolio, orders, fetchPortfolio, fetchOrders, updatePortfolioWithPrices } = usePortfolioStore();
 
     const holdings = portfolio?.holdings || [];
 
@@ -35,6 +35,7 @@ export const PortfolioPage = () => {
     useEffect(() => {
         // Fetch portfolio data
         fetchPortfolio();
+        fetchOrders();
 
         // Connect to WebSocket for real-time updates
         connectWebSocket();
@@ -50,54 +51,11 @@ export const PortfolioPage = () => {
         }
     }, [prices, updatePortfolioWithPrices]);
 
-    const handleSignOut = async () => {
-        await signOut();
-        navigate('/login');
-    };
-
     const formatPrice = (price: number) => `₹${price.toFixed(2)}`;
 
     return (
         <div className="min-h-screen bg-background">
-            {/* Navigation Bar */}
-            <nav className="bg-surface border-b border-border shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-14">
-                        <div className="flex items-center space-x-8">
-                            <h1 className="text-xl font-bold text-primary">SimVest</h1>
-                            <div className="hidden md:flex space-x-1">
-                                <button
-                                    onClick={() => navigate('/dashboard')}
-                                    className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-hover rounded transition"
-                                >
-                                    Dashboard
-                                </button>
-                                <button
-                                    onClick={() => navigate('/portfolio')}
-                                    className="px-4 py-2 text-sm font-medium text-primary bg-primary/5 rounded"
-                                >
-                                    Portfolio
-                                </button>
-                                <button
-                                    onClick={() => navigate('/orders')}
-                                    className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-hover rounded transition"
-                                >
-                                    Orders
-                                </button>
-                            </div>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                            <span className="text-sm text-text-secondary">{user?.email}</span>
-                            <button
-                                onClick={handleSignOut}
-                                className="px-4 py-1.5 text-sm font-medium text-danger hover:bg-danger/5 rounded transition"
-                            >
-                                Logout
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </nav>
+            <Navbar />
 
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -168,7 +126,16 @@ export const PortfolioPage = () => {
                                             <td className="py-3 px-3 text-sm font-medium text-text-primary">{holding.symbol}</td>
                                             <td className="py-3 px-3 text-sm text-text-primary text-right">{holding.quantity}</td>
                                             <td className="py-3 px-3 text-sm text-text-secondary text-right">{formatPrice(holding.avgPrice)}</td>
-                                            <td className="py-3 px-3 text-sm text-text-primary text-right">{formatPrice(holding.currentPrice || holding.avgPrice)}</td>
+                                            <td className="py-3 px-3 text-sm text-text-primary text-right">
+                                                <div className="flex flex-col items-end">
+                                                    <span>{formatPrice(holding.currentPrice || holding.avgPrice)}</span>
+                                                    <span className="text-[10px] text-text-secondary opacity-70">
+                                                        {stocks.find(s => s.instrumentKey === holding.instrumentKey)?.lastUpdated
+                                                            ? new Date(stocks.find(s => s.instrumentKey === holding.instrumentKey)!.lastUpdated!).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+                                                            : '--:--'}
+                                                    </span>
+                                                </div>
+                                            </td>
                                             <td className="py-3 px-3 text-sm text-text-primary text-right">{formatPrice((holding.currentPrice || holding.avgPrice) * holding.quantity)}</td>
                                             <td className={`py-3 px-3 text-sm text-right ${(holding.pnl || 0) >= 0 ? 'text-profit' : 'text-loss'}`}>
                                                 {formatPrice(holding.pnl || 0)}
@@ -182,6 +149,11 @@ export const PortfolioPage = () => {
                             </table>
                         </div>
                     )}
+                </div>
+
+                {/* Orders History */}
+                <div className="mt-8 mb-12">
+                    <OrdersTable orders={orders} />
                 </div>
             </div>
         </div>

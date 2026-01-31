@@ -15,13 +15,48 @@ export interface VolumeData {
 export type Timeframe = '1D' | '1W' | '1M' | '3M' | '1Y';
 
 /**
+ * Simple Linear Congruential Generator for seeded random numbers
+ */
+class SeededRNG {
+    private seed: number;
+
+    constructor(seedStr: string) {
+        // Create a numeric hash from the string
+        let hash = 0;
+        for (let i = 0; i < seedStr.length; i++) {
+            const char = seedStr.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32bit integer
+        }
+        this.seed = Math.abs(hash);
+    }
+
+    // Returns a pseudo-random float between 0 and 1
+    nextFloat(): number {
+        const m = 0x80000000;
+        const a = 1103515245;
+        const c = 12345;
+
+        this.seed = (a * this.seed + c) % m;
+        return this.seed / (m - 1);
+    }
+
+    // Returns a pseudo-random integer between min and max (inclusive)
+    nextRange(min: number, max: number): number {
+        return Math.floor(this.nextFloat() * (max - min + 1)) + min;
+    }
+}
+
+/**
  * Generate realistic mock historical OHLC data for a stock
  */
 export const generateHistoricalData = (
     currentPrice: number,
-    timeframe: Timeframe
+    timeframe: Timeframe,
+    seed: string = 'default'
 ): { ohlc: OHLCData[]; volume: VolumeData[] } => {
-    const now = Date.now() / 1000; // Unix timestamp in seconds
+    const rng = new SeededRNG(seed);
+    const now = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
     let numCandles: number;
     let candleInterval: number; // in seconds
 
@@ -56,27 +91,46 @@ export const generateHistoricalData = (
     const volume: VolumeData[] = [];
 
     // Start from current price and work backwards
-    let price = currentPrice;
+    // We want the chart to end exactly at currentPrice.
+    // However, generating backwards is tricky with random walks if we want a specific 'shape'.
+    // A better approach for deterministic charts ending at X:
+    // Generate a forward path from 0 to N using the seed.
+    // Calculate the cumulative change.
+    // Offset the entire series so the last point equals currentPrice.
+
+    const changes: number[] = [];
     const volatility = currentPrice * 0.02; // 2% volatility
 
-    for (let i = numCandles - 1; i >= 0; i--) {
+    for (let i = 0; i < numCandles; i++) {
+        // Use RNG for everything
+        const change = (rng.nextFloat() - 0.5) * volatility;
+        changes.push(change);
+    }
+
+    // Construct the price series backwards from currentPrice
+    let price = currentPrice;
+
+    for (let i = 0; i < numCandles; i++) {
         const time = now - i * candleInterval;
 
-        // Generate random price movement
-        const change = (Math.random() - 0.5) * volatility;
-        const open = price;
-        const close = price + change;
+        // We go backwards, so the 'change' we generated for step i is inverted
+        // effectively: previous_close + change = current_close
+        // so: previous_close = current_close - change
 
-        // Ensure high is highest and low is lowest
-        const high = Math.max(open, close) + Math.random() * volatility * 0.5;
-        const low = Math.min(open, close) - Math.random() * volatility * 0.5;
+        const change = changes[i]; // Use the generated changes
+        const close = price;
+        const open = price - change;
 
-        // Generate volume (random but realistic)
+        // High/Low based on open/close
+        const high = Math.max(open, close) + rng.nextFloat() * volatility * 0.5;
+        const low = Math.min(open, close) - rng.nextFloat() * volatility * 0.5;
+
+        // Volume
         const baseVolume = 100000;
-        const volumeValue = baseVolume + Math.random() * baseVolume;
-        const volumeColor = close >= open ? '#00d09c40' : '#eb5b3c40'; // Semi-transparent green/red
+        const volumeValue = baseVolume + rng.nextFloat() * baseVolume;
+        const volumeColor = close >= open ? '#00d09c40' : '#eb5b3c40';
 
-        ohlc.push({
+        ohlc.unshift({ // Prepend to array to keep chronological order (oldest first)
             time: Math.floor(time),
             open: parseFloat(open.toFixed(2)),
             high: parseFloat(high.toFixed(2)),
@@ -84,14 +138,13 @@ export const generateHistoricalData = (
             close: parseFloat(close.toFixed(2)),
         });
 
-        volume.push({
+        volume.unshift({
             time: Math.floor(time),
             value: Math.floor(volumeValue),
             color: volumeColor,
         });
 
-        // Update price for next candle
-        price = close;
+        price = open; // The open of this candle is the close of the previous one
     }
 
     return { ohlc, volume };

@@ -131,7 +131,8 @@ class YahooFinanceService {
                     price: 0,
                     change: 0,
                     changePercent: 0,
-                    lastUpdated: new Date().toISOString()
+                    changePercent: 0,
+                    lastUpdated: Date.now()
                 };
             });
         } catch (error) {
@@ -156,7 +157,7 @@ class YahooFinanceService {
             open: yahooData.regularMarketOpen || 0,
             previousClose: yahooData.regularMarketPreviousClose || 0,
             marketCap: yahooData.marketCap || 0,
-            lastUpdated: new Date().toISOString(),
+            lastUpdated: yahooData.regularMarketTime ? new Date(yahooData.regularMarketTime).getTime() : Date.now(),
         };
     }
 

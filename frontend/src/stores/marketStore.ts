@@ -52,13 +52,10 @@ export const useMarketStore = create<MarketState>((set, get) => ({
         const updatedStocks = stocks.map((stock) => {
             if (stock.instrumentKey === update.instrumentKey) {
                 // Use backend values if available, otherwise fallback to local calculation
-                let change = update.change;
-                let changePercent = update.changePercent;
-
-                if (change === undefined || changePercent === undefined) {
-                    change = oldPrice ? update.ltp - oldPrice : 0;
-                    changePercent = oldPrice ? (change / oldPrice) * 100 : 0;
-                }
+                // Always prioritize backend values for Day Change.
+                // Fallback to 0 if missing, to avoid confusing tick-to-tick updates.
+                const change = update.change !== undefined ? update.change : 0;
+                const changePercent = update.changePercent !== undefined ? update.changePercent : 0;
 
                 return {
                     ...stock,

@@ -71,7 +71,7 @@ export const WatchlistSidebar = ({ onTrade }: WatchlistSidebarProps) => {
                                             </div>
                                             {stock.lastUpdated && (
                                                 <div className="text-[10px] text-text-muted mt-0.5">
-                                                    {new Date(stock.lastUpdated).toLocaleTimeString()}
+                                                    {new Date(stock.lastUpdated).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                                                 </div>
                                             )}
                                         </div>

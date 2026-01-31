@@ -5,10 +5,7 @@ import { generateHistoricalData, Timeframe } from '../services/historicalData';
 import {
     calculateSMA,
     calculateEMA,
-    calculateRSI,
-    calculateMACD,
-    IndicatorData,
-    MACDData
+    IndicatorData
 } from '../services/technicalIndicators';
 
 import { Stock } from '../types';
@@ -45,7 +42,6 @@ export const ChartModal = ({ stock, onClose }: ChartModalProps) => {
             try {
                 // Map timeframe to API interval/range
                 let interval = '1d';
-                let range = '1mo';
 
                 switch (timeframe) {
                     case '1D':
@@ -99,7 +95,8 @@ export const ChartModal = ({ stock, onClose }: ChartModalProps) => {
                 console.error("Failed to fetch chart data", error);
                 // Fallback to mock if fetch fails?
                 if (stock.ltp) {
-                    const data = generateHistoricalData(stock.ltp, timeframe);
+                    const key = (stock as any).instrumentKey || calculateInstrumentKey(stock.symbol);
+                    const data = generateHistoricalData(stock.ltp, timeframe, key);
                     setChartData(data);
                 }
             }

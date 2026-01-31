@@ -21,12 +21,14 @@ api.interceptors.request.use((config) => {
 
 export const apiService = {
     // Trading endpoints
-    async executeTrade(symbol: string, instrumentKey: string, type: 'BUY' | 'SELL', quantity: number) {
+    async executeTrade(symbol: string, instrumentKey: string, type: 'BUY' | 'SELL', quantity: number, orderType: 'MARKET' | 'LIMIT' = 'MARKET', limitPrice?: number) {
         const response = await api.post('/api/trade/execute', {
             symbol,
             instrumentKey,
             type,
             quantity,
+            orderType,
+            limitPrice
         });
         return response.data;
     },

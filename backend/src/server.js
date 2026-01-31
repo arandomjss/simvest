@@ -102,8 +102,10 @@ async function initializeServices() {
         if (useMockData) {
             // Use mock service for development
             console.log('💡 Using Mock WebSocket Service (USE_MOCK_DATA=true)');
-            const mockMarketDataService = new MarketDataService(io);
-            mockMarketDataService.start();
+            // Use mock service for development
+            console.log('💡 Using Mock WebSocket Service (USE_MOCK_DATA=true)');
+            marketStreamService = new MarketDataService(io);
+            marketStreamService.start();
         } else {
             // Use real Upstox service
             console.log('🔗 Connecting to Upstox WebSocket...');

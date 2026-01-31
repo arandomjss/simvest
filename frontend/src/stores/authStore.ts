@@ -86,7 +86,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             const mockToken = localStorage.getItem('supabase.auth.token');
             if (mockToken === 'mock-token-dev') {
                 set({
-                    user: { id: 'dev-user-123', email: 'dev@simvest.com' },
+                    user: { id: '11111111-1111-1111-1111-111111111111', email: 'dev@simvest.com' },
                     isAuthenticated: true,
                     isLoading: false,
                 });

@@ -16,6 +16,12 @@ async function authenticateUser(req, res, next) {
 
         const token = authHeader.substring(7);
 
+        if (process.env.USE_MOCK_DATA === 'true' && token === 'mock-token-dev') {
+            console.log('⚠️  Authenticating with MOCK TOKEN');
+            req.userId = '11111111-1111-1111-1111-111111111111';
+            return next();
+        }
+
         const { data: { user }, error } = await supabaseAnon.auth.getUser(token);
 
         if (error || !user) {
@@ -35,7 +41,7 @@ async function authenticateUser(req, res, next) {
  */
 router.post('/execute', authenticateUser, async (req, res) => {
     try {
-        const { symbol, instrumentKey, type, quantity } = req.body;
+        const { symbol, instrumentKey, type, quantity, orderType, limitPrice } = req.body;
 
         // Validate inputs
         if (!symbol || !instrumentKey || !type || !quantity) {
@@ -49,7 +55,9 @@ router.post('/execute', authenticateUser, async (req, res) => {
             symbol,
             instrumentKey,
             type,
-            quantity
+            quantity,
+            orderType,
+            limitPrice
         });
 
         res.json(result);

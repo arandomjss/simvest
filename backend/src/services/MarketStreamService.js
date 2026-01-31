@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events';
 import WebSocket from 'ws';
 import protobuf from 'protobufjs';
 import { fileURLToPath } from 'url';
@@ -12,8 +13,9 @@ const __dirname = dirname(__filename);
 // Price cache with 5-second TTL
 const priceCache = new NodeCache({ stdTTL: 5 });
 
-class MarketStreamService {
+class MarketStreamService extends EventEmitter {
     constructor(io) {
+        super();
         this.io = io; // Socket.io instance for broadcasting
         this.ws = null;
         this.proto = null;
@@ -182,29 +184,42 @@ class MarketStreamService {
 
         // Extract LTPC (Last Traded Price, Time, Quantity)
         let ltp = null;
+        let ltt = null;
 
         if (feed.ltpc) {
             ltp = feed.ltpc.ltp;
+            ltt = feed.ltpc.ltt;
         } else if (feed.fullFeed?.marketFF?.ltpc) {
             ltp = feed.fullFeed.marketFF.ltpc.ltp;
+            ltt = feed.fullFeed.marketFF.ltpc.ltt;
         } else if (feed.fullFeed?.indexFF?.ltpc) {
             ltp = feed.fullFeed.indexFF.ltpc.ltp;
+            ltt = feed.fullFeed.indexFF.ltpc.ltt;
         }
 
         if (ltp) {
             // Cache price
             priceCache.set(instrumentKey, ltp);
 
+            // Use exchange timestamp if available (ltt is string due to protobuf config)
+            const exchangeTimestamp = ltt ? parseInt(ltt, 10) : Date.now();
+
             // Broadcast to Socket.io room
             const priceUpdate = {
                 symbol,
                 instrumentKey,
                 ltp,
-                timestamp: Date.now()
+                timestamp: exchangeTimestamp
             };
 
             this.io.to(`room:${instrumentKey}`).emit('price_update', priceUpdate);
             this.io.to('room:all').emit('price_update', priceUpdate);
+
+            // Emit internal event for matching engine
+            this.emit('priceUpdate', {
+                instrumentKey,
+                ltp
+            });
         }
     }
 

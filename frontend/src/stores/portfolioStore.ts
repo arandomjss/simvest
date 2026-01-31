@@ -10,7 +10,7 @@ interface PortfolioState {
 
     fetchPortfolio: () => Promise<void>;
     fetchOrders: (limit?: number, offset?: number) => Promise<void>;
-    executeTrade: (symbol: string, instrumentKey: string, type: 'BUY' | 'SELL', quantity: number) => Promise<void>;
+    executeTrade: (symbol: string, instrumentKey: string, type: 'BUY' | 'SELL', quantity: number, orderType?: 'MARKET' | 'LIMIT', limitPrice?: number) => Promise<void>;
     updatePortfolioWithPrices: (prices: Map<string, number>) => void;
 }
 
@@ -46,10 +46,10 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
         }
     },
 
-    executeTrade: async (symbol: string, instrumentKey: string, type: 'BUY' | 'SELL', quantity: number) => {
+    executeTrade: async (symbol: string, instrumentKey: string, type: 'BUY' | 'SELL', quantity: number, orderType: 'MARKET' | 'LIMIT' = 'MARKET', limitPrice?: number) => {
         try {
             set({ isLoading: true, error: null });
-            await apiService.executeTrade(symbol, instrumentKey, type, quantity);
+            await apiService.executeTrade(symbol, instrumentKey, type, quantity, orderType, limitPrice);
 
             // Refresh portfolio and orders after trade
             await get().fetchPortfolio();
