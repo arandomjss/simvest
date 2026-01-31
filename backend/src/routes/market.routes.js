@@ -1,6 +1,6 @@
 import express from 'express';
-import { getAllInstrumentKeys, getInstrumentKey, NIFTY_50_SYMBOLS } from '../config/nifty50.config.js';
-import { getHistoricalData } from '../config/upstox.config.js';
+import yahooFinanceService from '../services/YahooFinanceService.js';
+import { getSymbolFromKey, getInstrumentKey, NIFTY_50_SYMBOLS } from '../config/nifty50.config.js';
 import { supabase } from '../config/supabase.config.js';
 
 const router = express.Router();
@@ -25,14 +25,34 @@ router.get('/instruments', (req, res) => {
 
 /**
  * GET /api/market/historical/:instrumentKey
- * Fetch historical candle data
+ * Fetch historical candle data from Yahoo Finance
  */
 router.get('/historical/:instrumentKey', async (req, res) => {
     try {
         const { instrumentKey } = req.params;
-        const interval = req.query.interval || '1minute';
+        const interval = req.query.interval || '1d';
 
-        const candles = await getHistoricalData(instrumentKey, interval);
+        // Convert instrument key to symbol
+        const symbol = getSymbolFromKey(instrumentKey);
+        if (!symbol) {
+            throw new Error('Invalid instrument key');
+        }
+
+        // Map interval to Yahoo Finance format
+        let yahooInterval = '1d';
+        let period = '1mo';
+
+        if (interval === 'day' || interval === '1d') {
+            yahooInterval = '1d';
+            period = '1y';
+        } else if (interval === '1minute') {
+            // Yahoo free tier supports '1d', '5d', '1mo' well. Intraday '1m' might be tricky.
+            // Try to get 1m data for last 5 days
+            yahooInterval = '1m';
+            period = '5d';
+        }
+
+        const candles = await yahooFinanceService.getHistoricalData(symbol, period, yahooInterval);
 
         res.json({ candles });
     } catch (error) {

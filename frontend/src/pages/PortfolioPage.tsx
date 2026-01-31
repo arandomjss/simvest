@@ -1,8 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { useMarketStore } from '../stores/marketStore';
 import { usePortfolioStore } from '../stores/portfolioStore';
+import { PerformanceMetrics } from '../components/PerformanceMetrics';
+import { PortfolioPerformanceChart } from '../components/PortfolioPerformanceChart';
+import { SectorAllocationChart } from '../components/SectorAllocationChart';
+import { TopGainersLosers } from '../components/TopGainersLosers';
+import { generatePortfolioHistory, getTodaysPnL } from '../services/portfolioHistory';
 
 export const PortfolioPage = () => {
     const navigate = useNavigate();
@@ -11,6 +16,21 @@ export const PortfolioPage = () => {
     const { portfolio, fetchPortfolio, updatePortfolioWithPrices } = usePortfolioStore();
 
     const holdings = portfolio?.holdings || [];
+
+    // Generate portfolio history
+    const portfolioHistory = useMemo(() => {
+        if (!portfolio) return [];
+        return generatePortfolioHistory(
+            portfolio.totalValue,
+            portfolio.totalInvestment,
+            365
+        );
+    }, [portfolio?.totalValue, portfolio?.totalInvestment]);
+
+    // Calculate today's P&L
+    const todaysPnL = useMemo(() => {
+        return getTodaysPnL(portfolioHistory);
+    }, [portfolioHistory]);
 
     useEffect(() => {
         // Fetch portfolio data
@@ -81,29 +101,36 @@ export const PortfolioPage = () => {
 
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                {/* Portfolio Summary */}
+                {/* Performance Metrics */}
                 {portfolio && (
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <div className="card p-4">
-                            <p className="text-xs text-text-secondary mb-1">Total Value</p>
-                            <p className="text-2xl font-semibold text-text-primary">{formatPrice(portfolio.totalValue)}</p>
+                    <PerformanceMetrics
+                        portfolio={{
+                            totalValue: portfolio.totalValue,
+                            totalInvested: portfolio.totalInvestment,
+                            totalPnL: portfolio.totalPnL,
+                            totalPnLPercent: portfolio.totalPnLPercent,
+                        }}
+                        todaysPnL={todaysPnL}
+                        holdingsCount={holdings.length}
+                    />
+                )}
+
+                {/* Charts */}
+                {portfolio && holdings.length > 0 && (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                        <div className="lg:col-span-2">
+                            <PortfolioPerformanceChart history={portfolioHistory} />
                         </div>
-                        <div className="card p-4">
-                            <p className="text-xs text-text-secondary mb-1">Investment</p>
-                            <p className="text-2xl font-semibold text-text-primary">{formatPrice(portfolio.totalInvestment)}</p>
+                        <div>
+                            <SectorAllocationChart holdings={holdings} />
                         </div>
-                        <div className="card p-4">
-                            <p className="text-xs text-text-secondary mb-1">P&L</p>
-                            <p className={`text-2xl font-semibold ${portfolio.totalPnL >= 0 ? 'text-profit' : 'text-loss'}`}>
-                                {formatPrice(portfolio.totalPnL)}
-                            </p>
-                        </div>
-                        <div className="card p-4">
-                            <p className="text-xs text-text-secondary mb-1">P&L %</p>
-                            <p className={`text-2xl font-semibold ${portfolio.totalPnLPercent >= 0 ? 'text-profit' : 'text-loss'}`}>
-                                {portfolio.totalPnLPercent.toFixed(2)}%
-                            </p>
-                        </div>
+                    </div>
+                )}
+
+                {/* Top Gainers/Losers */}
+                {holdings.length > 0 && (
+                    <div className="mb-6">
+                        <TopGainersLosers holdings={holdings} />
                     </div>
                 )}
 

@@ -93,8 +93,13 @@ export const useAuthStore = create<AuthState>((set) => ({
                 return;
             }
 
-            // Check for real Supabase session
-            const session = await authService.getSession();
+            // Check for real Supabase session with timeout
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Auth check timeout')), 3000)
+            );
+
+            const sessionPromise = authService.getSession();
+            const session = await Promise.race([sessionPromise, timeoutPromise]) as any;
 
             if (session?.access_token) {
                 localStorage.setItem('supabase.auth.token', session.access_token);
@@ -112,6 +117,7 @@ export const useAuthStore = create<AuthState>((set) => ({
                 });
             }
         } catch (error) {
+            console.warn('Auth check failed, user not authenticated:', error);
             set({
                 user: null,
                 isAuthenticated: false,

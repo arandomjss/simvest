@@ -5,6 +5,8 @@ const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:3000';
 class WebSocketService {
     private socket: Socket | null = null;
     private priceCallbacks: Map<string, (data: any) => void> = new Map();
+    private pendingSubscribeAll = false;
+    private pendingInstruments: string[] = [];
 
     connect() {
         if (this.socket?.connected) {
@@ -21,6 +23,19 @@ class WebSocketService {
 
         this.socket.on('connect', () => {
             console.log('✅ WebSocket connected');
+
+            // Process pending subscriptions
+            if (this.pendingSubscribeAll) {
+                this.socket?.emit('subscribe_all');
+                console.log('📡 Subscribed to all instruments (deferred)');
+                this.pendingSubscribeAll = false;
+            }
+
+            if (this.pendingInstruments.length > 0) {
+                this.socket?.emit('subscribe', this.pendingInstruments);
+                console.log(`📡 Subscribed to ${this.pendingInstruments.length} instruments (deferred)`);
+                this.pendingInstruments = [];
+            }
         });
 
         this.socket.on('disconnect', () => {
@@ -43,12 +58,15 @@ class WebSocketService {
         if (this.socket) {
             this.socket.disconnect();
             this.socket = null;
+            this.pendingSubscribeAll = false;
+            this.pendingInstruments = [];
         }
     }
 
     subscribeToInstruments(instrumentKeys: string[]) {
         if (!this.socket?.connected) {
-            console.warn('WebSocket not connected');
+            console.log('⏳ WebSocket connecting... queueing subscription');
+            this.pendingInstruments = [...this.pendingInstruments, ...instrumentKeys];
             return;
         }
 
@@ -58,7 +76,8 @@ class WebSocketService {
 
     subscribeToAll() {
         if (!this.socket?.connected) {
-            console.warn('WebSocket not connected');
+            console.log('⏳ WebSocket connecting... queueing subscribe_all');
+            this.pendingSubscribeAll = true;
             return;
         }
 

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useMarketStore } from '../stores/marketStore';
 import { useWatchlistStore } from '../stores/watchlistStore';
 
@@ -7,7 +6,6 @@ interface WatchlistSidebarProps {
 }
 
 export const WatchlistSidebar = ({ onTrade }: WatchlistSidebarProps) => {
-    const [isCollapsed, setIsCollapsed] = useState(false);
     const { stocks } = useMarketStore();
     const { watchlist, removeFromWatchlist } = useWatchlistStore();
 
@@ -28,36 +26,12 @@ export const WatchlistSidebar = ({ onTrade }: WatchlistSidebarProps) => {
         };
     };
 
-    if (isCollapsed) {
-        return (
-            <div className="w-12 bg-surface border-r border-border flex flex-col items-center py-4">
-                <button
-                    onClick={() => setIsCollapsed(false)}
-                    className="text-text-secondary hover:text-primary transition"
-                    title="Expand Watchlist"
-                >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                </button>
-            </div>
-        );
-    }
-
     return (
-        <div className="w-64 bg-surface border-r border-border flex flex-col h-full">
+        <div className="w-72 bg-surface border-r border-border flex flex-col h-full shrink-0">
             {/* Header */}
             <div className="flex items-center justify-between p-3 border-b border-border">
                 <h3 className="text-sm font-semibold text-text-primary">Watchlist</h3>
-                <button
-                    onClick={() => setIsCollapsed(true)}
-                    className="text-text-secondary hover:text-primary transition"
-                    title="Collapse"
-                >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                </button>
+                <span className="text-xs text-text-secondary">{watchlistStocks.length} Items</span>
             </div>
 
             {/* Watchlist Items */}
@@ -95,6 +69,11 @@ export const WatchlistSidebar = ({ onTrade }: WatchlistSidebarProps) => {
                                             <div className="text-xs text-text-primary font-medium mt-0.5">
                                                 {formatPrice(stock.ltp)}
                                             </div>
+                                            {stock.lastUpdated && (
+                                                <div className="text-[10px] text-text-muted mt-0.5">
+                                                    {new Date(stock.lastUpdated).toLocaleTimeString()}
+                                                </div>
+                                            )}
                                         </div>
                                         <div className={`text-xs font-medium ${change.isPositive ? 'text-profit' : 'text-loss'}`}>
                                             {change.text}

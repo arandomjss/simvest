@@ -11,13 +11,15 @@ import { loadNifty50Instruments } from './config/nifty50.config.js';
 
 // Import services
 import MarketStreamService from './services/MarketStreamService.js';
-import MockWebSocketService from './services/MockWebSocketService.js';
 import TradingEngine from './services/TradingEngine.js';
+import MarketDataService from './services/MarketDataService.js';
 
 // Import routes
 import authRoutes from './routes/auth.routes.js';
 import tradeRoutes from './routes/trade.routes.js';
 import marketRoutes from './routes/market.routes.js';
+import upstoxRoutes from './routes/upstox.routes.js';
+import yahooRoutes from './routes/yahoo.routes.js';
 
 // Import middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -54,6 +56,8 @@ app.get('/health', (req, res) => {
 app.use('/auth', authRoutes);
 app.use('/api/trade', tradeRoutes);
 app.use('/api/market', marketRoutes);
+app.use('/api/upstox', upstoxRoutes);
+app.use('/api/yahoo', yahooRoutes);
 
 // Error handlers
 app.use(notFoundHandler);
@@ -98,8 +102,8 @@ async function initializeServices() {
         if (useMockData) {
             // Use mock service for development
             console.log('💡 Using Mock WebSocket Service (USE_MOCK_DATA=true)');
-            marketStreamService = new MockWebSocketService(io);
-            marketStreamService.start();
+            const mockMarketDataService = new MarketDataService(io);
+            mockMarketDataService.start();
         } else {
             // Use real Upstox service
             console.log('🔗 Connecting to Upstox WebSocket...');

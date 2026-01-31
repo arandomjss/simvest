@@ -51,14 +51,21 @@ export const useMarketStore = create<MarketState>((set, get) => ({
         // Update stocks with price info
         const updatedStocks = stocks.map((stock) => {
             if (stock.instrumentKey === update.instrumentKey) {
-                const change = oldPrice ? update.ltp - oldPrice : 0;
-                const changePercent = oldPrice ? (change / oldPrice) * 100 : 0;
+                // Use backend values if available, otherwise fallback to local calculation
+                let change = update.change;
+                let changePercent = update.changePercent;
+
+                if (change === undefined || changePercent === undefined) {
+                    change = oldPrice ? update.ltp - oldPrice : 0;
+                    changePercent = oldPrice ? (change / oldPrice) * 100 : 0;
+                }
 
                 return {
                     ...stock,
                     ltp: update.ltp,
                     change,
                     changePercent,
+                    lastUpdated: update.timestamp,
                 };
             }
             return stock;

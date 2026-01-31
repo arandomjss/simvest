@@ -9,12 +9,16 @@ export interface Stock {
     ltp?: number;
     change?: number;
     changePercent?: number;
+    volume?: number;
+    lastUpdated?: number;
 }
 
 export interface PriceUpdate {
     symbol: string;
     instrumentKey: string;
     ltp: number;
+    change?: number;
+    changePercent?: number;
     timestamp: number;
 }
 
