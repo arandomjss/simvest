@@ -4,6 +4,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { PortfolioPage } from './pages/PortfolioPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { OrdersPage } from './pages/OrdersPage';
 import { useAuthStore } from './stores/authStore';
 import { UpstoxCallbackPage } from './pages/UpstoxCallbackPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -31,6 +32,7 @@ const App = () => {
                     <Route path="/portfolio" element={<PortfolioPage />} />
                     <Route path="/practice" element={<PracticePage />} />
                     <Route path="/advisor" element={<AdvisorPage />} />
+                    <Route path="/orders" element={<OrdersPage />} />
                 </Route>
 
                 {/* Fallback */}

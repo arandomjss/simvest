@@ -17,14 +17,29 @@ export const OrdersPage = () => {
         navigate('/login');
     };
 
-    const formatPrice = (price: number) => `₹${price.toFixed(2)}`;
-    const formatDate = (date: string) => new Date(date).toLocaleString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+    const formatPrice = (price: number | undefined) => {
+        if (price === undefined || price === null || isNaN(price)) {
+            return '₹0.00';
+        }
+        return `₹${price.toFixed(2)}`;
+    };
+    
+    const formatDate = (date: string | undefined) => {
+        if (!date) return 'N/A';
+        
+        const parsedDate = new Date(date);
+        if (isNaN(parsedDate.getTime())) {
+            return 'Invalid Date';
+        }
+        
+        return parsedDate.toLocaleString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
 
     return (
         <div className="min-h-screen bg-background">
@@ -100,7 +115,7 @@ export const OrdersPage = () => {
                                 <tbody>
                                     {orders.map((order) => (
                                         <tr key={order.id} className="table-row">
-                                            <td className="py-3 px-3 text-xs text-text-secondary">{formatDate(order.createdAt)}</td>
+                                            <td className="py-3 px-3 text-xs text-text-secondary">{formatDate(order.created_at)}</td>
                                             <td className="py-3 px-3">
                                                 <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${order.type === 'BUY'
                                                         ? 'bg-success/10 text-success'
@@ -111,8 +126,8 @@ export const OrdersPage = () => {
                                             </td>
                                             <td className="py-3 px-3 text-sm font-medium text-text-primary">{order.symbol}</td>
                                             <td className="py-3 px-3 text-sm text-text-primary text-right">{order.quantity}</td>
-                                            <td className="py-3 px-3 text-sm text-text-secondary text-right">{formatPrice(order.price)}</td>
-                                            <td className="py-3 px-3 text-sm text-text-primary text-right">{formatPrice(order.total)}</td>
+                                            <td className="py-3 px-3 text-sm text-text-secondary text-right">{formatPrice(order.execution_price)}</td>
+                                            <td className="py-3 px-3 text-sm text-text-primary text-right">{formatPrice(order.total_amount)}</td>
                                             <td className="py-3 px-3">
                                                 <span className="inline-flex px-2 py-0.5 text-xs font-medium rounded bg-success/10 text-success">
                                                     {order.status}

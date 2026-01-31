@@ -51,7 +51,12 @@ export const PortfolioPage = () => {
         }
     }, [prices, updatePortfolioWithPrices]);
 
-    const formatPrice = (price: number) => `₹${price.toFixed(2)}`;
+    const formatPrice = (price: number | undefined) => {
+        if (price === undefined || price === null) {
+            return 'N/A';
+        }
+        return `₹${price.toFixed(2)}`;
+    };
 
     return (
         <div className="min-h-screen bg-background">
@@ -140,8 +145,8 @@ export const PortfolioPage = () => {
                                             <td className={`py-3 px-3 text-sm text-right ${(holding.pnl || 0) >= 0 ? 'text-profit' : 'text-loss'}`}>
                                                 {formatPrice(holding.pnl || 0)}
                                             </td>
-                                            <td className={`py-3 px-3 text-sm text-right ${(holding.pnlPercent || 0) >= 0 ? 'text-profit' : 'text-loss'}`}>
-                                                {(holding.pnlPercent || 0).toFixed(2)}%
+                                            <td className={`py-3 px-3 text-sm text-right ${(holding.pnlPercent !== undefined && holding.pnlPercent !== null) ? holding.pnlPercent.toFixed(2) : 'N/A'}`}>
+                                                {(holding.pnlPercent !== undefined && holding.pnlPercent !== null) ? holding.pnlPercent.toFixed(2) : 'N/A'}
                                             </td>
                                         </tr>
                                     ))}
