@@ -62,11 +62,16 @@ export const apiService = {
         return response.data.instruments;
     },
 
-    async getHistoricalData(instrumentKey: string, interval = '1minute') {
-        const response = await api.get(`/api/market/historical/${instrumentKey}`, {
-            params: { interval },
+    getHistoricalData: async (instrumentKey: string, interval: string = '1d', period: string = '1mo') => {
+        const response = await axios.get(`${API_URL}/market/historical/${instrumentKey}`, {
+            params: { interval, period }
         });
         return response.data.candles;
+    },
+
+    getIndices: async () => {
+        const response = await axios.get(`${API_URL}/market/indices`);
+        return response.data.indices;
     },
 
     async getMarketSignals(limit = 20) {

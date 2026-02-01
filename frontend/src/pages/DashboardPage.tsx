@@ -11,6 +11,7 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 import { PortfolioStrip } from '../components/Dashboard/PortfolioStrip';
 import { RecentActivity } from '../components/Dashboard/RecentActivity';
 import { MarketPulse } from '../components/Dashboard/MarketPulse';
+import { MarketIndices } from '../components/Dashboard/MarketIndices';
 
 export const DashboardPage = () => {
     const navigate = useNavigate();
@@ -40,7 +41,7 @@ export const DashboardPage = () => {
     return (
         <div className="h-screen bg-gray-50 dark:bg-slate-900 flex flex-col overflow-hidden text-gray-900 dark:text-white">
             {/* Top Navigation */}
-            <div className="flex-none z-30 relative">
+            <div className="flex-none">
                 <Navbar
                     showSearch={true}
                     searchTerm={searchTerm}
@@ -49,7 +50,7 @@ export const DashboardPage = () => {
             </div>
 
             {/* Status Bar (Portfolio Metrics) */}
-            <div className="flex-none z-20 relative">
+            <div className="flex-none">
                 <PortfolioStrip portfolio={portfolio} />
             </div>
 
@@ -71,6 +72,11 @@ export const DashboardPage = () => {
                 {/* Center Panel: Main Workspace */}
                 <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-900 p-1">
                     <div className="max-w-7xl mx-auto space-y-4 p-4">
+                        {/* Indices Ticker */}
+                        <ErrorBoundary>
+                            <MarketIndices />
+                        </ErrorBoundary>
+
                         {/* Market Overview Widgets */}
                         <div className="mb-6">
                             <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Market Overview</h2>

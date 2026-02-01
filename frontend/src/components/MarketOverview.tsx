@@ -16,7 +16,7 @@ export const MarketOverview = ({ stocks, isLoading = false }: MarketOverviewProp
         if (isLoading || stocks.length === 0) return [];
         const sectorMap: Record<string, { totalChange: number; count: number }> = {};
         stocks.forEach(stock => {
-            const sector = getSector(stock.symbol);
+            const sector = stock.sector || getSector(stock.symbol);
             if (!sectorMap[sector]) sectorMap[sector] = { totalChange: 0, count: 0 };
             sectorMap[sector].totalChange += stock.changePercent || 0;
             sectorMap[sector].count += 1;
@@ -26,6 +26,7 @@ export const MarketOverview = ({ stocks, isLoading = false }: MarketOverviewProp
                 sector,
                 avgChange: data.totalChange / data.count
             }))
+            .filter(item => item.sector !== 'Others')
             .sort((a, b) => b.avgChange - a.avgChange);
     }, [stocks, isLoading]);
 
@@ -69,25 +70,20 @@ export const MarketOverview = ({ stocks, isLoading = false }: MarketOverviewProp
     }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Sector Performance */}
-            <div className="glass-card p-5 lg:col-span-2">
-                <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-4">Sector Performance</h3>
+            <div className="card p-5 lg:col-span-2">
+                <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-4">Sector Performance</h3>
                 <div className="space-y-3">
                     {sectorPerformance.map((item) => (
                         <div key={item.sector} className="flex items-center text-sm">
                             <span className="w-24 font-medium text-gray-900 dark:text-white">{item.sector}</span>
                             <div className="flex-1 h-2 bg-gray-100 dark:bg-slate-700 mx-3 rounded-full overflow-hidden">
                                 <div
-                                    className={`h-full rounded-full ${item.avgChange >= 0 ? 'bg-profit' : 'bg-loss'}`}
-                                    style={{
-                                        width: `${Math.min(Math.abs(item.avgChange) * 10, 100)}%`
-                                    }}
+                                    className={`h-full rounded-full transition-all duration-500 ${item.avgChange >= 0 ? 'bg-emerald-500 dark:bg-emerald-400' : 'bg-red-500 dark:bg-red-400'}`}
+                                    style={{ width: `${Math.max(Math.min(Math.abs(item.avgChange) * 20, 100), 5)}%` }}
                                 />
                             </div>
-                            <span className={`w-16 text-right font-medium ${item.avgChange >= 0 ? 'text-profit' : 'text-loss'}`}>
-                                {item.avgChange > 0 ? '+' : ''}{item.avgChange.toFixed(2)}%
-                            </span>
                         </div>
                     ))}
                 </div>

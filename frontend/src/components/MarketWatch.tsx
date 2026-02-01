@@ -14,7 +14,7 @@ interface MarketWatchProps {
 }
 
 export const MarketWatch = ({ stocks, searchTerm, isLoading = false, compact = false }: MarketWatchProps) => {
-    const { isInWatchlist } = useWatchlistStore();
+    const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlistStore();
 
     const [sectorFilter] = useState('All');
     const [sortBy] = useState('symbol-asc');
@@ -38,7 +38,7 @@ export const MarketWatch = ({ stocks, searchTerm, isLoading = false, compact = f
 
         // Apply sector filter
         if (!compact && sectorFilter !== 'All') {
-            result = result.filter((stock) => getSector(stock.symbol) === sectorFilter);
+            result = result.filter((stock) => (stock.sector || getSector(stock.symbol)) === sectorFilter);
         }
 
         // Apply quick filters
@@ -103,7 +103,7 @@ export const MarketWatch = ({ stocks, searchTerm, isLoading = false, compact = f
                     onClick={() => setQuickFilter(quickFilter === 'watchlist' ? '' : 'watchlist')}
                     className={`p-1.5 text-xs font-medium rounded transition flex items-center justify-center flex-1 ${quickFilter === 'watchlist'
                         ? 'bg-purple-600 text-white'
-                        : 'bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-300'
+                        : 'bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-300 bg-surface hover:bg-surface-hover border-border text-text-secondary'
                         }`}
                     title="Watchlist"
                 >
@@ -114,21 +114,23 @@ export const MarketWatch = ({ stocks, searchTerm, isLoading = false, compact = f
                     onClick={() => setQuickFilter(quickFilter === 'gainers' ? '' : 'gainers')}
                     className={`p-1.5 text-xs font-medium rounded transition flex items-center justify-center flex-1 ${quickFilter === 'gainers'
                         ? 'bg-emerald-600 text-white'
-                        : 'bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-300'
+                        : 'bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-300 bg-surface hover:bg-surface-hover border-border text-text-secondary'
                         }`}
                     title="Gainers"
                 >
                     <TrendingUp className="w-3.5 h-3.5" />
+                    {compact && <span className="ml-1.5 font-semibold">Gainers</span>}
                 </button>
                 <button
                     onClick={() => setQuickFilter(quickFilter === 'losers' ? '' : 'losers')}
                     className={`p-1.5 text-xs font-medium rounded transition flex items-center justify-center flex-1 ${quickFilter === 'losers'
                         ? 'bg-red-600 text-white'
-                        : 'bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-300'
+                        : 'bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-300 bg-surface hover:bg-surface-hover border-border text-text-secondary'
                         }`}
                     title="Losers"
                 >
                     <TrendingDown className="w-3.5 h-3.5" />
+                    {compact && <span className="ml-1.5 font-semibold">Losers</span>}
                 </button>
             </div>
 
@@ -157,9 +159,25 @@ export const MarketWatch = ({ stocks, searchTerm, isLoading = false, compact = f
                                 className={`grid grid-cols-12 gap-2 px-3 py-2 border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors ${isSelected ? 'bg-primary/5 dark:bg-primary/10 border-l-2 border-l-primary' : ''}`}
                                 onClick={() => setChartStockKey(stock.instrumentKey)}
                             >
-                                <div className="col-span-4 flex flex-col justify-center">
-                                    <span className="text-sm font-bold text-gray-900 dark:text-white leading-tight">{stock.symbol}</span>
-                                    <span className="text-[10px] text-gray-500 dark:text-gray-400">{getSector(stock.symbol)}</span>
+                                <div className="col-span-4 flex items-center">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (isInWatchlist(stock.instrumentKey)) {
+                                                removeFromWatchlist(stock.instrumentKey);
+                                            } else {
+                                                addToWatchlist(stock.instrumentKey);
+                                            }
+                                        }}
+                                        className={`p-2 mr-1 rounded-full transition-colors hover:bg-surface-hover ${isInWatchlist(stock.instrumentKey) ? 'text-yellow-500' : 'text-gray-300 hover:text-yellow-400'}`}
+                                        title={isInWatchlist(stock.instrumentKey) ? "Remove from Watchlist" : "Add to Watchlist"}
+                                    >
+                                        <Star className={`w-3.5 h-3.5 ${isInWatchlist(stock.instrumentKey) ? 'fill-current' : ''}`} />
+                                    </button>
+                                    <div className="flex flex-col justify-center">
+                                        <span className="text-sm font-bold text-text-primary leading-tight">{stock.symbol}</span>
+                                        <span className="text-[10px] text-text-muted font-medium">{stock.sector || getSector(stock.symbol)}</span>
+                                    </div>
                                 </div>
                                 <div className="col-span-4 flex flex-col items-end justify-center">
                                     <span className="text-sm font-mono font-medium text-gray-900 dark:text-white">

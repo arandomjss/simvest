@@ -6,8 +6,10 @@ export interface User {
 export interface Stock {
     symbol: string;
     name?: string; // Added optional name
+    sector?: string; // Mapped from backend API
     instrumentKey: string;
     ltp?: number;
+    price?: number; // Added for compatibility with Yahoo Finance response
     change?: number;
     changePercent?: number;
     volume?: number;
