@@ -1,6 +1,18 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { useUpstoxStore } from '../stores/upstoxStore';
+import {
+    LayoutDashboard,
+    BookOpen,
+    PieChart,
+    Brain,
+    List,
+    Search,
+    LogOut,
+    Wifi,
+    WifiOff,
+    X
+} from 'lucide-react';
 
 interface NavbarProps {
     showSearch?: boolean;
@@ -21,132 +33,113 @@ export const Navbar = ({ showSearch = false, searchTerm = '', onSearchChange }: 
 
     const isActive = (path: string) => location.pathname === path;
 
+    const NavItem = ({ path, icon: Icon, label }: { path: string; icon: any; label: string }) => (
+        <button
+            onClick={() => navigate(path)}
+            className={`px-3 py-1.5 text-sm font-medium rounded flex items-center gap-2 transition-colors ${isActive(path)
+                ? 'bg-primary/10 text-primary'
+                : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
+                }`}
+        >
+            <Icon className="w-4 h-4" />
+            <span>{label}</span>
+        </button>
+    );
+
     return (
-        <nav className="bg-surface border-b border-border shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between items-center h-14">
-                    {/* Logo and Nav */}
-                    <div className="flex items-center space-x-8">
-                        <h1 className="text-xl font-bold text-primary cursor-pointer" onClick={() => navigate('/dashboard')}>
-                            SimVest
-                        </h1>
-                        <div className="hidden md:flex space-x-1">
-                            <button
-                                onClick={() => navigate('/dashboard')}
-                                className={`px-4 py-2 text-sm font-medium rounded transition ${isActive('/dashboard')
-                                    ? 'bg-primary/5 text-primary'
-                                    : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
-                                    }`}
-                            >
-                                Dashboard
-                            </button>
-                            <button
-                                onClick={() => navigate('/practice')}
-                                className={`px-4 py-2 text-sm font-medium rounded transition ${isActive('/practice')
-                                    ? 'bg-primary/5 text-primary'
-                                    : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
-                                    }`}
-                            >
-                                Practice
-                            </button>
-                            <button
-                                onClick={() => navigate('/portfolio')}
-                                className={`px-4 py-2 text-sm font-medium rounded transition ${isActive('/portfolio')
-                                    ? 'bg-primary/5 text-primary'
-                                    : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
-                                    }`}
-                            >
-                                Portfolio
-                            </button>
+        <nav className="h-12 bg-surface border-b border-border shadow-sm flex-none z-40">
+            <div className="max-w-7xl mx-auto px-4 h-full">
+                <div className="flex justify-between items-center h-full">
+
+                    {/* Left: Brand & Nav */}
+                    <div className="flex items-center gap-6">
+                        <div
+                            className="flex items-center gap-2 cursor-pointer group"
+                            onClick={() => navigate('/dashboard')}
+                        >
+                            <div className="w-7 h-7 bg-primary rounded flex items-center justify-center text-white font-bold text-xs shadow-sm group-hover:bg-primary-dark transition-colors">
+                                SV
+                            </div>
+                            <h1 className="text-lg font-bold text-text-primary tracking-tight">SimVest</h1>
+                        </div>
+
+                        <div className="h-6 w-px bg-border hidden md:block"></div>
+
+                        <div className="hidden md:flex items-center gap-1">
+                            <NavItem path="/dashboard" icon={LayoutDashboard} label="Dashboard" />
+                            <NavItem path="/practice" icon={BookOpen} label="Terminal" />
+                            <NavItem path="/portfolio" icon={PieChart} label="Portfolio" />
+                            <NavItem path="/orders" icon={List} label="Orders" />
                             <button
                                 onClick={() => navigate('/advisor')}
-                                className={`px-4 py-2 text-sm font-medium rounded transition flex items-center space-x-1 ${isActive('/advisor')
-                                    ? 'bg-purple-100 text-purple-700'
+                                className={`px-3 py-1.5 text-xs font-semibold rounded flex items-center gap-2 transition-colors ${isActive('/advisor')
+                                    ? 'bg-purple-500/10 text-purple-600'
                                     : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
                                     }`}
                             >
-                                <span>🧠</span>
+                                <Brain className="w-4 h-4" />
                                 <span>Advisor</span>
-                            </button>
-                            <button
-                                onClick={() => navigate('/orders')}
-                                className={`px-4 py-2 text-sm font-medium rounded transition ${isActive('/orders')
-                                    ? 'bg-primary/5 text-primary'
-                                    : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
-                                    }`}
-                            >
-                                Orders
                             </button>
                         </div>
                     </div>
 
-                    {/* Global Search Bar (Optional) */}
-                    {showSearch && onSearchChange && (
-                        <div className="flex-1 max-w-lg px-8 hidden md:block">
-                            <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg className="h-5 w-5 text-text-secondary group-focus-within:text-primary transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                    </svg>
-                                </div>
+                    {/* Right: Search & Actions */}
+                    <div className="flex items-center gap-4">
+
+                        {/* Compact Search */}
+                        {showSearch && onSearchChange && (
+                            <div className="relative group hidden md:block w-64">
+                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted group-focus-within:text-text-primary transition-colors" />
                                 <input
                                     type="text"
                                     value={searchTerm}
                                     onChange={(e) => onSearchChange(e.target.value)}
-                                    className="block w-full pl-10 pr-3 py-2 border border-border rounded-lg leading-5 bg-background-light placeholder-text-secondary focus:outline-none focus:bg-white focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm transition duration-150 ease-in-out"
-                                    placeholder="Search stocks, companies..."
+                                    className="w-full h-8 pl-8 pr-8 text-xs bg-background border border-border rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-text-muted/70"
+                                    placeholder="Search (Cmd+K)"
                                 />
                                 {searchTerm && (
                                     <button
                                         onClick={() => onSearchChange('')}
-                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-secondary hover:text-text-primary"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
                                     >
-                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
+                                        <X className="w-3 h-3" />
                                     </button>
                                 )}
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    {/* User Section */}
-                    <div className="flex items-center space-x-3">
-                        {/* Upstox Connection Status */}
+                        <div className="h-6 w-px bg-border hidden md:block"></div>
+
+                        {/* Connection Status */}
                         {upstoxConnected ? (
-                            <div className="flex items-center space-x-2">
-                                <div className="flex items-center space-x-1 px-3 py-1.5 bg-profit/10 rounded">
-                                    <div className="w-2 h-2 bg-profit rounded-full animate-pulse"></div>
-                                    <span className="text-xs font-medium text-profit">Live Data Active</span>
-                                </div>
-                                <button
-                                    onClick={disconnectUpstox}
-                                    className="px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-loss hover:bg-loss/5 rounded transition"
-                                    title="Disconnect from Upstox"
-                                >
-                                    Disconnect
-                                </button>
+                            <div className="flex items-center gap-2 px-2 py-1 bg-profit/5 border border-profit/20 rounded cursor-pointer hover:bg-profit/10 transition-colors" onClick={disconnectUpstox} title="Click to Disconnect">
+                                <Wifi className="w-3.5 h-3.5 text-profit" />
+                                <span className="text-[10px] font-bold text-profit uppercase tracking-wide">Live</span>
                             </div>
                         ) : (
                             <button
                                 onClick={connectUpstox}
-                                className="px-4 py-1.5 text-sm font-medium bg-primary text-white hover:bg-primary/90 rounded transition flex items-center space-x-2"
-                                title="Connect to Upstox for live market data (Admin only)"
+                                className="flex items-center gap-2 px-2 py-1 bg-surface-hover border border-border rounded hover:border-primary/50 transition-colors group"
+                                title="Connect Data Feed"
                             >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                </svg>
-                                <span>Enable Live Data</span>
+                                <WifiOff className="w-3.5 h-3.5 text-text-muted group-hover:text-primary transition-colors" />
+                                <span className="text-[10px] font-bold text-text-muted group-hover:text-primary uppercase tracking-wide">Offline</span>
                             </button>
                         )}
 
-                        <span className="text-sm text-text-secondary hidden sm:inline">{user?.email}</span>
-                        <button
-                            onClick={handleSignOut}
-                            className="px-4 py-1.5 text-sm font-medium text-danger hover:bg-danger/5 rounded transition"
-                        >
-                            Logout
-                        </button>
+                        {/* User Profile (Minimal) */}
+                        <div className="flex items-center gap-3">
+                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                                {user?.email?.[0].toUpperCase() || 'U'}
+                            </div>
+                            <button
+                                onClick={handleSignOut}
+                                className="text-text-muted hover:text-danger transition-colors"
+                                title="Logout"
+                            >
+                                <LogOut className="w-4 h-4" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

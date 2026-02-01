@@ -1,5 +1,6 @@
 import { useMarketStore } from '../stores/marketStore';
 import { useWatchlistStore } from '../stores/watchlistStore';
+import { Trash2, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface WatchlistSidebarProps {
     onTrade: (stock: any, type: 'BUY' | 'SELL') => void;
@@ -39,7 +40,7 @@ export const WatchlistSidebar = ({ onTrade }: WatchlistSidebarProps) => {
                 {watchlistStocks.length === 0 ? (
                     <div className="p-4 text-center">
                         <p className="text-xs text-text-secondary">No stocks in watchlist</p>
-                        <p className="text-xs text-text-muted mt-1">Click ⭐ to add stocks</p>
+                        <p className="text-xs text-text-muted mt-1">Click the star icon to add stocks</p>
                     </div>
                 ) : (
                     <div className="divide-y divide-border-light">
@@ -58,12 +59,10 @@ export const WatchlistSidebar = ({ onTrade }: WatchlistSidebarProps) => {
                                                 </span>
                                                 <button
                                                     onClick={() => removeFromWatchlist(stock.instrumentKey)}
-                                                    className="opacity-0 group-hover:opacity-100 text-text-muted hover:text-danger transition"
+                                                    className="opacity-0 group-hover:opacity-100 text-text-muted hover:text-danger transition p-1"
                                                     title="Remove from watchlist"
                                                 >
-                                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                                    </svg>
+                                                    <Trash2 className="w-3 h-3" />
                                                 </button>
                                             </div>
                                             <div className="text-xs text-text-primary font-medium mt-0.5">
@@ -75,7 +74,8 @@ export const WatchlistSidebar = ({ onTrade }: WatchlistSidebarProps) => {
                                                 </div>
                                             )}
                                         </div>
-                                        <div className={`text-xs font-medium ${change.isPositive ? 'text-profit' : 'text-loss'}`}>
+                                        <div className={`text-xs font-medium flex items-center ${change.isPositive ? 'text-profit' : 'text-loss'}`}>
+                                            {change.isPositive ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
                                             {change.text}
                                         </div>
                                     </div>
@@ -86,13 +86,13 @@ export const WatchlistSidebar = ({ onTrade }: WatchlistSidebarProps) => {
                                             onClick={() => onTrade(stock, 'BUY')}
                                             className="flex-1 px-2 py-1 text-xs font-medium text-success hover:bg-success/10 rounded transition"
                                         >
-                                            B
+                                            Buy
                                         </button>
                                         <button
                                             onClick={() => onTrade(stock, 'SELL')}
                                             className="flex-1 px-2 py-1 text-xs font-medium text-danger hover:bg-danger/10 rounded transition"
                                         >
-                                            S
+                                            Sell
                                         </button>
                                     </div>
                                 </div>

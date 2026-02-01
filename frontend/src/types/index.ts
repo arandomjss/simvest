@@ -35,12 +35,15 @@ export interface Holding {
 
 export interface Order {
     id: string;
+    user_id: string;
     symbol: string;
+    instrument_key: string;
     type: 'BUY' | 'SELL';
     quantity: number;
     execution_price: number;
-    timestamp: string;
+    total_amount: number;
     status: string;
+    created_at: string;
 }
 
 export interface Portfolio {

@@ -85,14 +85,24 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
         });
 
         const totalValue = updatedHoldings.reduce(
-            (sum, h) => sum + (h.currentPrice || h.avgPrice) * h.quantity,
+            (sum, h) => {
+                const price = Number(h.currentPrice || h.avgPrice) || 0;
+                const qty = Number(h.quantity) || 0;
+                return sum + (price * qty);
+            },
             0
         );
         const totalInvestment = updatedHoldings.reduce(
-            (sum, h) => sum + h.avgPrice * h.quantity,
+            (sum, h) => {
+                const price = Number(h.avgPrice) || 0;
+                const qty = Number(h.quantity) || 0;
+                return sum + (price * Math.abs(qty));
+            },
             0
         );
-        const totalPnL = totalValue - totalInvestment;
+        const netCostBasis = updatedHoldings.reduce((sum, h) => sum + (Number(h.avgPrice || 0) * Number(h.quantity || 0)), 0);
+        const totalPnL = totalValue - netCostBasis;
+
         const totalPnLPercent = totalInvestment > 0 ? (totalPnL / totalInvestment) * 100 : 0;
 
         set({

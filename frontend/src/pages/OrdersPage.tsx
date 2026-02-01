@@ -1,144 +1,43 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../stores/authStore';
 import { usePortfolioStore } from '../stores/portfolioStore';
+import { Navbar } from '../components/Navbar';
+import { OrdersTable } from '../components/OrdersTable';
+import { ErrorBoundary } from '../components/ErrorBoundary';
+import { PortfolioStrip } from '../components/Dashboard/PortfolioStrip';
 
 export const OrdersPage = () => {
-    const navigate = useNavigate();
-    const { user, signOut } = useAuthStore();
-    const { orders, fetchOrders } = usePortfolioStore();
+    const { orders, fetchOrders, portfolio, fetchPortfolio } = usePortfolioStore();
 
     useEffect(() => {
         fetchOrders();
+        fetchPortfolio();
     }, []);
 
-    const handleSignOut = async () => {
-        await signOut();
-        navigate('/login');
-    };
-
-    const formatPrice = (price: number | undefined) => {
-        if (price === undefined || price === null || isNaN(price)) {
-            return '₹0.00';
-        }
-        return `₹${price.toFixed(2)}`;
-    };
-    
-    const formatDate = (date: string | undefined) => {
-        if (!date) return 'N/A';
-        
-        const parsedDate = new Date(date);
-        if (isNaN(parsedDate.getTime())) {
-            return 'Invalid Date';
-        }
-        
-        return parsedDate.toLocaleString('en-IN', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
-
     return (
-        <div className="min-h-screen bg-background">
-            {/* Navigation Bar */}
-            <nav className="bg-surface border-b border-border shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-14">
-                        <div className="flex items-center space-x-8">
-                            <h1 className="text-xl font-bold text-primary">SimVest</h1>
-                            <div className="hidden md:flex space-x-1">
-                                <button
-                                    onClick={() => navigate('/dashboard')}
-                                    className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-hover rounded transition"
-                                >
-                                    Dashboard
-                                </button>
-                                <button
-                                    onClick={() => navigate('/portfolio')}
-                                    className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-hover rounded transition"
-                                >
-                                    Portfolio
-                                </button>
-                                <button
-                                    onClick={() => navigate('/orders')}
-                                    className="px-4 py-2 text-sm font-medium text-primary bg-primary/5 rounded"
-                                >
-                                    Orders
-                                </button>
-                            </div>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                            <span className="text-sm text-text-secondary">{user?.email}</span>
-                            <button
-                                onClick={handleSignOut}
-                                className="px-4 py-1.5 text-sm font-medium text-danger hover:bg-danger/5 rounded transition"
-                            >
-                                Logout
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </nav>
+        <div className="h-screen bg-background flex flex-col overflow-hidden text-text-primary">
+            {/* Top Navigation */}
+            <div className="flex-none z-30 relative">
+                <Navbar />
+            </div>
+
+            {/* Status Bar (Portfolio Metrics) - Consistent with Dashboard */}
+            <div className="flex-none z-20 relative">
+                <PortfolioStrip portfolio={portfolio} />
+            </div>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <div className="card p-6">
-                    <h2 className="text-lg font-semibold text-text-primary mb-4">Order History</h2>
+            <div className="flex-1 overflow-y-auto bg-background">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                    <div className="mb-6 flex justify-between items-end">
+                        <div>
+                            <h1 className="text-2xl font-bold text-text-primary">Order Book</h1>
+                            <p className="text-text-secondary text-sm">Real-time trade execution history</p>
+                        </div>
+                    </div>
 
-                    {orders.length === 0 ? (
-                        <div className="text-center py-12">
-                            <p className="text-text-secondary">No orders yet</p>
-                            <button
-                                onClick={() => navigate('/dashboard')}
-                                className="mt-4 btn-primary"
-                            >
-                                Start Trading
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b border-border text-left">
-                                        <th className="py-2 px-3 text-xs font-medium text-text-secondary">Time</th>
-                                        <th className="py-2 px-3 text-xs font-medium text-text-secondary">Type</th>
-                                        <th className="py-2 px-3 text-xs font-medium text-text-secondary">Symbol</th>
-                                        <th className="py-2 px-3 text-xs font-medium text-text-secondary text-right">Qty</th>
-                                        <th className="py-2 px-3 text-xs font-medium text-text-secondary text-right">Price</th>
-                                        <th className="py-2 px-3 text-xs font-medium text-text-secondary text-right">Total</th>
-                                        <th className="py-2 px-3 text-xs font-medium text-text-secondary">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {orders.map((order) => (
-                                        <tr key={order.id} className="table-row">
-                                            <td className="py-3 px-3 text-xs text-text-secondary">{formatDate(order.created_at)}</td>
-                                            <td className="py-3 px-3">
-                                                <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${order.type === 'BUY'
-                                                        ? 'bg-success/10 text-success'
-                                                        : 'bg-danger/10 text-danger'
-                                                    }`}>
-                                                    {order.type}
-                                                </span>
-                                            </td>
-                                            <td className="py-3 px-3 text-sm font-medium text-text-primary">{order.symbol}</td>
-                                            <td className="py-3 px-3 text-sm text-text-primary text-right">{order.quantity}</td>
-                                            <td className="py-3 px-3 text-sm text-text-secondary text-right">{formatPrice(order.execution_price)}</td>
-                                            <td className="py-3 px-3 text-sm text-text-primary text-right">{formatPrice(order.total_amount)}</td>
-                                            <td className="py-3 px-3">
-                                                <span className="inline-flex px-2 py-0.5 text-xs font-medium rounded bg-success/10 text-success">
-                                                    {order.status}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                    <ErrorBoundary>
+                        <OrdersTable orders={orders} />
+                    </ErrorBoundary>
                 </div>
             </div>
         </div>

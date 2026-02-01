@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { PortfolioHistoryPoint, PortfolioTimeframe, getHistoryByTimeframe } from '../services/portfolioHistory';
+import { colors } from '../styles/colors';
 
 interface PortfolioPerformanceChartProps {
     history: PortfolioHistoryPoint[];
@@ -65,8 +66,8 @@ export const PortfolioPerformanceChart = ({ history }: PortfolioPerformanceChart
                             key={tf}
                             onClick={() => setTimeframe(tf)}
                             className={`px-2 py-1 text-xs font-medium rounded transition ${timeframe === tf
-                                    ? 'bg-primary text-white'
-                                    : 'text-text-secondary hover:bg-surface-hover'
+                                ? 'bg-primary text-white'
+                                : 'text-text-secondary hover:bg-surface-hover'
                                 }`}
                         >
                             {tf}
@@ -82,12 +83,12 @@ export const PortfolioPerformanceChart = ({ history }: PortfolioPerformanceChart
                         <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                             <stop
                                 offset="5%"
-                                stopColor={isPositive ? '#00d09c' : '#eb5b3c'}
+                                stopColor={isPositive ? colors.success.DEFAULT : colors.danger.DEFAULT}
                                 stopOpacity={0.3}
                             />
                             <stop
                                 offset="95%"
-                                stopColor={isPositive ? '#00d09c' : '#eb5b3c'}
+                                stopColor={isPositive ? colors.success.DEFAULT : colors.danger.DEFAULT}
                                 stopOpacity={0}
                             />
                         </linearGradient>
@@ -109,7 +110,7 @@ export const PortfolioPerformanceChart = ({ history }: PortfolioPerformanceChart
                     <Area
                         type="monotone"
                         dataKey="value"
-                        stroke={isPositive ? '#00d09c' : '#eb5b3c'}
+                        stroke={isPositive ? colors.success.DEFAULT : colors.danger.DEFAULT}
                         strokeWidth={2}
                         fillOpacity={1}
                         fill="url(#colorValue)"

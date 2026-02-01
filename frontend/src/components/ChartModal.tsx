@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { StockChart } from './StockChart';
 import { apiService } from '../services/api';
 import { generateHistoricalData, Timeframe } from '../services/historicalData';
@@ -9,6 +10,7 @@ import {
 } from '../services/technicalIndicators';
 
 import { Stock } from '../types';
+import { colors } from '../styles/colors';
 
 interface ChartModalProps {
     stock: Stock;
@@ -16,6 +18,7 @@ interface ChartModalProps {
 }
 
 export const ChartModal = ({ stock, onClose }: ChartModalProps) => {
+    const navigate = useNavigate();
     const [timeframe, setTimeframe] = useState<Timeframe>('1M');
     const [chartType, setChartType] = useState<'candlestick' | 'line'>('candlestick');
     const [chartData, setChartData] = useState<{
@@ -86,7 +89,7 @@ export const ChartModal = ({ stock, onClose }: ChartModalProps) => {
                     const volume = validCandles.map((c: any) => ({
                         time: c.timestamp / 1000,
                         value: c.volume,
-                        color: c.close >= c.open ? '#00d09c40' : '#eb5b3c40'
+                        color: c.close >= c.open ? `${colors.success.DEFAULT}40` : `${colors.danger.DEFAULT}40`
                     }));
 
                     setChartData({ ohlc, volume });
@@ -197,12 +200,17 @@ export const ChartModal = ({ stock, onClose }: ChartModalProps) => {
         );
     };
 
+    const handleTradeRedirect = (side: 'BUY' | 'SELL') => {
+        navigate(`/practice?symbol=${stock.symbol}&side=${side}`);
+        onClose();
+    };
+
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-surface rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] flex flex-col">
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-border">
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center gap-6">
                         <div>
                             <h2 className="text-xl font-semibold text-text-primary">{stock.symbol}</h2>
                             <div className="flex items-center space-x-2 mt-1">
@@ -211,6 +219,27 @@ export const ChartModal = ({ stock, onClose }: ChartModalProps) => {
                                 </span>
                                 {formatChange()}
                             </div>
+                            <span className="text-[10px] text-text-secondary mt-1 block">
+                                Last Updated: {stock.lastUpdated ? new Date(stock.lastUpdated).toLocaleString([], { dateStyle: 'medium', timeStyle: 'medium' }) : 'Live'}
+                            </span>
+                        </div>
+
+                        <div className="h-8 w-px bg-border"></div>
+
+                        {/* Trade Actions */}
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => handleTradeRedirect('BUY')}
+                                className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded shadow-md flex items-center gap-2 transform active:scale-95 transition-all"
+                            >
+                                <span>B</span> Buy
+                            </button>
+                            <button
+                                onClick={() => handleTradeRedirect('SELL')}
+                                className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded shadow-md flex items-center gap-2 transform active:scale-95 transition-all"
+                            >
+                                <span>S</span> Sell
+                            </button>
                         </div>
                     </div>
 

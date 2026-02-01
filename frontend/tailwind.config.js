@@ -4,55 +4,77 @@ export default {
         "./index.html",
         "./src/**/*.{js,ts,jsx,tsx}",
     ],
+    darkMode: 'class', // Enable class-based dark mode (we will force 'dark' in index.css)
     theme: {
         extend: {
             colors: {
-                // Zerodha Kite-inspired color palette
+                // Professional Light Theme
                 primary: {
-                    DEFAULT: '#387ed1',
-                    dark: '#2e6bb3',
-                    light: '#5a9ae0',
+                    DEFAULT: '#2563EB', // Royal Blue
+                    dark: '#1D4ED8',
+                    light: '#60A5FA',
                 },
-                success: {
-                    DEFAULT: '#00c48c',
-                    dark: '#00a876',
-                    light: '#33d0a3',
-                },
-                danger: {
-                    DEFAULT: '#ff5b5b',
-                    dark: '#e64545',
-                    light: '#ff7b7b',
+                secondary: {
+                    DEFAULT: '#059669', // Emerald
                 },
                 background: {
-                    DEFAULT: '#fafafa',
-                    dark: '#f5f5f5',
+                    DEFAULT: '#F9FAFB', // Gray-50 (App Background)
+                    light: '#FFFFFF', // White
                 },
                 surface: {
-                    DEFAULT: '#ffffff',
-                    hover: '#f8f9fa',
+                    DEFAULT: '#FFFFFF', // Card background
+                    hover: '#F3F4F6', // Gray-100
+                    border: '#E5E7EB', // Gray-200
+                },
+                success: {
+                    DEFAULT: '#059669', // Emerald-600
+                    glow: 'rgba(5, 150, 105, 0.2)',
+                },
+                danger: {
+                    DEFAULT: '#DC2626', // Red-600
+                    glow: 'rgba(220, 38, 38, 0.2)',
                 },
                 text: {
-                    primary: '#424242',
-                    secondary: '#666666',
-                    muted: '#999999',
+                    primary: '#111827', // Gray-900
+                    secondary: '#4B5563', // Gray-600
+                    muted: '#9CA3AF', // Gray-400
                 },
                 border: {
-                    DEFAULT: '#dddddd',
-                    light: '#eeeeee',
-                },
+                    DEFAULT: '#E5E7EB', // Gray-200
+                }
             },
             fontFamily: {
                 sans: ['Inter', 'system-ui', 'sans-serif'],
                 mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
             },
             boxShadow: {
-                'sm': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-                'DEFAULT': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-                'md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                'glass': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+                'neon': '0 0 5px rgba(37, 99, 235, 0.2)', // Subtle blue glow
             },
-            animation: {
-                'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            backgroundImage: {
+                'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                // Subtle light gradient
+                'hero-glow': 'linear-gradient(to right bottom, #ebf4ff, #f3f4f6)',
+            },
+            keyframes: {
+                'progress-grow': {
+                    '0%': { width: '0%' },
+                    '100%': { width: '100%' }, // Allows it to animate to the inline-style width? Actually this overrides it.
+                    // Better approach: width from 0 to var(--target-width) is hard in pure CSS without custom props.
+                    // Instead, simple fade-in or scale-x
+                    'scale-in': {
+                        '0%': { transform: 'scaleX(0)' },
+                        '100%': { transform: 'scaleX(1)' }
+                    },
+                    'fade-in': {
+                        '0%': { opacity: '0', transform: 'translateY(10px)' },
+                        '100%': { opacity: '1', transform: 'translateY(0)' }
+                    }
+                },
+                animation: {
+                    'scale-in': 'scale-in 1s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+                    'fade-in': 'fade-in 0.5s ease-out forwards',
+                }
             },
         },
     },

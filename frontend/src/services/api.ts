@@ -35,7 +35,18 @@ export const apiService = {
 
     async getPortfolio() {
         const response = await api.get('/api/trade/portfolio');
-        return response.data.portfolio;
+        const data = response.data.portfolio;
+
+        // Map snake_case to camelCase for frontend
+        if (data && data.holdings) {
+            data.holdings = data.holdings.map((h: any) => ({
+                ...h,
+                avgPrice: h.avg_price,
+                instrumentKey: h.instrument_key,
+                // Keep originals just in case, but ensure camelCase exists
+            }));
+        }
+        return data;
     },
 
     async getOrderHistory(limit = 50, offset = 0) {

@@ -8,10 +8,11 @@ import { generateHistoricalData, Timeframe } from '../services/historicalData';
 import {
     calculateSMA,
     calculateEMA,
-    calculateBollingerBands,
     calculateRSI,
-    calculateMACD
+    calculateMACD,
+    calculateBollingerBands
 } from '../services/technicalIndicators';
+import { StockSelector } from '../components/StockSelector';
 
 export const PracticePage = () => {
     const [searchParams] = useSearchParams();
@@ -56,8 +57,6 @@ export const PracticePage = () => {
     useEffect(() => {
         if (!activeStock) return;
 
-        // In a real app, this would be an API call.
-        // For SimVest, we use our deterministic generator.
         const seed = activeStock.instrumentKey;
         const data = generateHistoricalData(activeStock.ltp || 100, timeframe, seed);
 
@@ -116,32 +115,26 @@ export const PracticePage = () => {
                 {/* LEFT PANEL: CHART & TOOLS (65%) */}
                 <div className="flex-[2] flex flex-col border-r border-border min-w-0">
                     {/* Header Bar */}
-                    <div className="h-16 border-b border-border flex items-center px-4 justify-between bg-surface">
-                        <div className="flex items-center space-x-4">
-                            {/* Stock Selector (Simple Dropdown for now) */}
-                            <div className="relative">
-                                <select
-                                    className="appearance-none bg-background border border-border rounded pl-3 pr-8 py-1.5 text-sm font-bold text-text-primary focus:ring-2 focus:ring-primary/20"
-                                    value={selectedSymbol || ''}
-                                    onChange={(e) => setSelectedSymbol(e.target.value)}
-                                >
-                                    {stocks.map(s => <option key={s.symbol} value={s.symbol}>{s.symbol}</option>)}
-                                </select>
-                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-text-secondary">
-                                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                                </div>
-                            </div>
+                    <div className="h-16 border-b border-border flex items-center px-4 justify-between bg-surface/50 backdrop-blur-sm relative z-20">
+                        <div className="flex items-center space-x-6">
+                            {/* Stock Command Bar */}
+                            <StockSelector
+                                selectedSymbol={selectedSymbol}
+                                onSelect={setSelectedSymbol}
+                            />
 
-                            <div className="flex flex-col items-end">
-                                <span className="text-2xl font-bold text-text-primary">
+                            <div className="flex flex-col">
+                                <span className="text-2xl font-bold text-text-primary tracking-tight font-mono">
                                     ₹{activeStock.ltp?.toFixed(2)}
                                 </span>
-                                <span className={`text-xs font-semibold ${(activeStock.change || 0) >= 0 ? 'text-profit' : 'text-loss'}`}>
-                                    {(activeStock.change || 0) >= 0 ? '+' : ''}{activeStock.change?.toFixed(2)} ({(activeStock.changePercent || 0).toFixed(2)}%)
-                                </span>
-                                <span className="text-[10px] text-text-secondary opacity-60">
-                                    {activeStock.lastUpdated ? new Date(activeStock.lastUpdated).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
-                                </span>
+                                <div className="flex items-center gap-2">
+                                    <span className={`text-xs font-semibold ${(activeStock.change || 0) >= 0 ? 'text-profit' : 'text-loss'}`}>
+                                        {(activeStock.change || 0) >= 0 ? '+' : ''}{activeStock.change?.toFixed(2)} ({(activeStock.changePercent || 0).toFixed(2)}%)
+                                    </span>
+                                    <span className="text-[10px] text-text-secondary opacity-60">
+                                        • {activeStock.lastUpdated ? new Date(activeStock.lastUpdated).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
@@ -157,8 +150,7 @@ export const PracticePage = () => {
                                 </button>
                             ))}
                             <div className="h-4 w-px bg-border mx-2"></div>
-                            {/* Overlays */}
-                            {['SMA20', 'SMA50', 'BB'].map(ind => (
+                            {['SMA20', 'SMA50', 'EMA12', 'BB'].map(ind => (
                                 <button
                                     key={ind}
                                     onClick={() => toggleIndicator(ind)}
@@ -168,12 +160,11 @@ export const PracticePage = () => {
                                 </button>
                             ))}
                             <div className="h-4 w-px bg-border mx-2"></div>
-                            {/* Sub-Charts */}
                             {['RSI', 'MACD'].map(ind => (
                                 <button
                                     key={ind}
                                     onClick={() => toggleIndicator(ind)}
-                                    className={`px-2 py-1 text-xs font-medium rounded border ${activeIndicators.includes(ind) ? 'bg-purple-600 text-white border-purple-600' : 'bg-transparent text-text-secondary border-transparent hover:border-border'}`}
+                                    className={`px-2 py-1 text-xs font-medium rounded border ${activeIndicators.includes(ind) ? 'bg-purple-500/10 text-purple-500 border-purple-500/20' : 'bg-transparent text-text-secondary border-transparent hover:border-border'}`}
                                 >
                                     {ind}
                                 </button>
@@ -204,17 +195,16 @@ export const PracticePage = () => {
                         stock={activeStock}
                         initialSide={(searchParams.get('side') as 'BUY' | 'SELL') || 'BUY'}
                         onSuccess={() => {
-                            // Maybe show a success animation on the chart?
                             console.log('Trade Executed');
                         }}
                     />
 
                     <div className="mt-8 p-4 bg-primary/5 rounded-lg border border-primary/10">
-                        <h3 className="text-sm font-semibold text-primary mb-2">Practice Mode 🎓</h3>
+                        <h3 className="text-sm font-semibold text-primary mb-2">Live Terminal ⚡</h3>
                         <p className="text-xs text-text-secondary leading-relaxed">
-                            This is your Sandbox. Analyze the chart on the left and execute your strategy here.
+                            This is your active trading environment. Use the chart to identify entry/exit points and execute orders instantly.
                             <br /><br />
-                            <strong>Pro Tip:</strong> Try to identify support levels before placing a LIMIT order.
+                            <strong>System Status:</strong> <span className="text-profit">Online</span>
                         </p>
                     </div>
                 </div>

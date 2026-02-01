@@ -210,12 +210,7 @@ export const calculateMACD = (data: OHLCData[]): MACDData[] => {
 export const getMACDHistogramColor = (value: number): string => {
     return value >= 0 ? '#00d09c80' : '#eb5b3c80'; // Semi-transparent green/red
 };
-/**
- * Calculate Bollinger Bands
- * Middle Band = 20-day SMA
- * Upper Band = 20-day SMA + (20-day standard deviation of price x 2)
- * Lower Band = 20-day SMA - (20-day standard deviation of price x 2)
- */
+
 export interface BollingerBandsData {
     time: number;
     upper: number;
@@ -223,10 +218,14 @@ export interface BollingerBandsData {
     lower: number;
 }
 
+/**
+ * Calculate Bollinger Bands
+ * Formula: Middle = SMA(20), Upper = Middle + 2*StdDev, Lower = Middle - 2*StdDev
+ */
 export const calculateBollingerBands = (data: OHLCData[], period: number = 20, multiplier: number = 2): BollingerBandsData[] => {
     const result: BollingerBandsData[] = [];
 
-    // Need at least 'period' data points
+    // Need enough data
     if (data.length < period) return result;
 
     for (let i = period - 1; i < data.length; i++) {
@@ -238,12 +237,11 @@ export const calculateBollingerBands = (data: OHLCData[], period: number = 20, m
         const middle = sum / period;
 
         // 2. Calculate Standard Deviation
-        let sumSquaredDiffs = 0;
+        let varianceSum = 0;
         for (let j = 0; j < period; j++) {
-            const diff = data[i - j].close - middle;
-            sumSquaredDiffs += diff * diff;
+            varianceSum += Math.pow(data[i - j].close - middle, 2);
         }
-        const stdDev = Math.sqrt(sumSquaredDiffs / period);
+        const stdDev = Math.sqrt(varianceSum / period);
 
         // 3. Calculate Bands
         const upper = middle + (multiplier * stdDev);
@@ -251,16 +249,16 @@ export const calculateBollingerBands = (data: OHLCData[], period: number = 20, m
 
         result.push({
             time: data[i].time,
-            middle: parseFloat(middle.toFixed(2)),
             upper: parseFloat(upper.toFixed(2)),
-            lower: parseFloat(lower.toFixed(2)),
+            middle: parseFloat(middle.toFixed(2)),
+            lower: parseFloat(lower.toFixed(2))
         });
     }
 
     return result.map(item => ({
         time: item.time,
-        middle: isFinite(item.middle) ? item.middle : 0,
         upper: isFinite(item.upper) ? item.upper : 0,
-        lower: isFinite(item.lower) ? item.lower : 0,
+        middle: isFinite(item.middle) ? item.middle : 0,
+        lower: isFinite(item.lower) ? item.lower : 0
     }));
 };
