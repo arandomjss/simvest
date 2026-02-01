@@ -59,9 +59,9 @@ export const PortfolioPage = () => {
     };
 
     return (
-        <div className="h-screen bg-background flex flex-col overflow-hidden text-text-primary">
+        <div className="h-screen bg-gray-50 dark:bg-slate-900 flex flex-col overflow-hidden text-gray-900 dark:text-white">
             {/* Header Section */}
-            <div className="flex-none z-30 relative bg-background border-b border-border">
+            <div className="flex-none z-30 relative bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
                 <Navbar />
                 <PortfolioStrip portfolio={portfolio} />
             </div>

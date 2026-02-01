@@ -17,43 +17,89 @@ class TradingEngine {
      */
     async processPendingOrders(instrumentKey, currentPrice) {
         try {
-            // Find all PENDING orders for this instrument
-            const { data: pendingOrders, error } = await supabase
-                .from('orders')
-                .select('*')
-                .eq('instrument_key', instrumentKey)
-                .eq('status', 'PENDING');
+            // Add retry logic for database connectivity issues
+            let retries = 2; // Fewer retries for high-frequency operations
+            let lastError;
+            
+            while (retries > 0) {
+                try {
+                    // Find all PENDING orders for this instrument
+                    const { data: pendingOrders, error } = await supabase
+                        .from('orders')
+                        .select('*')
+                        .eq('instrument_key', instrumentKey)
+                        .eq('status', 'PENDING');
 
-            if (error) {
-                console.error('Error fetching pending orders:', error.message);
+                    if (error) {
+                        // Check if it's a connection error
+                        if (error.message?.includes('timeout') || 
+                            error.message?.includes('fetch failed') ||
+                            error.message?.includes('network')) {
+                            retries--;
+                            lastError = error;
+                            if (retries > 0) {
+                                await new Promise(resolve => setTimeout(resolve, 500)); // Shorter delay for high-frequency operations
+                                continue;
+                            }
+                        }
+                        throw error;
+                    }
+
+                    if (!pendingOrders || pendingOrders.length === 0) return;
+
+                    for (const order of pendingOrders) {
+                        let shouldExecute = false;
+
+                        // Check execution conditions
+                        if (order.type === 'BUY') {
+                            // Buy Limit: Execute if current price <= limit price
+                            if (currentPrice <= order.execution_price) {
+                                shouldExecute = true;
+                            }
+                        } else if (order.type === 'SELL') {
+                            // Sell Limit: Execute if current price >= limit price
+                            if (currentPrice >= order.execution_price) {
+                                shouldExecute = true;
+                            }
+                        }
+
+                        if (shouldExecute) {
+                            await this.executePendingOrder(order, currentPrice);
+                        }
+                    }
+                    return; // Success, exit retry loop
+                    
+                } catch (networkError) {
+                    if (networkError.message?.includes('timeout') || 
+                        networkError.message?.includes('fetch failed') ||
+                        networkError.message?.includes('network')) {
+                        retries--;
+                        lastError = networkError;
+                        if (retries > 0) {
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                            continue;
+                        }
+                    }
+                    throw networkError;
+                }
+            }
+            
+            // If we get here, all retries failed
+            if (lastError) {
+                // Only log occasionally to avoid spam (every 10th attempt)
+                if (Math.random() < 0.1) {
+                    console.warn('Pending orders check failed after retries, skipping this update');
+                }
                 return;
             }
 
-            if (!pendingOrders || pendingOrders.length === 0) return;
-
-            for (const order of pendingOrders) {
-                let shouldExecute = false;
-
-                // Check execution conditions
-                if (order.type === 'BUY') {
-                    // Buy Limit: Execute if current price <= limit price
-                    if (currentPrice <= order.execution_price) {
-                        shouldExecute = true;
-                    }
-                } else if (order.type === 'SELL') {
-                    // Sell Limit: Execute if current price >= limit price
-                    if (currentPrice >= order.execution_price) {
-                        shouldExecute = true;
-                    }
-                }
-
-                if (shouldExecute) {
-                    await this.executePendingOrder(order, currentPrice);
-                }
-            }
-
         } catch (error) {
-            console.error('Error processing pending orders:', error.message);
+            // Only log occasionally for network errors to avoid spam
+            if (!error.message?.includes('timeout') && 
+                !error.message?.includes('fetch failed') &&
+                !error.message?.includes('network')) {
+                console.error('Error processing pending orders:', error.message);
+            }
         }
     }
 

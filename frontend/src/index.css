@@ -3,13 +3,40 @@
 @tailwind utilities;
 
 @layer base {
-    body {
-        @apply bg-background text-text-primary font-sans antialiased;
-        background-color: #F9FAFB;
-        color: #111827;
+    /* CSS Variables for Theme Support */
+    :root {
+        --bg-primary: #F9FAFB;
+        --bg-secondary: #FFFFFF;
+        --bg-hover: #F3F4F6;
+        --text-primary: #111827;
+        --text-secondary: #4B5563;
+        --text-muted: #9CA3AF;
+        --border: #E5E7EB;
+        --border-light: #F3F4F6;
+        --shadow: rgba(0, 0, 0, 0.05);
+        --shadow-strong: rgba(0, 0, 0, 0.1);
     }
 
-    /* Custom Scrollbar for Light Mode */
+    .dark {
+        --bg-primary: #0F172A;
+        --bg-secondary: #1E293B;
+        --bg-hover: #334155;
+        --text-primary: #F8FAFC;
+        --text-secondary: #CBD5E1;
+        --text-muted: #64748B;
+        --border: #475569;
+        --border-light: #64748B;
+        --shadow: rgba(0, 0, 0, 0.3);
+        --shadow-strong: rgba(0, 0, 0, 0.5);
+    }
+
+    body {
+        @apply font-sans antialiased transition-colors duration-200;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+    }
+
+    /* Scrollbar */
     ::-webkit-scrollbar {
         width: 6px;
         height: 6px;
@@ -20,56 +47,90 @@
     }
 
     ::-webkit-scrollbar-thumb {
-        @apply bg-gray-300 rounded-full hover:bg-gray-400 transition-colors;
+        background-color: var(--border);
+        @apply rounded-full transition-colors;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background-color: var(--border-light);
+    }
+
+    .dark ::-webkit-scrollbar-thumb {
+        @apply bg-slate-600 hover:bg-slate-500;
     }
 }
 
 @layer components {
-
-    /* Professional Card Utilities */
-    .glass-panel {
-        @apply bg-surface/80 backdrop-blur-md border border-gray-200;
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    }
-
+    /* Glass Card - Main Component */
     .glass-card {
-        @apply bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200;
+        background-color: var(--bg-secondary);
+        border-color: var(--border);
+        box-shadow: 0 1px 3px 0 var(--shadow), 0 1px 2px 0 var(--shadow);
+        @apply border rounded-lg hover:shadow-md transition-all duration-200;
     }
 
-    /* Premium Buttons */
+    .dark .glass-card {
+        box-shadow: 0 4px 6px -1px var(--shadow), 0 2px 4px -1px var(--shadow);
+    }
+
+    /* Buttons */
     .btn-primary {
         @apply px-4 py-2 bg-primary text-white font-medium rounded-md hover:bg-primary-dark active:scale-[0.98] transition-all duration-150 shadow-sm;
     }
 
-    .btn-success {
-        @apply px-4 py-2 bg-emerald-600 text-white font-medium rounded-md hover:bg-emerald-700 active:scale-[0.98] transition-all duration-150 shadow-sm;
+    .btn-secondary {
+        background-color: var(--bg-hover);
+        color: var(--text-primary);
+        border-color: var(--border);
+        @apply px-4 py-2 font-medium rounded-md border hover:shadow-sm active:scale-[0.98] transition-all duration-150;
     }
 
-    .btn-danger {
-        @apply px-4 py-2 bg-red-600 text-white font-medium rounded-md hover:bg-red-700 active:scale-[0.98] transition-all duration-150 shadow-sm;
-    }
-
-    /* Inputs */
+    /* Input Fields */
     .input-field {
-        @apply bg-white border border-gray-300 rounded-md px-3 py-2 text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder-text-muted transition-all shadow-sm;
+        background-color: var(--bg-secondary);
+        border-color: var(--border);
+        color: var(--text-primary);
+        @apply border rounded-md px-3 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-all shadow-sm;
     }
 
-    /* Tables */
+    /* Table Rows */
     .table-row {
-        @apply border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer;
+        border-color: var(--border-light);
+        @apply border-b hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer;
+    }
+
+    .topbar-nav {
+        @apply bg-secondary text-text-primary border-b border-border;
+    }
+
+    .dark .topbar-nav {
+        @apply bg-secondary text-text-primary border-b border-border;
     }
 }
 
 @layer utilities {
-    .text-glow {
-        text-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
-    }
-
+    /* Theme-aware Profit/Loss Colors */
     .text-profit {
-        @apply text-emerald-600 font-mono font-medium;
+        @apply text-emerald-600 dark:text-emerald-400 font-mono font-medium;
     }
 
     .text-loss {
-        @apply text-red-600 font-mono font-medium;
+        @apply text-red-600 dark:text-red-400 font-mono font-medium;
+    }
+
+    .bg-profit {
+        @apply bg-emerald-50 dark:bg-emerald-900/20;
+    }
+
+    .bg-loss {
+        @apply bg-red-50 dark:bg-red-900/20;
+    }
+
+    .border-profit {
+        @apply border-emerald-200 dark:border-emerald-700;
+    }
+
+    .border-loss {
+        @apply border-red-200 dark:border-red-700;
     }
 }

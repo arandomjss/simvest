@@ -32,18 +32,18 @@ export const LoginPage = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900">
             <div className="max-w-md w-full mx-4">
                 <div className="card p-8">
                     <div className="text-center mb-8">
                         <h1 className="text-3xl font-bold text-primary mb-2">SimVest</h1>
-                        <p className="text-text-secondary">Professional Paper Trading Platform</p>
+                        <p className="text-gray-600 dark:text-gray-300">Professional Paper Trading Platform</p>
                     </div>
 
                     {/* Quick Start Button */}
                     <button
                         onClick={handleQuickStart}
-                        className="w-full mb-6 bg-gradient-to-r from-success to-success-dark text-white font-semibold py-3 px-4 rounded shadow-md hover:shadow-lg transition duration-200"
+                        className="w-full mb-6 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-semibold py-3 px-4 rounded shadow-md hover:shadow-lg transition duration-200"
                     >
                         🚀 Quick Start (Skip Login)
                     </button>

@@ -93,35 +93,66 @@ export const useAuthStore = create<AuthState>((set) => ({
                 return;
             }
 
-            // Check for real Supabase session with timeout
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Auth check timeout')), 3000)
-            );
+            // Retry logic for real Supabase session
+            let retries = 3;
+            let lastError;
+            
+            while (retries > 0) {
+                try {
+                    const timeoutPromise = new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error('Auth check timeout')), 15000)
+                    );
 
-            const sessionPromise = authService.getSession();
-            const session = await Promise.race([sessionPromise, timeoutPromise]) as any;
+                    const sessionPromise = authService.getSession();
+                    const session = await Promise.race([sessionPromise, timeoutPromise]) as any;
 
-            if (session?.access_token) {
-                localStorage.setItem('supabase.auth.token', session.access_token);
-                const user = session.user;
-                set({
-                    user: user ? { id: user.id, email: user.email! } : null,
-                    isAuthenticated: !!user,
-                    isLoading: false,
-                });
-            } else {
-                set({
-                    user: null,
-                    isAuthenticated: false,
-                    isLoading: false,
-                });
+                    if (session?.access_token) {
+                        localStorage.setItem('supabase.auth.token', session.access_token);
+                        const user = session.user;
+                        set({
+                            user: user ? { id: user.id, email: user.email! } : null,
+                            isAuthenticated: !!user,
+                            isLoading: false,
+                        });
+                        return;
+                    } else {
+                        set({
+                            user: null,
+                            isAuthenticated: false,
+                            isLoading: false,
+                        });
+                        return;
+                    }
+                } catch (error) {
+                    if (error instanceof Error && 
+                        (error.message.includes('timeout') || 
+                         error.message.includes('fetch failed') ||
+                         error.message.includes('network'))) {
+                        retries--;
+                        lastError = error;
+                        console.log(`Auth check failed, retrying... (${retries} attempts left)`);
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        continue;
+                    }
+                    throw error;
+                }
             }
+            
+            // All retries failed
+            console.warn('Auth check failed after all retries:', lastError);
+            set({
+                user: null,
+                isAuthenticated: false,
+                isLoading: false,
+                error: 'Connection failed. Please check your internet connection and try again.'
+            });
         } catch (error) {
             console.warn('Auth check failed, user not authenticated:', error);
             set({
                 user: null,
                 isAuthenticated: false,
                 isLoading: false,
+                error: error instanceof Error ? error.message : 'Authentication failed'
             });
         }
     },

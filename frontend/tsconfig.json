@@ -9,7 +9,8 @@
       "DOM.Iterable"
     ],
     "types": [
-      "vite/client"
+      "vite/client",
+      "framer-motion"
     ],
     "skipLibCheck": true,
     "jsx": "react-jsx",

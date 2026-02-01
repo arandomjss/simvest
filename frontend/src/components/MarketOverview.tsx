@@ -71,13 +71,13 @@ export const MarketOverview = ({ stocks, isLoading = false }: MarketOverviewProp
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             {/* Sector Performance */}
-            <div className="card p-5 lg:col-span-2">
-                <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-4">Sector Performance</h3>
+            <div className="glass-card p-5 lg:col-span-2">
+                <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-4">Sector Performance</h3>
                 <div className="space-y-3">
                     {sectorPerformance.map((item) => (
                         <div key={item.sector} className="flex items-center text-sm">
-                            <span className="w-24 font-medium text-text-primary">{item.sector}</span>
-                            <div className="flex-1 h-2 bg-background mx-3 rounded-full overflow-hidden">
+                            <span className="w-24 font-medium text-gray-900 dark:text-white">{item.sector}</span>
+                            <div className="flex-1 h-2 bg-gray-100 dark:bg-slate-700 mx-3 rounded-full overflow-hidden">
                                 <div
                                     className={`h-full rounded-full ${item.avgChange >= 0 ? 'bg-profit' : 'bg-loss'}`}
                                     style={{
@@ -94,28 +94,28 @@ export const MarketOverview = ({ stocks, isLoading = false }: MarketOverviewProp
             </div>
 
             {/* Top Movers */}
-            <div className="card p-5">
-                <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-4">Top Movers</h3>
+            <div className="glass-card p-5">
+                <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-4">Top Movers</h3>
 
                 <div className="mb-4">
-                    <p className="text-xs font-semibold text-profit mb-2">🚀 Top Gainers</p>
+                    <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-2">🚀 Top Gainers</p>
                     <div className="space-y-2">
                         {topGainers.map((stock) => (
                             <div key={stock.instrumentKey} className="flex justify-between text-sm">
-                                <span className="text-text-primary">{stock.symbol}</span>
-                                <span className="text-profit">+{stock.changePercent?.toFixed(2)}%</span>
+                                <span className="text-gray-900 dark:text-white">{stock.symbol}</span>
+                                <span className="text-emerald-600 dark:text-emerald-400">+{stock.changePercent?.toFixed(2)}%</span>
                             </div>
                         ))}
                     </div>
                 </div>
 
                 <div>
-                    <p className="text-xs font-semibold text-loss mb-2">📉 Top Losers</p>
+                    <p className="text-xs font-semibold text-red-600 dark:text-red-400 mb-2">📉 Top Losers</p>
                     <div className="space-y-2">
                         {topLosers.map((stock) => (
                             <div key={stock.instrumentKey} className="flex justify-between text-sm">
-                                <span className="text-text-primary">{stock.symbol}</span>
-                                <span className="text-loss">{stock.changePercent?.toFixed(2)}%</span>
+                                <span className="text-gray-900 dark:text-white">{stock.symbol}</span>
+                                <span className="text-red-600 dark:text-red-400">{stock.changePercent?.toFixed(2)}%</span>
                             </div>
                         ))}
                     </div>

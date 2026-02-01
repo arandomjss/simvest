@@ -23,21 +23,21 @@ export const PortfolioStrip = ({ portfolio }: PortfolioStripProps) => {
     };
 
     return (
-        <div className="w-full h-14 bg-surface/80 backdrop-blur-md border-b border-border flex items-center justify-between px-6 sticky top-0 z-20">
+        <div className="w-full h-14 bg-gray-100 dark:bg-slate-800 backdrop-blur-md border-b border-gray-300 dark:border-slate-600 flex items-center justify-between px-6 sticky top-0 z-20">
             {/* Left: Main Metrics */}
             <div className="flex items-center gap-8">
                 <div className="flex items-baseline gap-3">
-                    <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">Net Worth</span>
-                    <span className="text-xl font-mono font-bold text-text-primary tracking-tight">
+                    <span className="text-xs text-gray-700 dark:text-gray-300 uppercase tracking-wider font-semibold">Net Worth</span>
+                    <span className="text-xl font-mono font-bold text-gray-900 dark:text-gray-100 tracking-tight">
                         {formatCurrency(portfolio.totalValue)}
                     </span>
                 </div>
 
-                <div className="h-6 w-px bg-border"></div>
+                <div className="h-6 w-px bg-gray-300 dark:bg-slate-600"></div>
 
                 <div className="flex items-baseline gap-2">
-                    <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">P&L</span>
-                    <div className={`flex items-baseline gap-2 ${portfolio.totalPnL >= 0 ? 'text-success' : 'text-danger'}`}>
+                    <span className="text-xs text-gray-700 dark:text-gray-300 uppercase tracking-wider font-semibold">P&L</span>
+                    <div className={`flex items-baseline gap-2 ${portfolio.totalPnL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                         <span className="font-mono font-medium">{formatCurrency(Math.abs(portfolio.totalPnL))}</span>
                         <span className="text-xs font-mono">({formatPercent(portfolio.totalPnLPercent)})</span>
                     </div>
@@ -47,15 +47,15 @@ export const PortfolioStrip = ({ portfolio }: PortfolioStripProps) => {
             {/* Right: Balance & Status */}
             <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
-                    <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">Available</span>
-                    <span className="font-mono font-medium text-text-primary">
+                    <span className="text-xs text-gray-700 dark:text-gray-300 uppercase tracking-wider font-semibold">Available</span>
+                    <span className="font-mono font-medium text-gray-900 dark:text-gray-100">
                         {formatCurrency(portfolio.cashBalance || 0)}
                     </span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <span className="text-xs text-text-muted uppercase tracking-wider font-semibold">Invested</span>
-                    <span className="font-mono font-medium text-text-primary">
+                    <span className="text-xs text-gray-700 dark:text-gray-300 uppercase tracking-wider font-semibold">Invested</span>
+                    <span className="font-mono font-medium text-gray-900 dark:text-gray-100">
                         {formatCurrency(portfolio.totalInvestment)}
                     </span>
                 </div>

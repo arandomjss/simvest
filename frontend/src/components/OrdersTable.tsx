@@ -24,9 +24,9 @@ export const OrdersTable = ({ orders }: OrdersTableProps) => {
     };
 
     return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+        <div className="glass-card">
             {/* Toolbar */}
-            <div className="px-4 py-3 border-b border-gray-200 flex items-center gap-4">
+            <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-600 flex items-center gap-4">
                 <div className="flex gap-2">
                     {['ALL', 'COMPLETED', 'PENDING', 'REJECTED'].map(f => (
                         <button
@@ -34,7 +34,7 @@ export const OrdersTable = ({ orders }: OrdersTableProps) => {
                             onClick={() => setFilter(f)}
                             className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${filter === f
                                 ? 'bg-primary text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'}`}
                         >
                             {f}
                         </button>
@@ -45,7 +45,7 @@ export const OrdersTable = ({ orders }: OrdersTableProps) => {
             {/* Table */}
             <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                    <thead className="bg-gray-50 text-gray-500 uppercase text-xs font-semibold">
+                    <thead className="bg-gray-50 dark:bg-slate-700/50 text-gray-500 dark:text-gray-400 uppercase text-xs font-semibold">
                         <tr>
                             <th className="px-4 py-3 text-left">Time</th>
                             <th className="px-4 py-3 text-left">Symbol</th>

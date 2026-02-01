@@ -93,17 +93,17 @@ export const MarketWatch = ({ stocks, searchTerm, isLoading = false, compact = f
     };
 
     return (
-        <div className={`flex flex-col h-full bg-background ${compact ? '' : 'card p-6'}`}>
-            {/* Header (Hid in Compact Mode if using Sidebar Header) */}
-            {!compact && <h2 className="text-lg font-semibold text-text-primary mb-4">Market Watch</h2>}
+        <div className={`flex flex-col h-full bg-white dark:bg-slate-800 ${compact ? '' : 'card p-6'}`}>
+            {/* Header (Hidden in Compact Mode if using Sidebar Header) */}
+            {!compact && <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Market Watch</h2>}
 
             {/* Filters */}
-            <div className={`flex flex-wrap gap-2 ${compact ? 'p-2 border-b border-border bg-surface' : 'mb-4'}`}>
+            <div className={`flex flex-wrap gap-2 ${compact ? 'p-2 border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800' : 'mb-4'}`}>
                 <button
                     onClick={() => setQuickFilter(quickFilter === 'watchlist' ? '' : 'watchlist')}
                     className={`p-1.5 text-xs font-medium rounded transition flex items-center justify-center flex-1 ${quickFilter === 'watchlist'
                         ? 'bg-purple-600 text-white'
-                        : 'bg-surface hover:bg-surface-hover border border-border text-text-secondary'
+                        : 'bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-300'
                         }`}
                     title="Watchlist"
                 >
@@ -113,8 +113,8 @@ export const MarketWatch = ({ stocks, searchTerm, isLoading = false, compact = f
                 <button
                     onClick={() => setQuickFilter(quickFilter === 'gainers' ? '' : 'gainers')}
                     className={`p-1.5 text-xs font-medium rounded transition flex items-center justify-center flex-1 ${quickFilter === 'gainers'
-                        ? 'bg-profit text-white'
-                        : 'bg-surface hover:bg-surface-hover border border-border text-text-secondary'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-300'
                         }`}
                     title="Gainers"
                 >
@@ -123,8 +123,8 @@ export const MarketWatch = ({ stocks, searchTerm, isLoading = false, compact = f
                 <button
                     onClick={() => setQuickFilter(quickFilter === 'losers' ? '' : 'losers')}
                     className={`p-1.5 text-xs font-medium rounded transition flex items-center justify-center flex-1 ${quickFilter === 'losers'
-                        ? 'bg-loss text-white'
-                        : 'bg-surface hover:bg-surface-hover border border-border text-text-secondary'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-300'
                         }`}
                     title="Losers"
                 >
@@ -133,7 +133,7 @@ export const MarketWatch = ({ stocks, searchTerm, isLoading = false, compact = f
             </div>
 
             {/* Table Header */}
-            <div className="grid grid-cols-12 gap-2 px-3 py-2 border-b border-border bg-gray-50 text-[10px] uppercase font-bold text-text-muted">
+            <div className="grid grid-cols-12 gap-2 px-3 py-2 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50 text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400">
                 <div className="col-span-4">Symbol</div>
                 <div className="col-span-4 text-right">Price</div>
                 <div className="col-span-4 text-right">Chg%</div>
@@ -154,23 +154,23 @@ export const MarketWatch = ({ stocks, searchTerm, isLoading = false, compact = f
                         return (
                             <div
                                 key={stock.instrumentKey}
-                                className={`grid grid-cols-12 gap-2 px-3 py-2 border-b border-border hover:bg-gray-50 cursor-pointer transition-colors ${isSelected ? 'bg-primary/5 border-l-2 border-l-primary' : ''}`}
+                                className={`grid grid-cols-12 gap-2 px-3 py-2 border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors ${isSelected ? 'bg-primary/5 dark:bg-primary/10 border-l-2 border-l-primary' : ''}`}
                                 onClick={() => setChartStockKey(stock.instrumentKey)}
                             >
                                 <div className="col-span-4 flex flex-col justify-center">
-                                    <span className="text-sm font-bold text-text-primary leading-tight">{stock.symbol}</span>
-                                    <span className="text-[10px] text-text-muted">{getSector(stock.symbol)}</span>
+                                    <span className="text-sm font-bold text-gray-900 dark:text-white leading-tight">{stock.symbol}</span>
+                                    <span className="text-[10px] text-gray-500 dark:text-gray-400">{getSector(stock.symbol)}</span>
                                 </div>
                                 <div className="col-span-4 flex flex-col items-end justify-center">
-                                    <span className={`text-sm font-mono font-medium ${change.isPositive ? 'text-text-primary' : 'text-text-primary'}`}>
+                                    <span className="text-sm font-mono font-medium text-gray-900 dark:text-white">
                                         {formatPrice(stock.ltp)}
                                     </span>
                                 </div>
                                 <div className="col-span-4 flex flex-col items-end justify-center">
-                                    <span className={`text-xs font-mono font-medium ${change.isPositive ? 'text-profit' : 'text-loss'}`}>
+                                    <span className={`text-xs font-mono font-medium ${change.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                                         {stock.changePercent?.toFixed(2)}%
                                     </span>
-                                    <span className={`text-[10px] ${change.isPositive ? 'text-profit/70' : 'text-loss/70'}`}>
+                                    <span className={`text-[10px] ${change.isPositive ? 'text-emerald-600/70 dark:text-emerald-400/70' : 'text-red-600/70 dark:text-red-400/70'}`}>
                                         {stock.change?.toFixed(2)}
                                     </span>
                                 </div>
@@ -181,7 +181,7 @@ export const MarketWatch = ({ stocks, searchTerm, isLoading = false, compact = f
                     })
                 )}
                 {filteredStocks.length === 0 && !isLoading && (
-                    <div className="p-8 text-center text-text-muted text-sm">
+                    <div className="p-8 text-center text-gray-500 dark:text-gray-400 text-sm">
                         No stocks found
                     </div>
                 )}

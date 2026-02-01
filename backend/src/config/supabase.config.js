@@ -26,7 +26,22 @@ export const supabase = createClient(
 // Create Supabase client with anon key for client-side operations
 export const supabaseAnon = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_ANON_KEY,
+  {
+    global: {
+      fetch: (url, options = {}) => {
+        return fetch(url, {
+          ...options,
+          // Increase timeout to 30 seconds
+          signal: AbortSignal.timeout(30000)
+        });
+      }
+    },
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true
+    }
+  }
 );
 
 console.log('✅ Supabase client initialized');

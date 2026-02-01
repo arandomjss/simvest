@@ -38,7 +38,7 @@ export const DashboardPage = () => {
     }, [prices]);
 
     return (
-        <div className="h-screen bg-background flex flex-col overflow-hidden text-text-primary">
+        <div className="h-screen bg-gray-50 dark:bg-slate-900 flex flex-col overflow-hidden text-gray-900 dark:text-white">
             {/* Top Navigation */}
             <div className="flex-none z-30 relative">
                 <Navbar
@@ -57,7 +57,7 @@ export const DashboardPage = () => {
             <div className="flex-1 flex overflow-hidden">
 
                 {/* Left Panel: Market Watch (Sidebar) */}
-                <div className="w-80 md:w-96 border-r border-border bg-surface/30 flex flex-col">
+                <div className="w-80 md:w-96 border-r border-gray-200 dark:border-slate-700 bg-white/30 dark:bg-slate-800/30 flex flex-col">
                     <ErrorBoundary>
                         <MarketWatch
                             stocks={stocks}
@@ -69,11 +69,11 @@ export const DashboardPage = () => {
                 </div>
 
                 {/* Center Panel: Main Workspace */}
-                <div className="flex-1 overflow-y-auto bg-background p-1">
+                <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-900 p-1">
                     <div className="max-w-7xl mx-auto space-y-4 p-4">
                         {/* Market Overview Widgets */}
                         <div className="mb-6">
-                            <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">Market Overview</h2>
+                            <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Market Overview</h2>
                             <ErrorBoundary>
                                 <MarketOverview stocks={stocks} isLoading={stocks.length === 0} />
                             </ErrorBoundary>

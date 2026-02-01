@@ -5,20 +5,39 @@ import { PortfolioPage } from './pages/PortfolioPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { useAuthStore } from './stores/authStore';
+import { useThemeStore } from './stores/themeStore';
 import { UpstoxCallbackPage } from './pages/UpstoxCallbackPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { PracticePage } from './pages/PracticePage';
-
 import { AdvisorPage } from './pages/AdvisorPage';
 import { OrdersPage } from './pages/OrdersPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 const App = () => {
     const { checkAuth } = useAuthStore();
+    const { theme, setTheme } = useThemeStore();
 
     useEffect(() => {
         checkAuth();
     }, [checkAuth]);
+
+    useEffect(() => {
+        // Initialize theme on app start
+        const savedTheme = localStorage.getItem('simvest-theme');
+        if (savedTheme) {
+            const themeData = JSON.parse(savedTheme);
+            setTheme(themeData.state.theme);
+        } else {
+            // Check system preference
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            setTheme(prefersDark ? 'dark' : 'light');
+        }
+    }, [setTheme]);
+
+    useEffect(() => {
+        // Update document class when theme changes
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+    }, [theme]);
 
     return (
         <ErrorBoundary>

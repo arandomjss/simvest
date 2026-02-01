@@ -30,21 +30,21 @@ export const AdvisorPage = () => {
     }, [stocks, searchTerm]);
 
     return (
-        <div className="h-screen bg-background flex flex-col overflow-hidden">
+        <div className="h-screen bg-gray-50 dark:bg-slate-900 flex flex-col overflow-hidden">
             <Navbar />
 
             <div className="flex-1 flex overflow-hidden">
                 {/* LEFT PANEL: SEARCH & CONTEXT (350px) */}
-                <div className="w-[350px] flex-shrink-0 border-r border-border bg-surface flex flex-col">
-                    <div className="p-4 border-b border-border">
-                        <h2 className="text-sm font-bold text-text-primary uppercase tracking-wider mb-3 flex items-center gap-2">
+                <div className="w-[350px] flex-shrink-0 border-r border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col">
+                    <div className="p-4 border-b border-gray-200 dark:border-slate-700">
+                        <h2 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-3 flex items-center gap-2">
                             <span>🧠</span> AI Analyst
                         </h2>
                         <div className="relative">
                             <input
                                 type="text"
                                 placeholder="Search Symbol..."
-                                className="w-full bg-background border border-border rounded px-3 py-2 text-sm text-text-primary focus:border-primary focus:outline-none placeholder-text-muted"
+                                className="w-full bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-primary focus:outline-none placeholder-gray-500 dark:placeholder-gray-400"
                                 value={searchTerm}
                                 onChange={(e) => {
                                     setSearchTerm(e.target.value);
@@ -60,10 +60,10 @@ export const AdvisorPage = () => {
                                                 setSelectedStockKey(stock.instrumentKey);
                                                 setSearchTerm(stock.symbol);
                                             }}
-                                            className="px-3 py-2 hover:bg-background cursor-pointer text-sm text-text-primary flex justify-between"
+                                            className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer text-sm text-gray-800 dark:text-gray-200 flex justify-between"
                                         >
                                             <span className="font-bold">{stock.symbol}</span>
-                                            <span className="text-text-secondary text-xs">Analyze</span>
+                                            <span className="text-gray-500 dark:text-gray-400 text-xs">Analyze</span>
                                         </div>
                                     ))}
                                 </div>
@@ -73,7 +73,7 @@ export const AdvisorPage = () => {
 
                     {/* Quick Access / History (Mock for now) */}
                     <div className="flex-1 overflow-y-auto p-4">
-                        <p className="text-xs text-text-muted font-bold mb-3 uppercase">Market Leaders</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 font-bold mb-3 uppercase">Market Leaders</p>
                         <div className="space-y-1">
                             {stocks.slice(0, 5).map(s => (
                                 <div
@@ -96,18 +96,18 @@ export const AdvisorPage = () => {
                 </div>
 
                 {/* RIGHT PANEL: ANALYSIS CONTENT */}
-                <div className="flex-1 bg-background flex flex-col min-w-0 overflow-y-auto">
+                <div className="flex-1 bg-gray-50 dark:bg-slate-900 flex flex-col min-w-0 overflow-y-auto">
                     {selectedStock ? (
                         <div className="p-8 max-w-5xl mx-auto w-full space-y-8 animate-in fade-in slide-in-from-bottom-2">
                             {/* Header Card */}
-                            <div className="flex items-center justify-between pb-6 border-b border-border">
+                            <div className="flex items-center justify-between pb-6 border-b border-gray-200 dark:border-slate-700">
                                 <div>
-                                    <h1 className="text-3xl font-bold text-text-primary tracking-tight">{selectedStock.symbol}</h1>
-                                    <p className="text-text-secondary">{selectedStock.name}</p>
+                                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">{selectedStock.symbol}</h1>
+                                    <p className="text-gray-600 dark:text-gray-300">{selectedStock.name}</p>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-3xl font-mono text-text-primary">₹{(selectedStock.ltp || 0).toFixed(2)}</div>
-                                    <div className={`text-sm font-medium ${(selectedStock.change || 0) >= 0 ? 'text-profit' : 'text-loss'}`}>
+                                    <div className="text-3xl font-mono text-gray-900 dark:text-white">₹{(selectedStock.ltp || 0).toFixed(2)}</div>
+                                    <div className={`text-sm font-medium ${(selectedStock.change || 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                                         {(selectedStock.change || 0) >= 0 ? '+' : ''}{(selectedStock.change || 0).toFixed(2)} ({((selectedStock.changePercent || 0)).toFixed(2)}%)
                                     </div>
                                 </div>
@@ -116,8 +116,8 @@ export const AdvisorPage = () => {
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                 {/* Main Verdict */}
                                 <div className="lg:col-span-2 space-y-6">
-                                    <div className="bg-surface border border-border rounded-lg p-6">
-                                        <h3 className="text-lg font-bold text-text-primary mb-4 flex items-center gap-2">
+                                    <div className="glass-card p-6">
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                                             <span className="text-primary">🤖</span> AI Technical Verdict
                                         </h3>
                                         <TradeAnalysis

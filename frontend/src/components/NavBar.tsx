@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { useUpstoxStore } from '../stores/upstoxStore';
+import { useThemeStore } from '../stores/themeStore';
 import {
     LayoutDashboard,
     BookOpen,
@@ -13,6 +14,7 @@ import {
     WifiOff,
     X
 } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 
 interface NavbarProps {
     showSearch?: boolean;
@@ -25,6 +27,7 @@ export const Navbar = ({ showSearch = false, searchTerm = '', onSearchChange }: 
     const location = useLocation();
     const { user, signOut } = useAuthStore();
     const { isConnected: upstoxConnected, connect: connectUpstox, disconnect: disconnectUpstox } = useUpstoxStore();
+    const { theme, toggleTheme } = useThemeStore();
 
     const handleSignOut = async () => {
         await signOut();
@@ -38,7 +41,7 @@ export const Navbar = ({ showSearch = false, searchTerm = '', onSearchChange }: 
             onClick={() => navigate(path)}
             className={`px-3 py-1.5 text-sm font-medium rounded flex items-center gap-2 transition-colors ${isActive(path)
                 ? 'bg-primary/10 text-primary'
-                : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
+                : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
         >
             <Icon className="w-4 h-4" />
@@ -47,7 +50,7 @@ export const Navbar = ({ showSearch = false, searchTerm = '', onSearchChange }: 
     );
 
     return (
-        <nav className="h-12 bg-surface border-b border-border shadow-sm flex-none z-40">
+        <nav className="h-12 bg-gray-100 dark:bg-slate-800 border-b border-gray-300 dark:border-slate-600 shadow-sm flex-none z-40">
             <div className="max-w-7xl mx-auto px-4 h-full">
                 <div className="flex justify-between items-center h-full">
 
@@ -83,7 +86,7 @@ export const Navbar = ({ showSearch = false, searchTerm = '', onSearchChange }: 
                         </div>
                     </div>
 
-                    {/* Right: Search & Actions */}
+                    {/* Right: Search, Theme Toggle & Actions */}
                     <div className="flex items-center gap-4">
 
                         {/* Compact Search */}
@@ -107,6 +110,21 @@ export const Navbar = ({ showSearch = false, searchTerm = '', onSearchChange }: 
                                 )}
                             </div>
                         )}
+
+                        <div className="h-6 w-px bg-border hidden md:block"></div>
+
+                        {/* Theme Toggle Button */}
+                        <button
+                            onClick={toggleTheme}
+                            className="p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            aria-label="Toggle theme"
+                        >
+                            {theme === 'dark' ? (
+                                <Sun className="w-6 h-6 text-yellow-500" />
+                            ) : (
+                                <Moon className="w-6 h-6 text-yellow-400" />
+                            )}
+                        </button>
 
                         <div className="h-6 w-px bg-border hidden md:block"></div>
 

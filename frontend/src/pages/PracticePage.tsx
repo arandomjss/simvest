@@ -108,14 +108,14 @@ export const PracticePage = () => {
     if (!activeStock) return <div className="text-center p-10">Loading Market...</div>;
 
     return (
-        <div className="h-screen bg-background flex flex-col overflow-hidden">
+        <div className="h-screen bg-gray-50 dark:bg-slate-900 flex flex-col overflow-hidden">
             <Navbar showSearch={false} />
 
             <div className="flex-1 flex overflow-hidden">
                 {/* LEFT PANEL: CHART & TOOLS (65%) */}
-                <div className="flex-[2] flex flex-col border-r border-border min-w-0">
+                <div className="flex-[2] flex flex-col border-r border-gray-200 dark:border-slate-700 min-w-0">
                     {/* Header Bar */}
-                    <div className="h-16 border-b border-border flex items-center px-4 justify-between bg-surface/50 backdrop-blur-sm relative z-20">
+                    <div className="h-16 border-b border-gray-200 dark:border-slate-700 flex items-center px-4 justify-between bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm relative z-20">
                         <div className="flex items-center space-x-6">
                             {/* Stock Command Bar */}
                             <StockSelector
@@ -124,16 +124,16 @@ export const PracticePage = () => {
                             />
 
                             <div className="flex flex-col">
-                                <span className="text-2xl font-bold text-text-primary tracking-tight font-mono">
+                                <div className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight font-mono shadow-md">
                                     ₹{activeStock.ltp?.toFixed(2)}
-                                </span>
+                                </div>
                                 <div className="flex items-center gap-2">
-                                    <span className={`text-xs font-semibold ${(activeStock.change || 0) >= 0 ? 'text-profit' : 'text-loss'}`}>
+                                    <div className={`text-xs font-semibold ${(activeStock.change || 0) >= 0 ? 'text-profit' : 'text-loss'}`}>
                                         {(activeStock.change || 0) >= 0 ? '+' : ''}{activeStock.change?.toFixed(2)} ({(activeStock.changePercent || 0).toFixed(2)}%)
-                                    </span>
-                                    <span className="text-[10px] text-text-secondary opacity-60">
+                                    </div>
+                                    <div className="text-[10px] text-text-secondary opacity-60">
                                         • {activeStock.lastUpdated ? new Date(activeStock.lastUpdated).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : ''}
-                                    </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -188,8 +188,8 @@ export const PracticePage = () => {
                 </div>
 
                 {/* RIGHT PANEL: EXECUTION (35%) */}
-                <div className="flex-[1] bg-surface border-l border-border p-6 flex flex-col max-w-sm">
-                    <h2 className="text-lg font-bold text-text-primary mb-6">Trade Terminal</h2>
+                <div className="flex-[1] bg-white dark:bg-slate-800 border-l border-gray-200 dark:border-slate-700 p-6 flex flex-col max-w-sm">
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Trade Terminal</h2>
 
                     <TradeForm
                         stock={activeStock}

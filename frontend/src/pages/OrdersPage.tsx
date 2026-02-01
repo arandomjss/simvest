@@ -14,7 +14,7 @@ export const OrdersPage = () => {
     }, []);
 
     return (
-        <div className="h-screen bg-background flex flex-col overflow-hidden text-text-primary">
+        <div className="h-screen bg-gray-50 dark:bg-slate-900 flex flex-col overflow-hidden text-gray-900 dark:text-white">
             {/* Top Navigation */}
             <div className="flex-none z-30 relative">
                 <Navbar />
@@ -26,7 +26,7 @@ export const OrdersPage = () => {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 overflow-y-auto bg-background">
+            <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-900">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="mb-6 flex justify-between items-end">
                         <div>
