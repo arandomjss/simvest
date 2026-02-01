@@ -10,7 +10,7 @@ export const NIFTY_50_SYMBOLS = [
     'INDUSINDBK', 'INFY', 'JSWSTEEL', 'KOTAKBANK', 'LT',
     'M&M', 'MARUTI', 'NTPC', 'NESTLEIND', 'ONGC',
     'POWERGRID', 'RELIANCE', 'SBILIFE', 'SHRIRAMFIN', 'SBIN',
-    'SUNPHARMA', 'TCS', 'TATACONSUM', 'TATAMOTORS', 'TATASTEEL',
+    'SUNPHARMA', 'TCS', 'TATACONSUM', 'TATASTEEL',
     'TECHM', 'TITAN', 'ULTRACEMCO', 'UPL', 'WIPRO'
 ];
 
@@ -52,7 +52,6 @@ export async function loadNifty50Instruments() {
             'SUNPHARMA': 'NSE_EQ|INE044A01036',
             'ULTRACEMCO': 'NSE_EQ|INE481G01011',
             'NESTLEIND': 'NSE_EQ|INE239A01016',
-            'TATAMOTORS': 'NSE_EQ|INE155A01022',
             'BAJFINANCE': 'NSE_EQ|INE296A01024',
             'M&M': 'NSE_EQ|INE101A01026',
             'HCLTECH': 'NSE_EQ|INE860A01027',

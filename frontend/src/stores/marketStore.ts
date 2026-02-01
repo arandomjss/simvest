@@ -15,25 +15,34 @@ interface MarketState {
     disconnectWebSocket: () => void;
 }
 
+
 export const useMarketStore = create<MarketState>((set, get) => ({
     stocks: [],
     prices: new Map(),
     isLoading: false,
     error: null,
 
+
     fetchInstruments: async () => {
         try {
             set({ isLoading: true, error: null });
             const instruments = await apiService.getInstruments();
 
+            if (!instruments || instruments.length === 0) throw new Error("Empty instruments");
+
             const stocks: Stock[] = instruments.map((inst: any) => ({
                 symbol: inst.symbol,
+                name: inst.name || inst.companyName || inst.symbol,
                 instrumentKey: inst.instrumentKey,
                 sector: inst.sector,
+                ltp: inst.price || 0,
+                change: inst.change || 0,
+                changePercent: inst.changePercent || 0
             }));
 
             set({ stocks, isLoading: false });
         } catch (error: any) {
+            console.error("Failed to fetch instruments:", error);
             set({
                 error: error.message || 'Failed to fetch instruments',
                 isLoading: false,

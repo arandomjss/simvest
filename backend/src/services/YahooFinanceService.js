@@ -33,7 +33,6 @@ class YahooFinanceService {
             'POWERGRID': 'POWERGRID.NS',
             'NTPC': 'NTPC.NS',
             'ONGC': 'ONGC.NS',
-            'TATAMOTORS': 'TATAMOTORS.NS',
             'TATASTEEL': 'TATASTEEL.NS',
             'ADANIPORTS': 'ADANIPORTS.NS',
             'COALINDIA': 'COALINDIA.NS',

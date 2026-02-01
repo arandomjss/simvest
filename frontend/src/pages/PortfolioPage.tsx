@@ -13,7 +13,7 @@ import { PortfolioNews } from '../components/PortfolioNews';
 
 export const PortfolioPage = () => {
     const navigate = useNavigate();
-    const { prices, stocks, connectWebSocket, disconnectWebSocket } = useMarketStore();
+    const { prices, stocks, fetchInstruments, connectWebSocket, disconnectWebSocket } = useMarketStore();
     const { portfolio, fetchPortfolio, updatePortfolioWithPrices } = usePortfolioStore();
 
     const holdings = portfolio?.holdings || [];
@@ -43,6 +43,9 @@ export const PortfolioPage = () => {
 
     useEffect(() => {
         fetchPortfolio();
+        if (stocks.length === 0) {
+            fetchInstruments();
+        }
         connectWebSocket();
         return () => disconnectWebSocket();
     }, []);
@@ -68,28 +71,27 @@ export const PortfolioPage = () => {
 
             {/* Scrollable Main Area */}
             <div className="flex-1 overflow-y-auto custom-scrollbar">
-                <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+                <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
                     {/* Charts Grid */}
                     {/* Charts Grid */}
                     {portfolio && holdings.length > 0 && (
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-2">
                             {/* Performance History */}
-                            <div className="lg:col-span-2 bg-surface border border-border rounded-lg p-1 overflow-hidden">
-                                <div className="p-3 border-b border-border flex justify-between items-center bg-surface-hover/30">
-                                    <h3 className="text-sm font-bold text-text-primary">Performance History</h3>
-                                    <span className="text-xs text-text-secondary">1 Year</span>
+                            <div className="lg:col-span-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm flex flex-col">
+                                <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center bg-gray-50/50 dark:bg-slate-800/50">
+                                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">Performance History</h3>
                                 </div>
-                                <div className="p-4">
+                                <div className="flex-1 p-0">
                                     <PortfolioPerformanceChart history={portfolioHistory} />
                                 </div>
                             </div>
 
-                            <div className="bg-surface border border-border rounded-lg p-1 flex flex-col">
-                                <div className="p-3 border-b border-border bg-surface-hover/30">
-                                    <h3 className="text-sm font-bold text-text-primary">Allocation</h3>
+                            <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm flex flex-col">
+                                <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center bg-gray-50/50 dark:bg-slate-800/50">
+                                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">Allocation</h3>
                                 </div>
-                                <div className="p-4 flex-1 flex items-center justify-center">
+                                <div className="flex-1 flex items-center justify-center p-4">
                                     <SectorAllocationChart holdings={holdings} />
                                 </div>
                             </div>
@@ -112,9 +114,17 @@ export const PortfolioPage = () => {
                     {/* Holdings Ledger */}
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <h2 className="text-xl font-bold text-text-primary">Active Holdings</h2>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                Active Holdings
+                                <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-slate-800 text-xs text-gray-500 font-medium">
+                                    {holdings.length}
+                                </span>
+                            </h2>
                             <div className="flex items-center gap-2">
-                                <button onClick={() => navigate('/practice')} className="text-sm text-primary hover:text-primary-hover font-medium">
+                                <button
+                                    onClick={() => navigate('/practice')}
+                                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-hover transition-all shadow-sm shadow-primary/20"
+                                >
                                     + Add Position
                                 </button>
                             </div>
@@ -128,8 +138,8 @@ export const PortfolioPage = () => {
                                         key={sector}
                                         onClick={() => setSelectedSector(sector)}
                                         className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${selectedSector === sector
-                                            ? 'bg-primary text-white'
-                                            : 'bg-surface border border-border text-text-secondary hover:bg-surface-hover'
+                                            ? 'bg-primary text-white shadow-sm shadow-primary/25'
+                                            : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700'
                                             }`}
                                     >
                                         {sector}
@@ -138,35 +148,38 @@ export const PortfolioPage = () => {
                             </div>
                         )}
 
-                        <div className="bg-surface border border-border rounded-lg overflow-hidden shadow-sm">
+                        <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
                             {holdings.length === 0 ? (
-                                // ... Empty state
-                                <div className="text-center py-16">
-                                    <div className="text-4xl mb-4">💼</div>
-                                    <p className="text-text-secondary mb-4">Your portfolio is empty.</p>
+                                <div className="text-center py-20 flex flex-col items-center">
+                                    <div className="w-16 h-16 bg-gray-50 dark:bg-slate-700/50 rounded-full flex items-center justify-center mb-4">
+                                        <span className="text-2xl">💼</span>
+                                    </div>
+                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Portfolio is Empty</h3>
+                                    <p className="text-gray-500 max-w-xs mx-auto mb-6 text-sm">
+                                        Start building your wealth by adding your first position in the Terminal.
+                                    </p>
                                     <button
                                         onClick={() => navigate('/practice')}
-                                        className="px-6 py-2 bg-primary text-white text-sm font-bold rounded-full hover:bg-primary-hover transition-colors"
+                                        className="px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-hover transition-all"
                                     >
-                                        Start Trading
+                                        Go to Terminal
                                     </button>
                                 </div>
                             ) : (
                                 <div className="overflow-x-auto">
                                     <table className="w-full">
-                                        <thead className="bg-surface-hover/50 border-b border-border">
+                                        <thead className="bg-gray-50/50 dark:bg-slate-800/50 border-b border-gray-200 dark:border-slate-700">
                                             <tr>
-                                                <th className="py-3 px-4 text-xs font-bold text-text-secondary uppercase tracking-wider text-left">Instrument</th>
-                                                <th className="py-3 px-4 text-xs font-bold text-text-secondary uppercase tracking-wider text-left">Sector</th>
-                                                <th className="py-3 px-4 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">Qty</th>
-                                                <th className="py-3 px-4 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">Avg.</th>
-                                                <th className="py-3 px-4 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">LTP</th>
-                                                <th className="py-3 px-4 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">Cur. Value</th>
-                                                <th className="py-3 px-4 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">P&L</th>
-                                                <th className="py-3 px-4 text-xs font-bold text-text-secondary uppercase tracking-wider text-right">% Chg</th>
+                                                <th className="py-3 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left">Instrument</th>
+                                                <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-left">Sector</th>
+                                                <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Qty</th>
+                                                <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Avg. Price</th>
+                                                <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">LTP</th>
+                                                <th className="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Value</th>
+                                                <th className="py-3 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">P&L</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-border">
+                                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
                                             {filteredHoldings.map((holding) => {
                                                 const stock = stocks.find(s => s.instrumentKey === holding.instrumentKey);
                                                 const isProfit = (holding.pnl || 0) >= 0;
@@ -174,34 +187,47 @@ export const PortfolioPage = () => {
                                                 const sectorColor = SECTOR_COLORS[sector] || SECTOR_COLORS['Others'];
 
                                                 return (
-                                                    <tr key={holding.instrumentKey} className="hover:bg-surface-hover transition-colors group">
-                                                        <td className="py-3 px-4 text-sm font-bold text-text-primary">
-                                                            <div>{holding.symbol}</div>
-                                                            <div className="text-[10px] text-text-secondary font-normal truncate max-w-[120px]">{stock?.name || 'Unknown'}</div>
+                                                    <tr key={holding.instrumentKey} className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors group">
+                                                        <td className="py-4 px-6">
+                                                            <div className="flex items-center gap-3">
+                                                                <div
+                                                                    className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold text-white shadow-sm"
+                                                                    style={{ backgroundColor: sectorColor }}
+                                                                >
+                                                                    {holding.symbol[0]}
+                                                                </div>
+                                                                <div>
+                                                                    <div className="font-bold text-gray-900 dark:text-white">{holding.symbol}</div>
+                                                                    <div className="text-xs text-gray-500 truncate max-w-[140px]">{stock?.name || 'N/A'}</div>
+                                                                </div>
+                                                            </div>
                                                         </td>
-                                                        <td className="py-3 px-4">
-                                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium" style={{ backgroundColor: `${sectorColor}20`, color: sectorColor }}>
+                                                        <td className="py-4 px-4">
+                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-700">
                                                                 {sector}
                                                             </span>
                                                         </td>
-                                                        <td className="py-3 px-4 text-sm font-mono text-text-primary text-right">{holding.quantity}</td>
-                                                        <td className="py-3 px-4 text-sm font-mono text-text-secondary text-right">{formatPrice(holding.avgPrice)}</td>
-                                                        <td className="py-3 px-4 text-sm text-right">
-                                                            <div className="font-mono text-text-primary">{formatPrice(holding.currentPrice || holding.avgPrice)}</div>
-                                                            <div className="text-[10px] text-text-secondary opacity-60">
-                                                                {stock?.lastUpdated ? new Date(stock.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                                                        <td className="py-4 px-4 text-right font-mono text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                            {holding.quantity}
+                                                        </td>
+                                                        <td className="py-4 px-4 text-right font-mono text-sm text-gray-500">
+                                                            {formatPrice(holding.avgPrice)}
+                                                        </td>
+                                                        <td className="py-4 px-4 text-right">
+                                                            <div className="font-mono text-sm font-medium text-gray-900 dark:text-white">
+                                                                {formatPrice(holding.currentPrice || holding.avgPrice)}
                                                             </div>
                                                         </td>
-                                                        <td className="py-3 px-4 text-sm font-mono text-text-primary text-right font-medium">
+                                                        <td className="py-4 px-4 text-right font-mono text-sm font-bold text-gray-900 dark:text-white">
                                                             {formatPrice((holding.currentPrice || holding.avgPrice) * holding.quantity)}
                                                         </td>
-                                                        <td className={`py-3 px-4 text-sm font-mono text-right font-bold ${isProfit ? 'text-profit' : 'text-loss'}`}>
-                                                            {isProfit ? '+' : ''}{formatPrice(holding.pnl || 0)}
-                                                        </td>
-                                                        <td className={`py-3 px-4 text-right`}>
-                                                            <span className={`inline-block px-2 py-1 rounded text-xs font-bold font-mono ${isProfit ? 'bg-profit/10 text-profit' : 'bg-loss/10 text-loss'}`}>
-                                                                {isProfit ? '+' : ''}{(holding.pnlPercent || 0).toFixed(2)}%
-                                                            </span>
+                                                        <td className="py-4 px-6 text-right">
+                                                            <div className={`font-mono text-sm font-bold ${isProfit ? 'text-emerald-500' : 'text-red-500'}`}>
+                                                                {isProfit ? '+' : ''}{formatPrice(holding.pnl || 0)}
+                                                            </div>
+                                                            <div className={`text-xs font-medium mt-0.5 ${isProfit ? 'text-emerald-600' : 'text-red-600'}`}>
+                                                                {isProfit ? '▲' : '▼'} {(Math.abs(holding.pnlPercent || 0)).toFixed(2)}%
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 );

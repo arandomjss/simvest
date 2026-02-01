@@ -67,9 +67,9 @@ export const PortfolioNews = ({ holdings }: PortfolioNewsProps) => {
 
     if (myNews.length === 0) {
         return (
-            <div className="card p-5 border border-border bg-surface h-full">
-                <h3 className="text-sm font-bold text-text-primary mb-4">Portfolio News</h3>
-                <div className="flex flex-col items-center justify-center h-48 text-text-secondary opacity-60">
+            <div className="h-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl flex flex-col overflow-hidden shadow-sm p-5">
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4">Portfolio News</h3>
+                <div className="flex flex-col items-center justify-center h-48 text-gray-400 opacity-60">
                     <div className="mb-2 text-2xl">📰</div>
                     <p className="text-xs text-center">No recent news for your holdings.</p>
                 </div>
@@ -78,34 +78,34 @@ export const PortfolioNews = ({ holdings }: PortfolioNewsProps) => {
     }
 
     return (
-        <div className="card border border-border bg-surface h-full flex flex-col">
-            <div className="p-4 border-b border-border bg-surface-hover/30 flex justify-between items-center">
-                <h3 className="text-sm font-bold text-text-primary">Portfolio News</h3>
+        <div className="h-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl flex flex-col overflow-hidden shadow-sm">
+            <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center bg-gray-50/50 dark:bg-slate-800/50">
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white">Portfolio News</h3>
                 <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">Live Updates</span>
             </div>
 
             <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar max-h-[300px]">
                 {myNews.map(item => (
-                    <div key={item.id} className="p-3 rounded-lg hover:bg-surface-hover transition-colors group cursor-pointer border border-transparent hover:border-border/50">
+                    <div key={item.id} className="p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors group cursor-pointer border border-transparent hover:border-gray-100 dark:hover:border-slate-600">
                         <div className="flex justify-between items-start gap-3 mb-1">
-                            <h4 className="text-sm font-medium text-text-primary leading-tight group-hover:text-primary transition-colors line-clamp-2">
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-white leading-tight group-hover:text-primary transition-colors line-clamp-2">
                                 {item.title}
                             </h4>
                             <div className="shrink-0 pt-0.5">
-                                {item.sentiment === 'positive' && <TrendingUp className="w-3.5 h-3.5 text-profit" />}
-                                {item.sentiment === 'negative' && <TrendingDown className="w-3.5 h-3.5 text-loss" />}
-                                {item.sentiment === 'neutral' && <AlertCircle className="w-3.5 h-3.5 text-text-muted" />}
+                                {item.sentiment === 'positive' && <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />}
+                                {item.sentiment === 'negative' && <TrendingDown className="w-3.5 h-3.5 text-red-500" />}
+                                {item.sentiment === 'neutral' && <AlertCircle className="w-3.5 h-3.5 text-gray-400" />}
                             </div>
                         </div>
 
                         <div className="flex justify-between items-center mt-2">
                             <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">{item.source}</span>
-                                <span className="w-1 h-1 bg-text-muted rounded-full opacity-40"></span>
-                                <span className="text-[10px] text-text-muted">{item.time}</span>
+                                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{item.source}</span>
+                                <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                                <span className="text-[10px] text-gray-400">{item.time}</span>
                             </div>
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <ExternalLink className="w-3 h-3 text-text-muted" />
+                                <ExternalLink className="w-3 h-3 text-gray-400" />
                             </div>
                         </div>
                     </div>

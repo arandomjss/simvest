@@ -47,7 +47,8 @@ class MarketDataService extends EventEmitter {
             'ULTRACEMCO': 8500,
             'BAJFINANCE': 6500,
             'NESTLEIND': 2200,
-            'WIPRO': 450
+            'WIPRO': 450,
+            'TATASTEEL': 145
         };
 
         return priceRanges[symbol] || (Math.random() * 2000 + 500);
@@ -73,7 +74,12 @@ class MarketDataService extends EventEmitter {
 
             quotes.forEach((quote, index) => {
                 const instrumentKey = instrumentKeys[index];
-                this.mockPrices.set(instrumentKey, quote.price);
+
+                // Only update if we got a valid price to avoid overwriting fallbacks with 0
+                if (quote.price && quote.price > 0) {
+                    this.mockPrices.set(instrumentKey, quote.price);
+                }
+
                 // Always update previous close with real data from Yahoo
                 if (quote.previousClose) {
                     this.previousCloses.set(instrumentKey, quote.previousClose);

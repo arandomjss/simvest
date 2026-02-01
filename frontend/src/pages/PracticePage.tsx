@@ -168,7 +168,14 @@ export const PracticePage = () => {
 
     return (
         <div className="h-screen bg-gray-50 dark:bg-slate-900 flex flex-col overflow-hidden">
-            <Navbar showSearch={false} />
+            <Navbar
+                customSearch={
+                    <StockSelector
+                        selectedSymbol={selectedSymbol}
+                        onSelect={setSelectedSymbol}
+                    />
+                }
+            />
 
             <div className="flex-1 flex overflow-hidden">
                 {/* LEFT PANEL: CHART & TOOLS (65%) */}
@@ -176,17 +183,12 @@ export const PracticePage = () => {
                     {/* Header Bar */}
                     <div className="h-16 border-b border-gray-200 dark:border-slate-700 flex items-center px-4 justify-between bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm relative z-20">
                         <div className="flex items-center space-x-6">
-                            {/* Stock Command Bar */}
-                            <StockSelector
-                                selectedSymbol={selectedSymbol}
-                                onSelect={setSelectedSymbol}
-                            />
 
                             <div className="flex flex-col">
-                                <div className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight font-mono shadow-md">
+                                <div className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight font-mono leading-none">
                                     ₹{activeStock.ltp?.toFixed(2)}
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 mt-1">
                                     <div className={`text-xs font-semibold ${(activeStock.change || 0) >= 0 ? 'text-profit' : 'text-loss'}`}>
                                         {(activeStock.change || 0) >= 0 ? '+' : ''}{activeStock.change?.toFixed(2)} ({(activeStock.changePercent || 0).toFixed(2)}%)
                                     </div>

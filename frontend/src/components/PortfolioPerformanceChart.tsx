@@ -54,20 +54,17 @@ export const PortfolioPerformanceChart = ({ history }: PortfolioPerformanceChart
     };
 
     return (
-        <div className="card p-4">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-text-primary">Portfolio Performance</h3>
-
-                {/* Timeframe Selector */}
-                <div className="flex space-x-1">
+        <div className="w-full h-full p-2">
+            {/* Header / Controls */}
+            <div className="flex justify-end mb-4">
+                <div className="flex space-x-1 bg-gray-100 dark:bg-slate-800 rounded-lg p-1">
                     {timeframes.map((tf) => (
                         <button
                             key={tf}
                             onClick={() => setTimeframe(tf)}
-                            className={`px-2 py-1 text-xs font-medium rounded transition ${timeframe === tf
-                                ? 'bg-primary text-white'
-                                : 'text-text-secondary hover:bg-surface-hover'
+                            className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${timeframe === tf
+                                ? 'bg-white dark:bg-slate-600 text-primary shadow-sm'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                                 }`}
                         >
                             {tf}
@@ -77,46 +74,49 @@ export const PortfolioPerformanceChart = ({ history }: PortfolioPerformanceChart
             </div>
 
             {/* Chart */}
-            <ResponsiveContainer width="100%" height={250}>
-                <AreaChart data={chartData}>
-                    <defs>
-                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                            <stop
-                                offset="5%"
-                                stopColor={isPositive ? colors.success.DEFAULT : colors.danger.DEFAULT}
-                                stopOpacity={0.3}
-                            />
-                            <stop
-                                offset="95%"
-                                stopColor={isPositive ? colors.success.DEFAULT : colors.danger.DEFAULT}
-                                stopOpacity={0}
-                            />
-                        </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis
-                        dataKey="date"
-                        stroke="#9e9e9e"
-                        style={{ fontSize: '12px' }}
-                        tickLine={false}
-                    />
-                    <YAxis
-                        stroke="#9e9e9e"
-                        style={{ fontSize: '12px' }}
-                        tickLine={false}
-                        tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}k`}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Area
-                        type="monotone"
-                        dataKey="value"
-                        stroke={isPositive ? colors.success.DEFAULT : colors.danger.DEFAULT}
-                        strokeWidth={2}
-                        fillOpacity={1}
-                        fill="url(#colorValue)"
-                    />
-                </AreaChart>
-            </ResponsiveContainer>
+            <div className="h-[250px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                        <defs>
+                            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                                <stop
+                                    offset="5%"
+                                    stopColor={isPositive ? colors.success.DEFAULT : colors.danger.DEFAULT}
+                                    stopOpacity={0.2}
+                                />
+                                <stop
+                                    offset="95%"
+                                    stopColor={isPositive ? colors.success.DEFAULT : colors.danger.DEFAULT}
+                                    stopOpacity={0}
+                                />
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" className="dark:stroke-slate-700" />
+                        <XAxis
+                            dataKey="date"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fontSize: 10, fill: '#9ca3af' }}
+                            dy={10}
+                        />
+                        <YAxis
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fontSize: 10, fill: '#9ca3af' }}
+                            tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}k`}
+                        />
+                        <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#9ca3af', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                        <Area
+                            type="monotone"
+                            dataKey="value"
+                            stroke={isPositive ? colors.success.DEFAULT : colors.danger.DEFAULT}
+                            strokeWidth={2}
+                            fillOpacity={1}
+                            fill="url(#colorValue)"
+                        />
+                    </AreaChart>
+                </ResponsiveContainer>
+            </div>
         </div>
     );
 };
