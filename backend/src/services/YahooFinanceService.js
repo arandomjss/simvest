@@ -70,7 +70,7 @@ class YahooFinanceService {
      * Convert symbol to Yahoo Finance format
      */
     toYahooSymbol(symbol) {
-        return this.symbolMap[symbol] || (symbol.includes('.') ? symbol : `${symbol}.NS`);
+        return this.symbolMap[symbol] || (symbol.startsWith('^') || symbol.includes('.') ? symbol : `${symbol}.NS`);
     }
 
     /**
@@ -210,6 +210,29 @@ class YahooFinanceService {
         } catch (error) {
             console.error(`Error fetching historical data for ${symbol}:`, error.message);
             throw error;
+        }
+    }
+
+    /**
+     * Get company profile (Sector, Industry, Website)
+     */
+    async getCompanyProfile(symbol) {
+        try {
+            const yahooSymbol = this.toYahooSymbol(symbol);
+            const result = await yahooFinance.quoteSummary(yahooSymbol, { modules: ['summaryProfile'] });
+
+            if (result && result.summaryProfile) {
+                return {
+                    sector: result.summaryProfile.sector || 'Others',
+                    industry: result.summaryProfile.industry || 'Others',
+                    website: result.summaryProfile.website,
+                    longBusinessSummary: result.summaryProfile.longBusinessSummary
+                };
+            }
+            return null;
+        } catch (error) {
+            console.error(`Error fetching profile for ${symbol}:`, error.message);
+            return null; // non-critical
         }
     }
 

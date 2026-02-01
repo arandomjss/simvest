@@ -29,6 +29,7 @@ export const useMarketStore = create<MarketState>((set, get) => ({
             const stocks: Stock[] = instruments.map((inst: any) => ({
                 symbol: inst.symbol,
                 instrumentKey: inst.instrumentKey,
+                sector: inst.sector,
             }));
 
             set({ stocks, isLoading: false });

@@ -11,6 +11,8 @@ import {
 
 import { Stock } from '../types';
 import { colors } from '../styles/colors';
+import { useWatchlistStore } from '../stores/watchlistStore';
+import { Star } from 'lucide-react';
 
 interface ChartModalProps {
     stock: Stock;
@@ -45,22 +47,28 @@ export const ChartModal = ({ stock, onClose }: ChartModalProps) => {
             try {
                 // Map timeframe to API interval/range
                 let interval = '1d';
+                let period = '1mo';
 
                 switch (timeframe) {
                     case '1D':
-                        interval = '1m'; // 1 minute interval for 1 day
+                        interval = '2m'; // 2 minute interval for 1 day
+                        period = '1d';
                         break;
                     case '1W':
                         interval = '15m'; // 15 min interval for 1 week
+                        period = '5d';
                         break;
                     case '1M':
                         interval = '1d';
+                        period = '1mo';
                         break;
                     case '3M':
                         interval = '1d';
+                        period = '3mo';
                         break;
                     case '1Y':
                         interval = '1wk';
+                        period = '1y';
                         break;
                 }
 
@@ -73,7 +81,7 @@ export const ChartModal = ({ stock, onClose }: ChartModalProps) => {
                 // We'll trust the parent passes a valid object, or update Props.
 
                 const key = (stock as any).instrumentKey || calculateInstrumentKey(stock.symbol);
-                const candles = await apiService.getHistoricalData(key, interval); // We will need to update API to pass range/period if backend supports it
+                const candles = await apiService.getHistoricalData(key, interval, period);
 
                 if (candles && candles.length > 0) {
                     const validCandles = candles.filter((c: any) => c.close > 0 && c.timestamp > 0);
@@ -93,6 +101,8 @@ export const ChartModal = ({ stock, onClose }: ChartModalProps) => {
                     }));
 
                     setChartData({ ohlc, volume });
+                } else {
+                    throw new Error("No data returned");
                 }
             } catch (error) {
                 console.error("Failed to fetch chart data", error);
@@ -205,14 +215,34 @@ export const ChartModal = ({ stock, onClose }: ChartModalProps) => {
         onClose();
     };
 
+    const { addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlistStore();
+    const inWatchlist = isInWatchlist(stock.instrumentKey);
+
+    const handleToggleWatchlist = () => {
+        if (inWatchlist) {
+            removeFromWatchlist(stock.instrumentKey);
+        } else {
+            addToWatchlist(stock.instrumentKey);
+        }
+    };
+
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-surface rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] flex flex-col">
+            <div className="bg-surface rounded-lg shadow-xl w-full max-w-6xl h-[85vh] flex flex-col">
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-border">
                     <div className="flex items-center gap-6">
                         <div>
-                            <h2 className="text-xl font-semibold text-text-primary">{stock.symbol}</h2>
+                            <div className="flex items-center gap-3">
+                                <h2 className="text-xl font-semibold text-text-primary">{stock.symbol}</h2>
+                                <button
+                                    onClick={handleToggleWatchlist}
+                                    className={`p-1.5 rounded-full transition ${inWatchlist ? 'text-yellow-500 bg-yellow-500/10' : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'}`}
+                                    title={inWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
+                                >
+                                    <Star className={`w-5 h-5 ${inWatchlist ? 'fill-current' : ''}`} />
+                                </button>
+                            </div>
                             <div className="flex items-center space-x-2 mt-1">
                                 <span className="text-2xl font-bold text-text-primary">
                                     ₹{stock.ltp?.toFixed(2) || '0.00'}

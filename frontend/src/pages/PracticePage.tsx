@@ -13,6 +13,7 @@ import {
     calculateBollingerBands
 } from '../services/technicalIndicators';
 import { StockSelector } from '../components/StockSelector';
+import { apiService } from '../services/api';
 
 export const PracticePage = () => {
     const [searchParams] = useSearchParams();
@@ -55,13 +56,71 @@ export const PracticePage = () => {
 
     // Generate Chart Data when Stock/Timeframe changes
     useEffect(() => {
-        if (!activeStock) return;
+        const fetchChartData = async () => {
+            if (!activeStock) return;
+            setLiveCandle(null);
 
-        const seed = activeStock.instrumentKey;
-        const data = generateHistoricalData(activeStock.ltp || 100, timeframe, seed);
+            try {
+                // Map timeframe to API interval and period
+                let interval = '15m'; // Default
+                let period = '1mo';   // Default
 
-        setChartData(data);
-        setLiveCandle(null); // Reset live candle on new chart
+                switch (timeframe) {
+                    case '1D':
+                        interval = '2m';  // 2m gives good intraday detail without hitting 1m limits
+                        period = '1d';
+                        break;
+                    case '1W':
+                        interval = '15m';
+                        period = '5d';
+                        break;
+                    case '1M':
+                        interval = '1d';
+                        period = '1mo';
+                        break;
+                    case '3M':
+                        interval = '1d';
+                        period = '3mo';
+                        break;
+                    case '1Y':
+                        interval = '1wk';
+                        period = '1y';
+                        break;
+                }
+
+                const key = activeStock.instrumentKey;
+                const candles = await apiService.getHistoricalData(key, interval, period);
+
+                if (candles && candles.length > 0) {
+                    const validCandles = candles.filter((c: any) => c.close > 0 && c.timestamp > 0);
+
+                    const ohlc = validCandles.map((c: any) => ({
+                        time: c.timestamp / 1000,
+                        open: c.open,
+                        high: c.high,
+                        low: c.low,
+                        close: c.close
+                    }));
+
+                    const volume = validCandles.map((c: any) => ({
+                        time: c.timestamp / 1000,
+                        value: c.volume,
+                        color: c.close >= c.open ? 'rgba(34, 197, 94, 0.4)' : 'rgba(239, 68, 68, 0.4)' // Hardcoded colors or import
+                    }));
+
+                    setChartData({ ohlc, volume });
+                } else {
+                    throw new Error("No API data");
+                }
+            } catch (err) {
+                console.warn("API Chart failed, using mock", err);
+                const seed = activeStock.instrumentKey;
+                const data = generateHistoricalData(activeStock.ltp || 100, timeframe, seed);
+                setChartData(data);
+            }
+        };
+
+        fetchChartData();
     }, [activeStock?.instrumentKey, timeframe]);
 
     // Live Chart Updates

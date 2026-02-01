@@ -36,8 +36,8 @@ export const Navbar = ({ showSearch = false, searchTerm = '', onSearchChange }: 
     const NavItem = ({ path, icon: Icon, label }: { path: string; icon: any; label: string }) => (
         <button
             onClick={() => navigate(path)}
-            className={`px-3 py-1.5 text-sm font-medium rounded flex items-center gap-2 transition-colors ${isActive(path)
-                ? 'bg-primary/10 text-primary'
+            className={`px-4 py-2 text-sm font-medium rounded-full flex items-center gap-2 transition-all ${isActive(path)
+                ? 'bg-primary text-white shadow-md shadow-primary/25'
                 : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
                 }`}
         >
@@ -47,33 +47,33 @@ export const Navbar = ({ showSearch = false, searchTerm = '', onSearchChange }: 
     );
 
     return (
-        <nav className="h-12 bg-surface border-b border-border shadow-sm flex-none z-40">
-            <div className="max-w-7xl mx-auto px-4 h-full">
+        <nav className="h-16 bg-surface/90 backdrop-blur-md border-b border-border sticky top-0 z-50 transition-all">
+            <div className="w-full px-6 h-full">
                 <div className="flex justify-between items-center h-full">
 
                     {/* Left: Brand & Nav */}
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-8">
                         <div
-                            className="flex items-center gap-2 cursor-pointer group"
+                            className="flex items-center gap-3 cursor-pointer group"
                             onClick={() => navigate('/dashboard')}
                         >
-                            <div className="w-7 h-7 bg-primary rounded flex items-center justify-center text-white font-bold text-xs shadow-sm group-hover:bg-primary-dark transition-colors">
+                            <div className="w-9 h-9 bg-gradient-to-br from-primary to-blue-700 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center text-white font-bold text-sm transform transition-transform group-hover:scale-105">
                                 SV
                             </div>
-                            <h1 className="text-lg font-bold text-text-primary tracking-tight">SimVest</h1>
+                            <h1 className="text-xl font-extrabold text-text-primary tracking-tight group-hover:text-primary transition-colors">SimVest</h1>
                         </div>
 
-                        <div className="h-6 w-px bg-border hidden md:block"></div>
+                        <div className="h-8 w-px bg-border/50 hidden md:block"></div>
 
-                        <div className="hidden md:flex items-center gap-1">
+                        <div className="hidden md:flex items-center gap-2">
                             <NavItem path="/dashboard" icon={LayoutDashboard} label="Dashboard" />
                             <NavItem path="/practice" icon={BookOpen} label="Terminal" />
                             <NavItem path="/portfolio" icon={PieChart} label="Portfolio" />
                             <NavItem path="/orders" icon={List} label="Orders" />
                             <button
                                 onClick={() => navigate('/advisor')}
-                                className={`px-3 py-1.5 text-xs font-semibold rounded flex items-center gap-2 transition-colors ${isActive('/advisor')
-                                    ? 'bg-purple-500/10 text-purple-600'
+                                className={`px-4 py-2 text-sm font-semibold rounded-full flex items-center gap-2 transition-all ${isActive('/advisor')
+                                    ? 'bg-purple-600 text-white shadow-md shadow-purple-600/25'
                                     : 'text-text-secondary hover:text-text-primary hover:bg-surface-hover'
                                     }`}
                             >
@@ -84,25 +84,25 @@ export const Navbar = ({ showSearch = false, searchTerm = '', onSearchChange }: 
                     </div>
 
                     {/* Right: Search & Actions */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-6">
 
                         {/* Compact Search */}
                         {showSearch && onSearchChange && (
-                            <div className="relative group hidden md:block w-64">
-                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted group-focus-within:text-text-primary transition-colors" />
+                            <div className="relative group hidden md:block w-72">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted group-focus-within:text-primary transition-colors" />
                                 <input
                                     type="text"
                                     value={searchTerm}
                                     onChange={(e) => onSearchChange(e.target.value)}
-                                    className="w-full h-8 pl-8 pr-8 text-xs bg-background border border-border rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-text-muted/70"
-                                    placeholder="Search (Cmd+K)"
+                                    className="w-full h-10 pl-10 pr-10 text-sm bg-surface-hover/50 border border-transparent focus:bg-background rounded-full focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-text-muted/70 shadow-sm"
+                                    placeholder="Search markets..."
                                 />
                                 {searchTerm && (
                                     <button
                                         onClick={() => onSearchChange('')}
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
                                     >
-                                        <X className="w-3 h-3" />
+                                        <X className="w-3.5 h-3.5" />
                                     </button>
                                 )}
                             </div>
@@ -112,32 +112,32 @@ export const Navbar = ({ showSearch = false, searchTerm = '', onSearchChange }: 
 
                         {/* Connection Status */}
                         {upstoxConnected ? (
-                            <div className="flex items-center gap-2 px-2 py-1 bg-profit/5 border border-profit/20 rounded cursor-pointer hover:bg-profit/10 transition-colors" onClick={disconnectUpstox} title="Click to Disconnect">
-                                <Wifi className="w-3.5 h-3.5 text-profit" />
-                                <span className="text-[10px] font-bold text-profit uppercase tracking-wide">Live</span>
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-full cursor-pointer hover:bg-green-500/20 transition-colors" onClick={disconnectUpstox} title="Click to Disconnect">
+                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                <span className="text-xs font-bold text-green-600 uppercase tracking-wide">Live</span>
                             </div>
                         ) : (
                             <button
                                 onClick={connectUpstox}
-                                className="flex items-center gap-2 px-2 py-1 bg-surface-hover border border-border rounded hover:border-primary/50 transition-colors group"
+                                className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 border border-gray-200 rounded-full hover:border-gray-300 transition-colors group"
                                 title="Connect Data Feed"
                             >
-                                <WifiOff className="w-3.5 h-3.5 text-text-muted group-hover:text-primary transition-colors" />
-                                <span className="text-[10px] font-bold text-text-muted group-hover:text-primary uppercase tracking-wide">Offline</span>
+                                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                <span className="text-xs font-bold text-gray-500 group-hover:text-gray-700 uppercase tracking-wide">Offline</span>
                             </button>
                         )}
 
                         {/* User Profile (Minimal) */}
-                        <div className="flex items-center gap-3">
-                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                        <div className="flex items-center gap-4 pl-2">
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-blue-400 flex items-center justify-center text-white text-sm font-bold shadow-md ring-2 ring-white cursor-pointer hover:ring-primary/20 transition-all">
                                 {user?.email?.[0].toUpperCase() || 'U'}
                             </div>
                             <button
                                 onClick={handleSignOut}
-                                className="text-text-muted hover:text-danger transition-colors"
+                                className="text-text-muted hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-full"
                                 title="Logout"
                             >
-                                <LogOut className="w-4 h-4" />
+                                <LogOut className="w-5 h-5" />
                             </button>
                         </div>
                     </div>

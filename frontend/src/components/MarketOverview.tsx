@@ -16,7 +16,7 @@ export const MarketOverview = ({ stocks, isLoading = false }: MarketOverviewProp
         if (isLoading || stocks.length === 0) return [];
         const sectorMap: Record<string, { totalChange: number; count: number }> = {};
         stocks.forEach(stock => {
-            const sector = getSector(stock.symbol);
+            const sector = stock.sector || getSector(stock.symbol);
             if (!sectorMap[sector]) sectorMap[sector] = { totalChange: 0, count: 0 };
             sectorMap[sector].totalChange += stock.changePercent || 0;
             sectorMap[sector].count += 1;
@@ -26,6 +26,7 @@ export const MarketOverview = ({ stocks, isLoading = false }: MarketOverviewProp
                 sector,
                 avgChange: data.totalChange / data.count
             }))
+            .filter(item => item.sector !== 'Others')
             .sort((a, b) => b.avgChange - a.avgChange);
     }, [stocks, isLoading]);
 
@@ -73,21 +74,21 @@ export const MarketOverview = ({ stocks, isLoading = false }: MarketOverviewProp
             {/* Sector Performance */}
             <div className="card p-5 lg:col-span-2">
                 <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-4">Sector Performance</h3>
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {sectorPerformance.map((item) => (
-                        <div key={item.sector} className="flex items-center text-sm">
-                            <span className="w-24 font-medium text-text-primary">{item.sector}</span>
-                            <div className="flex-1 h-2 bg-background mx-3 rounded-full overflow-hidden">
+                        <div key={item.sector} className="p-3 bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all group">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-xs font-semibold text-gray-500 group-hover:text-gray-900 transition-colors">{item.sector}</span>
+                                <span className={`text-xs font-bold ${item.avgChange >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                    {item.avgChange > 0 ? '+' : ''}{item.avgChange.toFixed(2)}%
+                                </span>
+                            </div>
+                            <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                                 <div
-                                    className={`h-full rounded-full ${item.avgChange >= 0 ? 'bg-profit' : 'bg-loss'}`}
-                                    style={{
-                                        width: `${Math.min(Math.abs(item.avgChange) * 10, 100)}%`
-                                    }}
+                                    className={`h-full rounded-full transition-all duration-500 ${item.avgChange >= 0 ? 'bg-emerald-500' : 'bg-red-500'}`}
+                                    style={{ width: `${Math.max(Math.min(Math.abs(item.avgChange) * 20, 100), 5)}%` }}
                                 />
                             </div>
-                            <span className={`w-16 text-right font-medium ${item.avgChange >= 0 ? 'text-profit' : 'text-loss'}`}>
-                                {item.avgChange > 0 ? '+' : ''}{item.avgChange.toFixed(2)}%
-                            </span>
                         </div>
                     ))}
                 </div>
