@@ -11,6 +11,7 @@ interface PortfolioState {
     fetchPortfolio: () => Promise<void>;
     fetchOrders: (limit?: number, offset?: number) => Promise<void>;
     executeTrade: (symbol: string, instrumentKey: string, type: 'BUY' | 'SELL', quantity: number, orderType?: 'MARKET' | 'LIMIT', limitPrice?: number) => Promise<void>;
+    cancelOrder: (orderId: string) => Promise<void>;
     updatePortfolioWithPrices: (prices: Map<string, number>) => void;
 }
 
@@ -59,6 +60,25 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
         } catch (error: any) {
             set({
                 error: error.message || 'Failed to execute trade',
+                isLoading: false,
+            });
+            throw error;
+        }
+    },
+
+    cancelOrder: async (orderId: string) => {
+        try {
+            set({ isLoading: true, error: null });
+            await apiService.cancelOrder(orderId);
+
+            // Refresh data
+            await get().fetchPortfolio();
+            await get().fetchOrders();
+
+            set({ isLoading: false });
+        } catch (error: any) {
+            set({
+                error: error.message || 'Failed to cancel order',
                 isLoading: false,
             });
             throw error;

@@ -37,7 +37,13 @@ export const useMarketStore = create<MarketState>((set, get) => ({
                 sector: inst.sector,
                 ltp: inst.price || 0,
                 change: inst.change || 0,
-                changePercent: inst.changePercent || 0
+                changePercent: inst.changePercent || 0,
+                volume: inst.volume || 0,
+                high: inst.high || 0,
+                low: inst.low || 0,
+                open: inst.open || 0,
+                previousClose: inst.previousClose || 0,
+                marketCap: inst.marketCap || 0
             }));
 
             set({ stocks, isLoading: false });

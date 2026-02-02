@@ -2,9 +2,12 @@ import { useState, useMemo, useEffect } from 'react';
 import { Navbar } from '../components/Navbar';
 import { TradeAnalysis } from '../components/TradeAnalysis';
 import { useMarketStore } from '../stores/marketStore';
+import { usePortfolioStore } from '../stores/portfolioStore';
+import { apiService } from '../services/api';
 
 export const AdvisorPage = () => {
     const { stocks, fetchInstruments, connectWebSocket, disconnectWebSocket } = useMarketStore();
+    const { portfolio, fetchPortfolio } = usePortfolioStore();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedStockKey, setSelectedStockKey] = useState<string | null>(null);
 
@@ -16,9 +19,27 @@ export const AdvisorPage = () => {
 
     useEffect(() => {
         fetchInstruments();
+        fetchPortfolio();
         connectWebSocket();
         return () => disconnectWebSocket();
     }, []);
+
+    const [profile, setProfile] = useState<any>(null);
+
+    useEffect(() => {
+        const loadProfile = async () => {
+            if (selectedStock) {
+                setProfile(null); // Clear previous
+                try {
+                    const data = await apiService.getCompanyProfile(selectedStock.symbol);
+                    setProfile(data);
+                } catch (e) {
+                    console.error("Failed to load profile", e);
+                }
+            }
+        };
+        loadProfile();
+    }, [selectedStock?.symbol]);
 
     // Filter stocks for the dropdown
     const filteredStocks = useMemo(() => {
@@ -98,24 +119,72 @@ export const AdvisorPage = () => {
                 {/* RIGHT PANEL: ANALYSIS CONTENT */}
                 <div className="flex-1 bg-gray-50 dark:bg-slate-900 flex flex-col min-w-0 overflow-y-auto">
                     {selectedStock ? (
-                        <div className="p-8 max-w-5xl mx-auto w-full space-y-8 animate-in fade-in slide-in-from-bottom-2">
-                            {/* Header Card */}
-                            <div className="flex items-center justify-between pb-6 border-b border-gray-200 dark:border-slate-700">
-                                <div>
-                                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">{selectedStock.symbol}</h1>
-                                    <p className="text-gray-600 dark:text-gray-300">{selectedStock.name}</p>
+                        <div className="p-6 max-w-[1600px] mx-auto w-full space-y-6 animate-in fade-in slide-in-from-bottom-2">
+                            {/* Header & Stats */}
+                            <div className="glass-card overflow-hidden">
+                                {/* Title Row */}
+                                <div className="p-6 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                    <div>
+                                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
+                                            {selectedStock.symbol}
+                                            <span className="text-[10px] font-medium px-1.5 py-0.5 bg-gray-100 dark:bg-slate-700 rounded text-gray-500">
+                                                NSE
+                                            </span>
+                                        </h1>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{selectedStock.name}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-3xl font-mono font-semibold text-gray-900 dark:text-white">
+                                            ₹{(selectedStock.ltp || 0).toFixed(2)}
+                                        </div>
+                                        <div className={`text-sm font-medium ${(selectedStock.change || 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-danger'}`}>
+                                            {(selectedStock.change || 0) >= 0 ? '+' : ''}{(selectedStock.change || 0).toFixed(2)} ({((selectedStock.changePercent || 0)).toFixed(2)}%)
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <div className="text-3xl font-mono text-gray-900 dark:text-white">₹{(selectedStock.ltp || 0).toFixed(2)}</div>
-                                    <div className={`text-sm font-medium ${(selectedStock.change || 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                                        {(selectedStock.change || 0) >= 0 ? '+' : ''}{(selectedStock.change || 0).toFixed(2)} ({((selectedStock.changePercent || 0)).toFixed(2)}%)
+
+                                {/* Key Stats Strip - Cleaner Look */}
+                                <div className="px-6 py-4 bg-gray-50/50 dark:bg-white/5 border-t border-gray-100 dark:border-white/5 grid grid-cols-3 md:grid-cols-6 gap-y-4 gap-x-8">
+                                    {/* Open */}
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-semibold uppercase text-gray-400 tracking-wider">Open</span>
+                                        <span className="text-sm font-mono font-medium text-gray-700 dark:text-gray-200">₹{selectedStock.open?.toFixed(2) || '-'}</span>
+                                    </div>
+                                    {/* High */}
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-semibold uppercase text-gray-400 tracking-wider">High</span>
+                                        <span className="text-sm font-mono font-medium text-gray-700 dark:text-gray-200">₹{selectedStock.high?.toFixed(2) || '-'}</span>
+                                    </div>
+                                    {/* Low */}
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-semibold uppercase text-gray-400 tracking-wider">Low</span>
+                                        <span className="text-sm font-mono font-medium text-gray-700 dark:text-gray-200">₹{selectedStock.low?.toFixed(2) || '-'}</span>
+                                    </div>
+                                    {/* Prev Close */}
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-semibold uppercase text-gray-400 tracking-wider">Prv Close</span>
+                                        <span className="text-sm font-mono font-medium text-gray-700 dark:text-gray-200">₹{selectedStock.previousClose?.toFixed(2) || '-'}</span>
+                                    </div>
+                                    {/* Volume */}
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-semibold uppercase text-gray-400 tracking-wider">Volume</span>
+                                        <span className="text-sm font-mono font-medium text-gray-700 dark:text-gray-200">
+                                            {selectedStock.volume ? (selectedStock.volume > 100000 ? `${(selectedStock.volume / 100000).toFixed(2)}L` : selectedStock.volume.toLocaleString()) : '-'}
+                                        </span>
+                                    </div>
+                                    {/* Mkt Cap */}
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-semibold uppercase text-gray-400 tracking-wider">Mkt Cap</span>
+                                        <span className="text-sm font-mono font-medium text-gray-700 dark:text-gray-200">
+                                            {selectedStock.marketCap ? `₹${(selectedStock.marketCap / 10000000).toFixed(0)}Cr` : '-'}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                {/* Main Verdict */}
-                                <div className="lg:col-span-2 space-y-6">
+                            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                                {/* Main Analysis Column (2/3 width) */}
+                                <div className="xl:col-span-2 space-y-6">
                                     <div className="glass-card p-6">
                                         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                                             <span className="text-primary">🤖</span> AI Technical Verdict
@@ -125,6 +194,37 @@ export const AdvisorPage = () => {
                                             currentPrice={selectedStock.ltp || 0}
                                         />
                                     </div>
+
+                                    {/* Company Profile Card */}
+                                    {profile && (
+                                        <div className="glass-card p-6 animate-in fade-in slide-in-from-bottom-4 delay-100">
+                                            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                                <span>🏢</span> Company Profile
+                                            </h3>
+                                            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-6">
+                                                {profile.longBusinessSummary || "No summary available."}
+                                            </p>
+
+                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 border-t border-gray-100 dark:border-slate-700 pt-4">
+                                                <div>
+                                                    <div className="text-xs text-gray-500 uppercase font-bold mb-1">Sector</div>
+                                                    <div className="text-sm font-medium text-gray-900 dark:text-white">{profile.sector}</div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-xs text-gray-500 uppercase font-bold mb-1">Industry</div>
+                                                    <div className="text-sm font-medium text-gray-900 dark:text-white">{profile.industry}</div>
+                                                </div>
+                                                {profile.website && (
+                                                    <div>
+                                                        <div className="text-xs text-gray-500 uppercase font-bold mb-1">Website</div>
+                                                        <a href={profile.website} target="_blank" rel="noreferrer" className="text-sm font-medium text-primary hover:underline truncate block">
+                                                            {new URL(profile.website).hostname}
+                                                        </a>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Sidebar Education */}
@@ -148,6 +248,76 @@ export const AdvisorPage = () => {
                                                     Tracks trend direction. Positive histogram means Bullish momentum is increasing.
                                                 </p>
                                             </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Market Context Group */}
+                                    <div className="space-y-6">
+                                        {/* Day Range Card */}
+                                        <div className="glass-card p-5 transition-all hover:border-primary/50">
+                                            <h3 className="text-sm font-bold text-text-primary mb-4 flex items-center gap-2">
+                                                <span>📊</span> Day Range
+                                            </h3>
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between text-xs font-mono">
+                                                    <span className="text-red-500">L: {selectedStock.low?.toFixed(2)}</span>
+                                                    <span className="text-emerald-500">H: {selectedStock.high?.toFixed(2)}</span>
+                                                </div>
+                                                <div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden relative">
+                                                    <div
+                                                        className="absolute top-0 bottom-0 bg-primary rounded-full transition-all duration-1000"
+                                                        style={{
+                                                            left: '0%',
+                                                            width: `${Math.min(100, Math.max(0, (((selectedStock.ltp || 0) - (selectedStock.low || 0)) / ((selectedStock.high || 1) - (selectedStock.low || 0))) * 100))}%`
+                                                        }}
+                                                    ></div>
+                                                </div>
+                                                <div className="flex justify-center">
+                                                    <span className="text-xs font-bold text-text-primary">Current: ₹{selectedStock.ltp?.toFixed(2)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Your Position Card */}
+                                        <div className="glass-card p-5 transition-all hover:border-primary/50">
+                                            <h3 className="text-sm font-bold text-text-primary mb-4 flex items-center gap-2">
+                                                <span>💼</span> Your Position
+                                            </h3>
+                                            {portfolio?.holdings?.find(h => h.instrumentKey === selectedStock.instrumentKey) ? (
+                                                <div className="space-y-3">
+                                                    {(() => {
+                                                        const h = portfolio.holdings.find(h => h.instrumentKey === selectedStock.instrumentKey)!;
+                                                        const pnl = ((selectedStock.ltp || 0) - h.avgPrice) * h.quantity;
+                                                        const pnlPercent = (((selectedStock.ltp || 0) - h.avgPrice) / h.avgPrice) * 100;
+                                                        return (
+                                                            <>
+                                                                <div className="flex justify-between items-center text-sm">
+                                                                    <span className="text-gray-500 dark:text-gray-400">Quantity</span>
+                                                                    <span className="font-bold text-gray-900 dark:text-white">{h.quantity}</span>
+                                                                </div>
+                                                                <div className="flex justify-between items-center text-sm">
+                                                                    <span className="text-gray-500 dark:text-gray-400">Avg. Price</span>
+                                                                    <span className="font-mono text-gray-900 dark:text-white">₹{h.avgPrice.toFixed(2)}</span>
+                                                                </div>
+                                                                <div className="pt-3 border-t border-gray-100 dark:border-slate-700 flex justify-between items-center">
+                                                                    <span className="text-xs font-bold uppercase text-gray-500">P&L</span>
+                                                                    <span className={`font-mono font-bold ${pnl >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                                                        {pnl >= 0 ? '+' : ''}{pnl.toFixed(2)} ({pnlPercent.toFixed(2)}%)
+                                                                    </span>
+                                                                </div>
+                                                            </>
+                                                        );
+                                                    })()}
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-4">
+                                                    <div className="text-3xl mb-2 opacity-50">🤷‍♂️</div>
+                                                    <p className="text-xs text-text-secondary">You do not own this stock.</p>
+                                                    <a href="/portfolio" className="block mt-3 text-xs text-primary font-bold hover:underline">
+                                                        Go to Portfolio to Trade
+                                                    </a>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

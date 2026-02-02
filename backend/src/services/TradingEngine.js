@@ -20,7 +20,7 @@ class TradingEngine {
             // Add retry logic for database connectivity issues
             let retries = 2; // Fewer retries for high-frequency operations
             let lastError;
-            
+
             while (retries > 0) {
                 try {
                     // Find all PENDING orders for this instrument
@@ -32,7 +32,7 @@ class TradingEngine {
 
                     if (error) {
                         // Check if it's a connection error
-                        if (error.message?.includes('timeout') || 
+                        if (error.message?.includes('timeout') ||
                             error.message?.includes('fetch failed') ||
                             error.message?.includes('network')) {
                             retries--;
@@ -68,9 +68,9 @@ class TradingEngine {
                         }
                     }
                     return; // Success, exit retry loop
-                    
+
                 } catch (networkError) {
-                    if (networkError.message?.includes('timeout') || 
+                    if (networkError.message?.includes('timeout') ||
                         networkError.message?.includes('fetch failed') ||
                         networkError.message?.includes('network')) {
                         retries--;
@@ -83,7 +83,7 @@ class TradingEngine {
                     throw networkError;
                 }
             }
-            
+
             // If we get here, all retries failed
             if (lastError) {
                 // Only log occasionally to avoid spam (every 10th attempt)
@@ -95,7 +95,7 @@ class TradingEngine {
 
         } catch (error) {
             // Only log occasionally for network errors to avoid spam
-            if (!error.message?.includes('timeout') && 
+            if (!error.message?.includes('timeout') &&
                 !error.message?.includes('fetch failed') &&
                 !error.message?.includes('network')) {
                 console.error('Error processing pending orders:', error.message);
@@ -492,6 +492,98 @@ class TradingEngine {
 
         } catch (error) {
             console.error('❌ Order history fetch error:', error.message);
+            throw error;
+        }
+    }
+    /**
+     * Cancel a pending order
+     */
+    async cancelOrder(userId, orderId) {
+        try {
+            // 1. Fetch Order
+            const { data: order, error: orderError } = await supabase
+                .from('orders')
+                .select('*')
+                .eq('id', orderId)
+                .eq('user_id', userId)
+                .single();
+
+            if (orderError || !order) throw new Error('Order not found');
+
+            // 2. Validate Status (Allow 'OPEN' or 'PENDING')
+            if (!['PENDING', 'OPEN'].includes(order.status)) {
+                throw new Error('Only pending orders can be cancelled');
+            }
+
+            console.log(`🗑️ Cancelling Order #${order.id} (${order.type} ${order.symbol})`);
+
+            // 3. Refund Logic
+            if (order.type === 'BUY') {
+                // Refund Balance
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('virtual_balance')
+                    .eq('id', userId)
+                    .single();
+
+                await supabase
+                    .from('profiles')
+                    .update({ virtual_balance: parseFloat(profile.virtual_balance) + parseFloat(order.total_amount) })
+                    .eq('id', userId);
+
+                console.log(`   💰 Refunded ₹${order.total_amount} to balance`);
+
+            } else if (order.type === 'SELL') {
+                // Return Holdings
+                const { data: holding } = await supabase
+                    .from('holdings')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .eq('instrument_key', order.instrument_key)
+                    .maybeSingle();
+
+                if (holding) {
+                    await supabase
+                        .from('holdings')
+                        .update({ quantity: holding.quantity + order.quantity })
+                        .eq('id', holding.id);
+                } else {
+                    // Holding might have been deleted if they sold everything. Re-create it.
+                    // We need avg_price. Since we don't track original avg_price of sold items easily here without complex history,
+                    // we might have to assume current market price or previous close, OR just use the execution price as a placeholder?
+                    // BETTER: We shouldn't delete holdings on SELL if we want to support this easily, OR we store the avg_price in the order metadata.
+                    // FAILSAFE: Use the limit price as the cost basis for the returned shares? Or 0?
+                    // Let's check handleSellOrder... it deletes if remainingQuantity === 0.
+                    // If we recreate, we should try to find the last known avg_price or just use 0 (free shares!) but that messes up P&L.
+                    // Practical fix: use the order price as the "cost" of these returned shares? No, that's "buying back".
+                    // Let's just re-insert with the current LTP or 0 for now, or handleSellOrder should store metadata.
+                    // DECISION: For now, if holding missing, insert with order.execution_price as avg_price (best guess).
+
+                    await supabase
+                        .from('holdings')
+                        .insert({
+                            user_id: userId,
+                            symbol: order.symbol,
+                            instrument_key: order.instrument_key,
+                            quantity: order.quantity,
+                            avg_price: order.execution_price // Best effort restoration
+                        });
+                }
+                console.log(`   📦 Returned ${order.quantity} shares to holdings`);
+            }
+
+            // 4. Update Status
+            const { error: updateError } = await supabase
+                .from('orders')
+                .update({ status: 'CANCELLED' })
+                .eq('id', orderId);
+
+            if (updateError) throw updateError;
+
+            return { success: true, message: 'Order cancelled successfully' };
+
+        } catch (error) {
+            console.error('❌ Cancel order error:', error.message);
             throw error;
         }
     }

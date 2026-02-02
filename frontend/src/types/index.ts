@@ -13,6 +13,11 @@ export interface Stock {
     change?: number;
     changePercent?: number;
     volume?: number;
+    high?: number;
+    low?: number;
+    open?: number;
+    previousClose?: number;
+    marketCap?: number;
     lastUpdated?: number;
 }
 

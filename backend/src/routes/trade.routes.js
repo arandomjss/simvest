@@ -25,7 +25,7 @@ async function authenticateUser(req, res, next) {
         // Retry logic for network issues
         let retries = 3;
         let lastError;
-        
+
         while (retries > 0) {
             try {
                 const { data: { user }, error } = await supabaseAnon.auth.getUser(token);
@@ -48,7 +48,7 @@ async function authenticateUser(req, res, next) {
                 req.userId = user.id;
                 return next();
             } catch (networkError) {
-                if (networkError.code === 'UND_ERR_CONNECT_TIMEOUT' || 
+                if (networkError.code === 'UND_ERR_CONNECT_TIMEOUT' ||
                     networkError.message?.includes('timeout') ||
                     networkError.message?.includes('fetch failed')) {
                     retries--;
@@ -60,10 +60,10 @@ async function authenticateUser(req, res, next) {
                 throw networkError;
             }
         }
-        
+
         // If we get here, all retries failed
         console.error('Authentication failed after all retries:', lastError);
-        return res.status(503).json({ 
+        return res.status(503).json({
             error: 'Service temporarily unavailable. Please try again later.',
             details: 'Authentication service connection failed'
         });
@@ -138,6 +138,23 @@ router.get('/orders/history', authenticateUser, async (req, res) => {
     } catch (error) {
         console.error('Order history fetch error:', error);
         res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * DELETE /api/trade/orders/:orderId
+ * Cancel a pending order
+ */
+router.delete('/orders/:orderId', authenticateUser, async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const tradingEngine = req.app.locals.tradingEngine;
+
+        const result = await tradingEngine.cancelOrder(req.userId, orderId);
+        res.json(result);
+    } catch (error) {
+        console.error('Order cancellation error:', error);
+        res.status(400).json({ error: error.message });
     }
 });
 

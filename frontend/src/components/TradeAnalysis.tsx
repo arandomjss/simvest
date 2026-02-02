@@ -3,7 +3,8 @@ import {
     calculateRSI,
     calculateMACD,
     calculateSMA,
-    calculateEMA
+    calculateEMA,
+    calculateBollingerBands
 } from '../services/technicalIndicators';
 import { OHLCData } from '../services/historicalData';
 import { apiService } from '../services/api';
@@ -24,6 +25,7 @@ export const TradeAnalysis = ({ stock, currentPrice }: TradeAnalysisProps) => {
         macd: { value: number; signal: number; histogram: number };
         sma20: number;
         ema50: number;
+        bb: { upper: number; middle: number; lower: number; width: number };
     } | null>(null);
 
     // Fetch real historical data
@@ -35,8 +37,8 @@ export const TradeAnalysis = ({ stock, currentPrice }: TradeAnalysisProps) => {
             setError(null);
 
             try {
-                // Fetch daily candles for analysis
-                const candles = await apiService.getHistoricalData(stock.instrumentKey, 'day');
+                // Fetch daily candles for analysis (6 months for EMA50)
+                const candles = await apiService.getHistoricalData(stock.instrumentKey, '1d', '6mo');
 
                 if (!candles || candles.length === 0) {
                     throw new Error('No historical data available');
@@ -82,6 +84,11 @@ export const TradeAnalysis = ({ stock, currentPrice }: TradeAnalysisProps) => {
             const currentSMA = smaData[smaData.length - 1]?.value || currentPrice;
             const currentEMA = emaData[emaData.length - 1]?.value || currentPrice;
 
+            // Bollinger Bands
+            const bbData = calculateBollingerBands(ohlc, 20, 2);
+            const currentBB = bbData[bbData.length - 1] || { upper: 0, middle: 0, lower: 0 };
+            const bbWidth = currentBB.middle ? ((currentBB.upper - currentBB.lower) / currentBB.middle) * 100 : 0;
+
             setIndicators({
                 rsi: currentRSI,
                 macd: {
@@ -90,7 +97,8 @@ export const TradeAnalysis = ({ stock, currentPrice }: TradeAnalysisProps) => {
                     histogram: currentMACD.histogram
                 },
                 sma20: currentSMA,
-                ema50: currentEMA
+                ema50: currentEMA,
+                bb: { ...currentBB, width: bbWidth }
             });
 
             // Determine Signal
@@ -178,7 +186,7 @@ export const TradeAnalysis = ({ stock, currentPrice }: TradeAnalysisProps) => {
                 </div>
             </div>
 
-            <div className="pt-3 border-t border-border grid grid-cols-3 gap-2 text-[10px] text-text-secondary">
+            <div className="pt-3 border-t border-border grid grid-cols-4 gap-2 text-[10px] text-text-secondary">
                 <div>
                     <span className="block mb-1">RSI (14)</span>
                     <span className={`font-semibold text-xs ${indicators.rsi > 70 ? 'text-danger' : indicators.rsi < 30 ? 'text-success' : 'text-text-primary'}`}>
@@ -204,6 +212,15 @@ export const TradeAnalysis = ({ stock, currentPrice }: TradeAnalysisProps) => {
                     </span>
                     <span className="block text-[9px] opacity-70 mt-0.5">
                         Short-term
+                    </span>
+                </div>
+                <div>
+                    <span className="block mb-1">Volatility (BB)</span>
+                    <span className={`font-semibold text-xs text-text-primary`}>
+                        {indicators.bb.width.toFixed(2)}%
+                    </span>
+                    <span className="block text-[9px] opacity-70 mt-0.5">
+                        {indicators.bb.width < 5 ? 'Squeeze' : indicators.bb.width > 20 ? 'High Vol' : 'Normal'}
                     </span>
                 </div>
             </div>

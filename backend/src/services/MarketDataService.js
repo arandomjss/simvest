@@ -17,7 +17,7 @@ class MarketDataService extends EventEmitter {
         this.previousCloses = new Map(); // Store previous close for day change calculation
         this.isRunning = false;
         this.lastFetchTime = 0;
-        this.fetchInterval = 5000; // Fetch from Yahoo every 5 seconds
+        this.fetchInterval = 10000; // Fetch from Yahoo every 10 seconds to avoid rate limits
     }
 
 
@@ -93,7 +93,11 @@ class MarketDataService extends EventEmitter {
 
             console.log('🔄 Updated prices from Yahoo Finance');
         } catch (error) {
-            console.error('⚠️  Error fetching Yahoo prices:', error.message);
+            if (error.message.includes('fetch failed') || error.message.includes('timeout')) {
+                console.log('⚠️  Network glitch reaching Yahoo Finance (skipping update)');
+            } else {
+                console.error('⚠️  Error fetching Yahoo prices:', error.message);
+            }
             // Keep using cached prices
         }
     }

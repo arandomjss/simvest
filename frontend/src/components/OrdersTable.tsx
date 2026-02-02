@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Order } from '../types';
+import { usePortfolioStore } from '../stores/portfolioStore';
+import { XCircle } from 'lucide-react';
 
 interface OrdersTableProps {
     orders: Order[];
@@ -7,11 +9,26 @@ interface OrdersTableProps {
 
 export const OrdersTable = ({ orders }: OrdersTableProps) => {
     const [filter, setFilter] = useState('ALL');
+    const { cancelOrder } = usePortfolioStore();
+
+    const handleCancel = async (orderId: string) => {
+        if (window.confirm('Are you sure you want to cancel this order?')) {
+            try {
+                await cancelOrder(orderId);
+            } catch (e) {
+                alert('Failed to cancel order');
+            }
+        }
+    };
 
     const filteredOrders = orders.filter(order => {
         if (filter === 'ALL') return true;
         return order.status === filter;
-    }).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }).sort((a, b) => {
+        const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return (timeB || 0) - (timeA || 0);
+    });
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -53,12 +70,13 @@ export const OrdersTable = ({ orders }: OrdersTableProps) => {
                             <th className="px-4 py-3 text-right">Qty</th>
                             <th className="px-4 py-3 text-right">Price</th>
                             <th className="px-4 py-3 text-center">Status</th>
+                            <th className="px-4 py-3 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {filteredOrders.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
+                                <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
                                     No orders found
                                 </td>
                             </tr>
@@ -66,9 +84,15 @@ export const OrdersTable = ({ orders }: OrdersTableProps) => {
                             filteredOrders.map((order) => (
                                 <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-4 py-3 text-gray-600 font-mono text-xs">
-                                        {new Date(order.created_at).toLocaleString('en-IN', {
-                                            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
-                                        })}
+                                        {(() => {
+                                            try {
+                                                return order.created_at ? new Date(order.created_at).toLocaleString('en-IN', {
+                                                    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                                                }) : '-';
+                                            } catch (e) {
+                                                return '-';
+                                            }
+                                        })()}
                                     </td>
                                     <td className="px-4 py-3 font-medium text-gray-900">
                                         {order.symbol}
@@ -88,6 +112,17 @@ export const OrdersTable = ({ orders }: OrdersTableProps) => {
                                         <span className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded border ${getStatusColor(order.status)}`}>
                                             {order.status}
                                         </span>
+                                    </td>
+                                    <td className="px-4 py-3 text-center">
+                                        {['PENDING', 'OPEN'].includes(order.status) && (
+                                            <button
+                                                onClick={() => handleCancel(order.id)}
+                                                className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                                                title="Cancel Order"
+                                            >
+                                                <XCircle size={16} />
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))

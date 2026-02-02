@@ -135,7 +135,9 @@ class YahooFinanceService {
                 };
             });
         } catch (error) {
-            console.error('Error fetching quotes:', error.message);
+            if (!error.message.includes('fetch failed')) {
+                console.error('Error fetching quotes:', error.message);
+            }
             throw error;
         }
     }

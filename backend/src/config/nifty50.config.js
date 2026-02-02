@@ -22,7 +22,7 @@ let instrumentKeysCache = new Map();
  */
 export async function loadNifty50Instruments() {
     try {
-        const response = await fetch('https://assets.upstox.com/market-quote/instruments/exchange/complete.json.gz');
+        // const response = await fetch('https://assets.upstox.com/market-quote/instruments/exchange/complete.json.gz');
 
         // Note: In production, you'd need to decompress the gzip response
         // For now, we'll use the uncompressed JSON endpoint (if available)

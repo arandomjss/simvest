@@ -101,4 +101,24 @@ router.get('/search', async (req, res) => {
     }
 });
 
+/**
+ * Get company profile (Sector, Industry, Summary)
+ */
+router.get('/profile/:symbol', async (req, res) => {
+    try {
+        const { symbol } = req.params;
+        const profile = await yahooFinanceService.getCompanyProfile(symbol);
+
+        res.json({
+            success: true,
+            data: profile
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
 export default router;

@@ -33,6 +33,11 @@ export const apiService = {
         return response.data;
     },
 
+    async cancelOrder(orderId: string) {
+        const response = await api.delete(`/api/trade/orders/${orderId}`);
+        return response.data;
+    },
+
     async getPortfolio() {
         const response = await api.get('/api/trade/portfolio');
         const data = response.data.portfolio;
@@ -67,6 +72,11 @@ export const apiService = {
             params: { interval, period }
         });
         return response.data.candles;
+    },
+
+    getCompanyProfile: async (symbol: string) => {
+        const response = await api.get(`/api/yahoo/profile/${symbol}`);
+        return response.data.data;
     },
 
     getIndices: async () => {
