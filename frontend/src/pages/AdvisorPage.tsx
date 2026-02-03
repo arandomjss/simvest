@@ -107,7 +107,7 @@ export const AdvisorPage = () => {
                                 >
                                     <div className="flex justify-between items-center">
                                         <span className={`text-sm font-bold ${selectedStockKey === s.instrumentKey ? 'text-primary' : 'text-text-primary'}`}>{s.symbol}</span>
-                                        <span className={`text-xs ${(s.change || 0) >= 0 ? 'text-profit' : 'text-loss'}`}>{(s.change || 0).toFixed(2)}%</span>
+                                        <span className={`text-xs ${(s.change || 0) >= 0 ? 'text-profit' : 'text-loss'}`}>{(s.changePercent || 0).toFixed(2)}%</span>
                                     </div>
                                     <div className="text-[10px] text-text-secondary mt-1 truncate">{s.name}</div>
                                 </div>
@@ -271,9 +271,6 @@ export const AdvisorPage = () => {
                                                             width: `${Math.min(100, Math.max(0, (((selectedStock.ltp || 0) - (selectedStock.low || 0)) / ((selectedStock.high || 1) - (selectedStock.low || 0))) * 100))}%`
                                                         }}
                                                     ></div>
-                                                </div>
-                                                <div className="flex justify-center">
-                                                    <span className="text-xs font-bold text-text-primary">Current: ₹{selectedStock.ltp?.toFixed(2)}</span>
                                                 </div>
                                             </div>
                                         </div>

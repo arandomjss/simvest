@@ -45,33 +45,48 @@ router.get('/indices', async (req, res) => {
  */
 router.get('/instruments', async (req, res) => {
     try {
-        const instrumentsData = [];
+        // Fetch quotes for all symbols in batch to ensure we have initial data (High, Low, Open, etc.)
+        const quotes = await yahooFinanceService.getQuotes(NIFTY_50_SYMBOLS);
+        const quoteMap = new Map(quotes.map(q => [q.symbol, q]));
 
-        // Process in parallel with limit or just map
-        // Since we want to display sectors, we ideally wait if cache is cold.
-        // But for speed, we serve what we have and trigger update.
+        const instruments = [];
 
-        const promises = NIFTY_50_SYMBOLS.map(async (symbol) => {
+        // Parallel sector fetching if needed (though batch profile would be better if Yahoo supported it, but it doesn't easily)
+        // We'll stick to sequential or Promise.all for sectors if cache missing, but we can reuse the existing structure partially.
+
+        // Let's just Loop and build.
+        for (const symbol of NIFTY_50_SYMBOLS) {
             const instrumentKey = getInstrumentKey(symbol);
-            if (!instrumentKey) return null;
+            if (!instrumentKey) continue;
 
             if (!SECTOR_CACHE[symbol]) {
-                // Fetch from Yahoo
-                // To avoid hitting rate limits on 50 items simultaneously, we might want to be careful.
-                // But for a demo, let's try fetching if missing.
-                const profile = await yahooFinanceService.getCompanyProfile(symbol);
-                SECTOR_CACHE[symbol] = profile?.sector || 'Others';
+                try {
+                    // Start async fetch but don't block everything? 
+                    // No, for first load valid data is better.
+                    const profile = await yahooFinanceService.getCompanyProfile(symbol);
+                    SECTOR_CACHE[symbol] = profile?.sector || 'Others';
+                } catch (e) {
+                    SECTOR_CACHE[symbol] = 'Others';
+                }
             }
 
-            return {
+            const quote = quoteMap.get(symbol) || {};
+
+            instruments.push({
                 symbol,
                 instrumentKey,
-                sector: SECTOR_CACHE[symbol]
-            };
-        });
-
-        const results = await Promise.all(promises);
-        const instruments = results.filter(Boolean);
+                sector: SECTOR_CACHE[symbol],
+                price: quote.price || 0,
+                change: quote.change || 0,
+                changePercent: quote.changePercent || 0,
+                volume: quote.volume || 0,
+                high: quote.high || 0,
+                low: quote.low || 0,
+                open: quote.open || 0,
+                previousClose: quote.previousClose || 0,
+                marketCap: quote.marketCap || 0
+            });
+        }
 
         res.json({ instruments });
     } catch (error) {

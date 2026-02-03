@@ -261,6 +261,32 @@ class YahooFinanceService {
             return [];
         }
     }
+
+    /**
+     * Get company news
+     */
+    async getCompanyNews(symbol) {
+        try {
+            // We search for the symbol to get relevant news
+            const result = await yahooFinance.search(symbol, { newsCount: 10, quotesCount: 1 });
+
+            if (result && result.news) {
+                return result.news.map(article => ({
+                    id: article.uuid,
+                    title: article.title,
+                    source: article.publisher,
+                    time: article.providerPublishTime ? new Date(article.providerPublishTime * 1000).toISOString() : new Date().toISOString(),
+                    link: article.link,
+                    sentiment: 'neutral',
+                    symbols: article.relatedTickers || [symbol]
+                }));
+            }
+            return [];
+        } catch (error) {
+            console.error(`Error fetching news for ${symbol}:`, error.message);
+            return [];
+        }
+    }
 }
 
 export default new YahooFinanceService();

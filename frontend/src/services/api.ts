@@ -79,6 +79,11 @@ export const apiService = {
         return response.data.data;
     },
 
+    getCompanyNews: async (symbol: string) => {
+        const response = await api.get(`/api/yahoo/news/${symbol}`);
+        return response.data.data;
+    },
+
     getIndices: async () => {
         const response = await api.get('/api/market/indices');
         return response.data.indices;
