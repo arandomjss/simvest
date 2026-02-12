@@ -14,9 +14,21 @@ export const Footer = () => {
         const fetchFooterData = async () => {
             try {
                 const response = await fetch('/footer_data.xml');
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const text = await response.text();
+
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(text, 'text/xml');
+
+                const parseError = xmlDoc.querySelector('parsererror');
+                if (parseError) {
+                    console.error('XML Parse Error:', parseError.textContent);
+                    return;
+                }
 
                 const copyright = xmlDoc.querySelector('copyright')?.textContent || '';
 
