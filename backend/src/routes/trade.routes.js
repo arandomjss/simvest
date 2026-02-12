@@ -142,6 +142,52 @@ router.get('/orders/history', authenticateUser, async (req, res) => {
 });
 
 /**
+ * Helper to convert JSON to XML
+ */
+function jsonToXml(json) {
+    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<orders>';
+
+    if (Array.isArray(json)) {
+        json.forEach(item => {
+            xml += '\n  <order>';
+            for (const key in item) {
+                if (Object.prototype.hasOwnProperty.call(item, key)) {
+                    xml += `\n    <${key}>${item[key]}</${key}>`;
+                }
+            }
+            xml += '\n  </order>';
+        });
+    }
+
+    xml += '\n</orders>';
+    return xml;
+}
+
+/**
+ * GET /api/orders/history/xml
+ * Export user's order history as XML
+ */
+router.get('/orders/history/xml', authenticateUser, async (req, res) => {
+    try {
+        const tradingEngine = req.app.locals.tradingEngine;
+        // Fetch all orders for export (or apply a reasonable limit if needed)
+        // For export, we might want all of them, but let's stick to a generous limit for now or all if the engine supports it.
+        // tradingEngine.getOrderHistory(userId, limit, offset)
+        // Let's assume we want the latest 1000 for the export for now to avoid overloading.
+        const orders = await tradingEngine.getOrderHistory(req.userId, 1000, 0);
+
+        const xmlData = jsonToXml(orders);
+
+        res.header('Content-Type', 'application/xml');
+        res.header('Content-Disposition', 'attachment; filename="trade_history.xml"');
+        res.send(xmlData);
+    } catch (error) {
+        console.error('Order history XML export error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
  * DELETE /api/trade/orders/:orderId
  * Cancel a pending order
  */

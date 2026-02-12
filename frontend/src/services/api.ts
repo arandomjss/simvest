@@ -61,6 +61,13 @@ export const apiService = {
         return response.data.orders;
     },
 
+    async exportOrdersXml() {
+        const response = await api.get('/api/trade/orders/history/xml', {
+            responseType: 'blob', // Important for file download
+        });
+        return response.data;
+    },
+
     // Market endpoints
     async getInstruments() {
         const response = await api.get('/api/market/instruments');

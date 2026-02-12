@@ -118,6 +118,12 @@ export function getSymbolFromKey(instrumentKey) {
             return symbol;
         }
     }
+
+    // Fallback for ad-hoc keys (e.g. Indices like NSE_EQ|^NSEI)
+    if (instrumentKey && instrumentKey.includes('|')) {
+        return instrumentKey.split('|')[1];
+    }
+
     return null;
 }
 

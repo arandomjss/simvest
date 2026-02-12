@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StockChart } from './StockChart';
+import { TradeAnalysis } from './TradeAnalysis';
 import { apiService } from '../services/api';
 import { generateHistoricalData, Timeframe } from '../services/historicalData';
 import {
@@ -354,18 +355,41 @@ export const ChartModal = ({ stock, onClose }: ChartModalProps) => {
                     </div>
                 </div>
 
-                {/* Chart */}
-                <div className="flex-1 overflow-hidden p-4">
-                    {chartData.ohlc.length > 0 && (
-                        <StockChart
-                            ohlcData={chartData.ohlc}
-                            volumeData={chartData.volume}
-                            chartType={chartType}
-                            indicators={indicators}
-                            activeIndicators={activeIndicators}
-                            liveCandle={liveCandle}
+                {/* Main Content: Chart + Analysis */}
+                <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
+                    {/* Chart Area */}
+                    <div className="flex-1 p-4 min-h-[400px] md:min-h-0 relative">
+                        {chartData.ohlc.length > 0 ? (
+                            <StockChart
+                                ohlcData={chartData.ohlc}
+                                volumeData={chartData.volume}
+                                chartType={chartType}
+                                indicators={indicators}
+                                activeIndicators={activeIndicators}
+                                liveCandle={liveCandle}
+                            />
+                        ) : (
+                            <div className="flex items-center justify-center h-full text-text-secondary">
+                                Loading Chart...
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Analysis Sidebar */}
+                    <div className="w-full md:w-[350px] border-l border-border bg-gray-50 dark:bg-slate-800/50 p-4 overflow-y-auto custom-scrollbar">
+                        <div className="mb-4">
+                            <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-1">
+                                <span>🤖</span> Market Verdict
+                            </h3>
+                            <p className="text-xs text-text-secondary">
+                                Real-time technical analysis based on 6-month trend data.
+                            </p>
+                        </div>
+                        <TradeAnalysis
+                            stock={stock}
+                            currentPrice={stock.ltp || 0}
                         />
-                    )}
+                    </div>
                 </div>
             </div>
         </div>

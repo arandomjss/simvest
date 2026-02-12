@@ -12,6 +12,9 @@ import { PortfolioStrip } from '../components/Dashboard/PortfolioStrip';
 import { RecentActivity } from '../components/Dashboard/RecentActivity';
 import { MarketPulse } from '../components/Dashboard/MarketPulse';
 import { MarketIndices } from '../components/Dashboard/MarketIndices';
+import { ChartModal } from '../components/ChartModal';
+import { Footer } from '../components/Footer';
+
 
 export const DashboardPage = () => {
     const navigate = useNavigate();
@@ -19,6 +22,7 @@ export const DashboardPage = () => {
     const { portfolio, orders, fetchPortfolio, fetchOrders, updatePortfolioWithPrices } = usePortfolioStore();
     const { checkStatus: checkUpstoxStatus } = useUpstoxStore();
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
 
     useEffect(() => {
         fetchInstruments();
@@ -73,8 +77,9 @@ export const DashboardPage = () => {
                 <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-900 p-1">
                     <div className="max-w-7xl mx-auto space-y-4 p-4">
                         {/* Indices Ticker */}
+                        {/* Indices Ticker */}
                         <ErrorBoundary>
-                            <MarketIndices />
+                            <MarketIndices onIndexClick={setSelectedStock} />
                         </ErrorBoundary>
 
                         {/* Market Overview Widgets */}
@@ -90,6 +95,17 @@ export const DashboardPage = () => {
                             <RecentActivity orders={orders} />
                             <MarketPulse />
                         </div>
+                    </div>
+                    {selectedStock && (
+                        <ChartModal
+                            stock={selectedStock}
+                            onClose={() => setSelectedStock(null)}
+                        />
+                    )}
+
+                    {/* XML Driven Footer */}
+                    <div className="mt-8">
+                        <Footer />
                     </div>
                 </div>
 

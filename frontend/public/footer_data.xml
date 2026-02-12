@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<footer>
+    <copyright>&copy; 2026 SimVest. All rights reserved.</copyright>
+    <links>
+        <link>
+            <label>Privacy Policy</label>
+            <url>/privacy</url>
+        </link>
+        <link>
+            <label>Terms of Service</label>
+            <url>/terms</url>
+        </link>
+        <link>
+            <label>Contact Support</label>
+            <url>/contact</url>
+        </link>
+    </links>
+    <social>
+        <item>
+            <platform>Twitter</platform>
+            <url>https://twitter.com/simvest</url>
+        </item>
+        <item>
+            <platform>GitHub</platform>
+            <url>https://github.com/simvest</url>
+        </item>
+    </social>
+</footer>

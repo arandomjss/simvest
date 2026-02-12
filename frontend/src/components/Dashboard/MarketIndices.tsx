@@ -4,7 +4,11 @@ import { Stock } from '../../types';
 import { Skeleton } from '../common/Skeleton';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
-export const MarketIndices = () => {
+interface MarketIndicesProps {
+    onIndexClick?: (index: Stock) => void;
+}
+
+export const MarketIndices = ({ onIndexClick }: MarketIndicesProps) => {
     const [indices, setIndices] = useState<Stock[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -53,7 +57,15 @@ export const MarketIndices = () => {
                         : 'text-gray-500 dark:text-gray-400';
 
                 return (
-                    <div key={index.symbol} className="glass-card p-4 flex flex-col justify-between relative overflow-hidden group">
+                    <div
+                        key={index.symbol}
+                        onClick={() => onIndexClick?.({
+                            ...index,
+                            ltp: index.price,
+                            instrumentKey: index.instrumentKey || `NSE_EQ|${index.symbol}`
+                        })}
+                        className={`glass-card p-4 flex flex-col justify-between relative overflow-hidden group transition-all duration-200 ${onIndexClick ? 'cursor-pointer hover:border-primary/50 hover:shadow-md' : ''}`}
+                    >
                         {/* Decorative Background Graph */}
                         <div className={`absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity transform rotate-12`}>
                             {isPositive ? <TrendingUp size={80} /> : <TrendingDown size={80} />}

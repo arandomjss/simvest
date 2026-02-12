@@ -18,6 +18,8 @@ export interface MACDData {
 export const calculateSMA = (data: OHLCData[], period: number): IndicatorData[] => {
     const result: IndicatorData[] = [];
 
+    if (data.length < period) return result;
+
     for (let i = period - 1; i < data.length; i++) {
         let sum = 0;
         for (let j = 0; j < period; j++) {
@@ -42,6 +44,7 @@ export const calculateSMA = (data: OHLCData[], period: number): IndicatorData[] 
  */
 export const calculateEMA = (data: OHLCData[], period: number): IndicatorData[] => {
     const result: IndicatorData[] = [];
+    if (data.length < period) return result;
     const multiplier = 2 / (period + 1);
 
     // Start with SMA for first value
@@ -149,6 +152,8 @@ export const calculateMACD = (data: OHLCData[]): MACDData[] => {
     const result: MACDData[] = [];
 
     // Calculate EMA(12) and EMA(26)
+    if (data.length < 26) return result; // MACD needs at least 26 points
+
     const ema12 = calculateEMA(data, 12);
     const ema26 = calculateEMA(data, 26);
 
