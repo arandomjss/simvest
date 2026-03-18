@@ -37,7 +37,7 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
     fetchOrders: async (limit = 50, offset = 0) => {
         try {
             set({ isLoading: true, error: null });
-            const orders = await apiService.getOrderHistory(limit, offset);
+            const orders = (await apiService.getOrderHistory(limit, offset)) || [];
             set({ orders, isLoading: false });
         } catch (error: any) {
             set({
