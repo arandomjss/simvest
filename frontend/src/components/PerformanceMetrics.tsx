@@ -12,7 +12,7 @@ interface PerformanceMetricsProps {
     holdingsCount: number;
 }
 
-export const PerformanceMetrics = ({ portfolio, todaysPnL, holdingsCount }: PerformanceMetricsProps) => {
+export const PerformanceMetrics = ({ portfolio, todaysPnL }: PerformanceMetricsProps) => {
     const metrics = [
         {
             label: 'Total Invested',

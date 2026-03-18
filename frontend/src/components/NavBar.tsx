@@ -10,7 +10,6 @@ import {
     List,
     Search,
     LogOut,
-    WifiOff,
     X,
     Sun,
     Moon

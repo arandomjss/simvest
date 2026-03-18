@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Target, TrendingUp, Calendar, Calculator, Edit2, Check } from 'lucide-react';
+import { Calendar, Calculator, Edit2, Check } from 'lucide-react';
 
 interface PortfolioGoalsProps {
     currentValue: number;

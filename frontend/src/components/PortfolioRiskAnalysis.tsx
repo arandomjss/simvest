@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ShieldAlert, ShieldCheck, PieChart, AlertTriangle, Layers } from 'lucide-react';
+import { ShieldCheck, PieChart, AlertTriangle, Layers } from 'lucide-react';
 import { getSector } from '../utils/sectorUtils';
 
 import { Stock } from '../types';

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useMarketStore } from '../stores/marketStore';
 import { usePortfolioStore } from '../stores/portfolioStore';
 import { useUpstoxStore } from '../stores/upstoxStore';
@@ -17,7 +16,6 @@ import { Footer } from '../components/Footer';
 
 
 export const DashboardPage = () => {
-    const navigate = useNavigate();
     const { stocks, fetchInstruments, connectWebSocket, disconnectWebSocket, prices } = useMarketStore();
     const { portfolio, orders, fetchPortfolio, fetchOrders, updatePortfolioWithPrices } = usePortfolioStore();
     const { checkStatus: checkUpstoxStatus } = useUpstoxStore();

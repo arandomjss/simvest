@@ -92,7 +92,7 @@ export const PortfolioPage = () => {
                                     <h3 className="text-sm font-bold text-gray-900 dark:text-white">Allocation</h3>
                                 </div>
                                 <div className="flex-1 flex items-center justify-center p-4">
-                                    <SectorAllocationChart holdings={holdings} />
+                                    <SectorAllocationChart holdings={holdings} stocks={stocks} />
                                 </div>
                             </div>
 
@@ -103,7 +103,7 @@ export const PortfolioPage = () => {
 
                             {/* Risk Analysis */}
                             <div className="h-80">
-                                <PortfolioRiskAnalysis holdings={holdings} totalValue={portfolio.totalValue} />
+                                <PortfolioRiskAnalysis holdings={holdings} totalValue={portfolio.totalValue} stocks={stocks} />
                             </div>
 
 

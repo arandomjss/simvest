@@ -61,7 +61,6 @@ export const useMarketStore = create<MarketState>((set, get) => ({
 
         // Update prices map
         const newPrices = new Map(prices);
-        const oldPrice = newPrices.get(update.instrumentKey);
         newPrices.set(update.instrumentKey, update.ltp);
 
         // Update stocks with price info
