@@ -9,10 +9,14 @@ interface TradeInputFormProps {
     total: string;
     balance: number | null;
     isTrading: boolean;
+    strategy: string;
+    notes: string;
     onSideChange: (side: 'BUY' | 'SELL') => void;
     onQuantityChange: (qty: number) => void;
     onOrderTypeChange: (type: 'MARKET' | 'LIMIT') => void;
     onLimitPriceChange: (price: number) => void;
+    onStrategyChange: (strategy: string) => void;
+    onNotesChange: (notes: string) => void;
     onSubmit: () => void;
     onCancel?: () => void;
 }
@@ -26,10 +30,14 @@ export const TradeInputForm = ({
     total,
     balance,
     isTrading,
+    strategy,
+    notes,
     onSideChange,
     onQuantityChange,
     onOrderTypeChange,
     onLimitPriceChange,
+    onStrategyChange,
+    onNotesChange,
     onSubmit,
     onCancel
 }: TradeInputFormProps) => {
@@ -119,6 +127,40 @@ export const TradeInputForm = ({
                             className={`w-full pl-6 pr-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-mono font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all ${orderType === 'MARKET' ? 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-slate-800/50' : ''}`}
                         />
                     </div>
+                </div>
+            </div>
+
+            {/* Trade Journaling */}
+            <div className="space-y-3 pt-3 border-t border-gray-100 dark:border-slate-800">
+                <div>
+                    <label className="text-[10px] uppercase font-bold text-gray-400 mb-1.5 block flex justify-between">
+                        <span>Strategy Tag</span>
+                    </label>
+                    <select
+                        value={strategy}
+                        onChange={(e) => onStrategyChange(e.target.value)}
+                        className="w-full pl-3 pr-8 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none"
+                    >
+                        <option value="">None (No Strategy)</option>
+                        <option value="Breakout">Breakout</option>
+                        <option value="Mean Reversion">Mean Reversion</option>
+                        <option value="Moving Average Crossover">Moving Average Crossover</option>
+                        <option value="Momentum">Momentum</option>
+                        <option value="Scalp">Scalp</option>
+                        <option value="Earnings Play">Earnings Play</option>
+                        <option value="News Catalyst">News Catalyst</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="text-[10px] uppercase font-bold text-gray-400 mb-1.5 block">Trade Notes (The "Why")</label>
+                    <textarea
+                        rows={2}
+                        value={notes}
+                        onChange={(e) => onNotesChange(e.target.value)}
+                        placeholder="Why are you taking this trade?"
+                        className="w-full p-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none"
+                    />
                 </div>
             </div>
 

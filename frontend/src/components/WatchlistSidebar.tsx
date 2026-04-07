@@ -8,10 +8,12 @@ interface WatchlistSidebarProps {
 
 export const WatchlistSidebar = ({ onTrade }: WatchlistSidebarProps) => {
     const { stocks } = useMarketStore();
-    const { watchlist, removeFromWatchlist } = useWatchlistStore();
+    const { watchlists, activeWatchlistId, removeFromWatchlist } = useWatchlistStore();
+
+    const activeWatchlist = watchlists.find(w => w.id === activeWatchlistId);
 
     const watchlistStocks = stocks.filter((stock) =>
-        watchlist.includes(stock.instrumentKey)
+        activeWatchlist?.items.includes(stock.instrumentKey)
     );
 
     const formatPrice = (price?: number) => {

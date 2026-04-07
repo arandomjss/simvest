@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { TrendingUp, TrendingDown, Star } from 'lucide-react';
+import { TrendingUp, TrendingDown, Star, Plus, Trash2, Edit2, X } from 'lucide-react';
 import { Stock } from '../types';
 import { useWatchlistStore } from '../stores/watchlistStore';
 import { getSector } from '../utils/sectorUtils';
@@ -14,12 +14,17 @@ interface MarketWatchProps {
 }
 
 export const MarketWatch = ({ stocks, searchTerm, isLoading = false, compact = false }: MarketWatchProps) => {
-    const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlistStore();
+    const {
+        watchlists, activeWatchlistId, setActiveWatchlist,
+        createWatchlist, deleteWatchlist, renameWatchlist,
+        isInWatchlist, addToWatchlist, removeFromWatchlist
+    } = useWatchlistStore();
 
     const [sectorFilter] = useState('All');
     const [sortBy] = useState('symbol-asc');
     const [quickFilter, setQuickFilter] = useState('');
     const [chartStockKey, setChartStockKey] = useState<string | null>(null);
+    const [managerModal, setManagerModal] = useState<{ isOpen: boolean; mode: 'create' | 'rename' | 'delete'; value: string } | null>(null);
 
     const chartStock = useMemo(() =>
         stocks.find(s => s.instrumentKey === chartStockKey) || null,
@@ -134,6 +139,53 @@ export const MarketWatch = ({ stocks, searchTerm, isLoading = false, compact = f
                 </button>
             </div>
 
+            {/* Watchlist Manager */}
+            {quickFilter === 'watchlist' && (
+                <div className={`flex items-center gap-1.5 px-3 pb-3 ${compact ? 'border-b border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800' : 'mb-2'} `}>
+                    <div className="relative flex-1">
+                        <select
+                            value={activeWatchlistId}
+                            onChange={(e) => setActiveWatchlist(e.target.value)}
+                            className="w-full appearance-none bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 outline-none text-xs rounded-lg px-3 py-2 text-gray-700 dark:text-gray-200 font-medium cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600/80 transition-colors"
+                        >
+                            {watchlists.map((wl: any) => (
+                                <option key={wl.id} value={wl.id}>{wl.name} ({wl.items.length})</option>
+                            ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => setManagerModal({ isOpen: true, mode: 'create', value: '' })}
+                        className="p-2 rounded-lg transition-colors text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-500/10 dark:hover:bg-blue-500/20"
+                        title="Create Watchlist"
+                    >
+                        <Plus className="w-4 h-4" />
+                    </button>
+                    <button
+                        onClick={() => {
+                            const currentMatch = watchlists.find((w: any) => w.id === activeWatchlistId);
+                            setManagerModal({ isOpen: true, mode: 'rename', value: currentMatch?.name || '' });
+                        }}
+                        className="p-2 rounded-lg transition-colors text-gray-600 bg-gray-50 hover:bg-gray-100 dark:text-gray-300 dark:bg-slate-700/50 dark:hover:bg-slate-600"
+                        title="Rename Watchlist"
+                    >
+                        <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                        onClick={() => setManagerModal({ isOpen: true, mode: 'delete', value: '' })}
+                        className={`p-2 rounded-lg transition-colors ${watchlists.length > 1 ? 'text-red-600 bg-red-50 hover:bg-red-100 dark:text-red-400 dark:bg-red-500/10 dark:hover:bg-red-500/20' : 'text-gray-400 bg-gray-50 dark:bg-slate-800 dark:text-gray-600 cursor-not-allowed opacity-50'}`}
+                        disabled={watchlists.length <= 1}
+                        title="Delete Watchlist"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
+
             {/* Table Header */}
             <div className="grid grid-cols-12 gap-2 px-3 py-2 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50 text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400">
                 <div className="col-span-4">Symbol</div>
@@ -211,6 +263,78 @@ export const MarketWatch = ({ stocks, searchTerm, isLoading = false, compact = f
                     stock={chartStock}
                     onClose={() => setChartStockKey(null)}
                 />
+            )}
+
+            {/* Manager Modals */}
+            {managerModal?.isOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-slate-700">
+                            <h3 className="font-semibold text-gray-900 dark:text-white">
+                                {managerModal.mode === 'create' ? 'Create new Watchlist' :
+                                    managerModal.mode === 'rename' ? 'Rename Watchlist' : 'Delete Watchlist'}
+                            </h3>
+                            <button onClick={() => setManagerModal(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-4">
+                            {managerModal.mode !== 'delete' ? (
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Watchlist Name</label>
+                                        <input
+                                            type="text"
+                                            value={managerModal.value}
+                                            onChange={(e) => setManagerModal({ ...managerModal, value: e.target.value })}
+                                            className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Eg. Tech Stocks, Daily Picks..."
+                                            autoFocus
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' && managerModal.value.trim()) {
+                                                    if (managerModal.mode === 'create') createWatchlist(managerModal.value.trim());
+                                                    else renameWatchlist(activeWatchlistId, managerModal.value.trim());
+                                                    setManagerModal(null);
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <p className="text-sm text-gray-600 dark:text-gray-300">
+                                    Are you sure you want to delete this watchlist? This action cannot be undone.
+                                </p>
+                            )}
+                        </div>
+                        <div className="flex justify-end gap-2 p-4 bg-gray-50 dark:bg-slate-800/50 border-t border-gray-100 dark:border-slate-700">
+                            <button
+                                onClick={() => setManagerModal(null)}
+                                className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (managerModal.mode === 'create') {
+                                        createWatchlist(managerModal.value.trim());
+                                    } else if (managerModal.mode === 'rename') {
+                                        renameWatchlist(activeWatchlistId, managerModal.value.trim());
+                                    } else if (managerModal.mode === 'delete') {
+                                        deleteWatchlist(activeWatchlistId);
+                                    }
+                                    setManagerModal(null);
+                                }}
+                                disabled={managerModal.mode !== 'delete' && !managerModal.value.trim()}
+                                className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50 ${managerModal.mode === 'delete'
+                                        ? 'bg-red-600 hover:bg-red-700'
+                                        : 'bg-blue-600 hover:bg-blue-700'
+                                    }`}
+                            >
+                                {managerModal.mode === 'delete' ? 'Delete' : 'Save'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

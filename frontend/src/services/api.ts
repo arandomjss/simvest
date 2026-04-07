@@ -21,14 +21,16 @@ api.interceptors.request.use((config) => {
 
 export const apiService = {
     // Trading endpoints
-    async executeTrade(symbol: string, instrumentKey: string, type: 'BUY' | 'SELL', quantity: number, orderType: 'MARKET' | 'LIMIT' = 'MARKET', limitPrice?: number) {
+    async executeTrade(symbol: string, instrumentKey: string, type: 'BUY' | 'SELL', quantity: number, orderType: 'MARKET' | 'LIMIT' = 'MARKET', limitPrice?: number, strategy?: string, notes?: string) {
         const response = await api.post('/api/trade/execute', {
             symbol,
             instrumentKey,
             type,
             quantity,
             orderType,
-            limitPrice
+            limitPrice,
+            strategy,
+            notes
         });
         return response.data;
     },
@@ -94,6 +96,25 @@ export const apiService = {
     getIndices: async () => {
         const response = await api.get('/api/market/indices');
         return response.data.indices;
+    },
+
+    // Batch-fetch live quotes for a list of symbols (e.g. portfolio holdings)
+    getLivePrices: async (symbols: string[]): Promise<Record<string, { price: number; change: number; changePercent: number; high: number; low: number; open: number; previousClose: number }>> => {
+        const response = await api.post('/api/yahoo/quotes', { symbols });
+        const quotes: any[] = response.data.data || [];
+        const map: Record<string, any> = {};
+        quotes.forEach((q: any) => {
+            map[q.symbol] = {
+                price:         q.price         || 0,
+                change:        q.change        || 0,
+                changePercent: q.changePercent || 0,
+                high:          q.high          || 0,
+                low:           q.low           || 0,
+                open:          q.open          || 0,
+                previousClose: q.previousClose || 0,
+            };
+        });
+        return map;
     },
 
     async getMarketSignals(limit = 20) {

@@ -193,7 +193,7 @@ class TradingEngine {
     /**
      * Execute a virtual trade (BUY or SELL)
      */
-    async executeTrade(userId, { symbol, instrumentKey, type, quantity, orderType = 'MARKET', limitPrice = 0 }) {
+    async executeTrade(userId, { symbol, instrumentKey, type, quantity, orderType = 'MARKET', limitPrice = 0, strategy, notes }) {
         try {
             // Validate inputs
             if (!['BUY', 'SELL'].includes(type)) {
@@ -221,9 +221,9 @@ class TradingEngine {
 
             // Start transaction
             if (type === 'BUY') {
-                return await this.handleBuyOrder(userId, symbol, instrumentKey, quantity, executionPrice, totalAmount, orderType, currentPrice);
+                return await this.handleBuyOrder(userId, symbol, instrumentKey, quantity, executionPrice, totalAmount, orderType, currentPrice, strategy, notes);
             } else {
-                return await this.handleSellOrder(userId, symbol, instrumentKey, quantity, executionPrice, totalAmount, orderType, currentPrice);
+                return await this.handleSellOrder(userId, symbol, instrumentKey, quantity, executionPrice, totalAmount, orderType, currentPrice, strategy, notes);
             }
 
         } catch (error) {
@@ -232,7 +232,7 @@ class TradingEngine {
         }
     }
 
-    async handleBuyOrder(userId, symbol, instrumentKey, quantity, price, totalAmount, orderType, currentPrice) {
+    async handleBuyOrder(userId, symbol, instrumentKey, quantity, price, totalAmount, orderType, currentPrice, strategy, notes) {
         // 1. Check virtual balance (Block funds immediately for both Market and Limit)
         const { data: profile, error: profileError } = await supabase
             .from('profiles')
@@ -326,7 +326,9 @@ class TradingEngine {
                 quantity,
                 execution_price: finalExecPrice, // This effectively acts as 'limit price' for pending orders check
                 total_amount: finalExecPrice * quantity,
-                status: status
+                status: status,
+                strategy,
+                notes
             }); // Note: should probably have separate column for 'limit_price' vs 'execution_price' but reusing for simplicity as per schema
 
         if (orderError) throw orderError;
@@ -339,7 +341,7 @@ class TradingEngine {
         };
     }
 
-    async handleSellOrder(userId, symbol, instrumentKey, quantity, price, totalAmount, orderType, currentPrice) {
+    async handleSellOrder(userId, symbol, instrumentKey, quantity, price, totalAmount, orderType, currentPrice, strategy, notes) {
         // 1. Check Holdings
         const { data: holding, error: holdingError } = await supabase
             .from('holdings')
@@ -402,7 +404,9 @@ class TradingEngine {
                 quantity,
                 execution_price: finalExecPrice,
                 total_amount: finalExecPrice * quantity,
-                status: status
+                status: status,
+                strategy,
+                notes
             });
 
         if (orderError) throw orderError;

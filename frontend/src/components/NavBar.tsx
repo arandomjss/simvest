@@ -10,10 +10,10 @@ import {
     List,
     Search,
     LogOut,
-    WifiOff,
     X,
     Sun,
-    Moon
+    Moon,
+    BookMarked
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -106,6 +106,7 @@ export const Navbar = ({ showSearch = false, searchTerm = '', onSearchChange, cu
                             <NavItem path="/practice" icon={BookOpen} label="Terminal" />
                             <NavItem path="/portfolio" icon={PieChart} label="Portfolio" />
                             <NavItem path="/orders" icon={List} label="Orders" />
+                            <NavItem path="/journal" icon={BookMarked} label="Journal" />
                         </div>
                     </div>
 

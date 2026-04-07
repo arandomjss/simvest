@@ -11,6 +11,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { PracticePage } from './pages/PracticePage';
 import { AdvisorPage } from './pages/AdvisorPage';
 import { OrdersPage } from './pages/OrdersPage';
+import { JournalPage } from './pages/JournalPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 const App = () => {
@@ -53,6 +54,7 @@ const App = () => {
                         <Route path="/dashboard" element={<DashboardPage />} />
                         <Route path="/portfolio" element={<PortfolioPage />} />
                         <Route path="/orders" element={<OrdersPage />} />
+                        <Route path="/journal" element={<JournalPage />} />
                         <Route path="/practice" element={<PracticePage />} />
                         <Route path="/advisor" element={<AdvisorPage />} />
                     </Route>

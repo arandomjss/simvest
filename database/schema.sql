@@ -36,7 +36,9 @@ CREATE TABLE IF NOT EXISTS public.orders (
   quantity INT NOT NULL CHECK (quantity > 0),
   execution_price DECIMAL(15, 2) NOT NULL CHECK (execution_price > 0),
   total_amount DECIMAL(15, 2) NOT NULL,
-  status TEXT DEFAULT 'EXECUTED' CHECK (status IN ('EXECUTED', 'FAILED', 'CANCELLED')),
+  status TEXT DEFAULT 'EXECUTED' CHECK (status IN ('EXECUTED', 'FAILED', 'CANCELLED', 'PENDING', 'OPEN')),
+  strategy TEXT,
+  notes TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

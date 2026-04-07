@@ -22,6 +22,8 @@ export const TradeForm = ({ stock, initialSide = 'BUY', onSuccess, onCancel }: T
     const [quantity, setQuantity] = useState(1);
     const [orderType, setOrderType] = useState<'MARKET' | 'LIMIT'>('LIMIT');
     const [limitPrice, setLimitPrice] = useState<number>(0);
+    const [strategy, setStrategy] = useState<string>('');
+    const [notes, setNotes] = useState<string>('');
     const [isTrading, setIsTrading] = useState(false);
 
     // Initialize/Reset when stock changes
@@ -32,6 +34,8 @@ export const TradeForm = ({ stock, initialSide = 'BUY', onSuccess, onCancel }: T
         setOrderType('LIMIT');
         setQuantity(1);
         setTradeType(initialSide);
+        setStrategy('');
+        setNotes('');
         setShowConfirmation(false);
         setOrderSuccess(false);
     }, [stock?.instrumentKey, initialSide]);
@@ -62,7 +66,9 @@ export const TradeForm = ({ stock, initialSide = 'BUY', onSuccess, onCancel }: T
                 tradeType,
                 quantity,
                 orderType,
-                limitPrice
+                limitPrice,
+                strategy,
+                notes
             );
 
             await fetchPortfolio();
@@ -102,6 +108,8 @@ export const TradeForm = ({ stock, initialSide = 'BUY', onSuccess, onCancel }: T
                 quantity={quantity}
                 orderType={orderType}
                 limitPrice={limitPrice}
+                strategy={strategy}
+                notes={notes}
                 total={calculateTotal()}
                 isTrading={isTrading}
                 onConfirm={confirmTrade}
@@ -120,10 +128,14 @@ export const TradeForm = ({ stock, initialSide = 'BUY', onSuccess, onCancel }: T
             total={calculateTotal()}
             balance={portfolio?.cashBalance || null}
             isTrading={isTrading}
+            strategy={strategy}
+            notes={notes}
             onSideChange={setTradeType}
             onQuantityChange={setQuantity}
             onOrderTypeChange={setOrderType}
             onLimitPriceChange={setLimitPrice}
+            onStrategyChange={setStrategy}
+            onNotesChange={setNotes}
             onSubmit={handleTradeInit}
             onCancel={onCancel}
         />

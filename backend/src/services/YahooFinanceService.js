@@ -264,25 +264,50 @@ class YahooFinanceService {
 
     /**
      * Get company news
+     * yahoo-finance2 v3+ may throw FailedYahooValidationError on the search endpoint
+     * because Yahoo changed their API schema. Pass `validateResult: false` to bypass
+     * schema validation and receive the raw (but valid) data.
      */
     async getCompanyNews(symbol) {
         try {
-            // We search for the symbol to get relevant news
-            const result = await yahooFinance.search(symbol, { newsCount: 10, quotesCount: 1 });
+            const yahooSymbol = this.toYahooSymbol(symbol);
+            const result = await yahooFinance.search(
+                yahooSymbol,
+                { newsCount: 10, quotesCount: 1 },
+                { validateResult: false }
+            );
 
-            if (result && result.news) {
-                return result.news.map(article => ({
-                    id: article.uuid,
-                    title: article.title,
-                    source: article.publisher,
-                    time: article.providerPublishTime ? new Date(article.providerPublishTime * 1000).toISOString() : new Date().toISOString(),
-                    link: article.link,
-                    sentiment: 'neutral',
-                    symbols: article.relatedTickers || [symbol]
-                }));
+            if (result && result.news && Array.isArray(result.news)) {
+                return result.news
+                    .filter(article => article && article.title && article.link)
+                    .map(article => ({
+                        id: article.uuid || `${symbol}-${Date.now()}-${Math.random()}`,
+                        title: article.title,
+                        source: article.publisher || 'Unknown',
+                        time: article.providerPublishTime
+                            ? new Date(article.providerPublishTime).toISOString()
+                            : new Date().toISOString(),
+                        link: article.link,
+                        sentiment: 'neutral',
+                        symbols: article.relatedTickers || [symbol]
+                    }));
             }
             return [];
         } catch (error) {
+            // Fallback: try to use partial result attached to the error
+            if (error.result && error.result.news) {
+                return error.result.news
+                    .filter(a => a && a.title && a.link)
+                    .map(article => ({
+                        id: article.uuid || `${symbol}-${Date.now()}`,
+                        title: article.title,
+                        source: article.publisher || 'Unknown',
+                        time: new Date().toISOString(),
+                        link: article.link,
+                        sentiment: 'neutral',
+                        symbols: [symbol]
+                    }));
+            }
             console.error(`Error fetching news for ${symbol}:`, error.message);
             return [];
         }

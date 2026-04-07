@@ -80,7 +80,7 @@ async function authenticateUser(req, res, next) {
  */
 router.post('/execute', authenticateUser, async (req, res) => {
     try {
-        const { symbol, instrumentKey, type, quantity, orderType, limitPrice } = req.body;
+        const { symbol, instrumentKey, type, quantity, orderType, limitPrice, strategy, notes } = req.body;
 
         // Validate inputs
         if (!symbol || !instrumentKey || !type || !quantity) {
@@ -96,7 +96,9 @@ router.post('/execute', authenticateUser, async (req, res) => {
             type,
             quantity,
             orderType,
-            limitPrice
+            limitPrice,
+            strategy,
+            notes
         });
 
         res.json(result);

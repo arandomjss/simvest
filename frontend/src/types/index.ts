@@ -38,6 +38,8 @@ export interface Holding {
     currentPrice?: number;
     pnl?: number;
     pnlPercent?: number;
+    change?: number;
+    changePercent?: number;
 }
 
 export interface Order {
@@ -46,10 +48,13 @@ export interface Order {
     symbol: string;
     instrument_key: string;
     type: 'BUY' | 'SELL';
+    order_type?: 'MARKET' | 'LIMIT';
     quantity: number;
     execution_price: number;
     total_amount: number;
     status: string;
+    strategy?: string;
+    notes?: string;
     created_at: string;
 }
 

@@ -141,24 +141,4 @@ router.get('/news/:symbol', async (req, res) => {
     }
 });
 
-/**
- * Get company news
- */
-router.get('/news/:symbol', async (req, res) => {
-    try {
-        const { symbol } = req.params;
-        const news = await yahooFinanceService.getCompanyNews(symbol);
-
-        res.json({
-            success: true,
-            data: news
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
-
 export default router;

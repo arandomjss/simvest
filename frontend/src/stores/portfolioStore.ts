@@ -6,11 +6,13 @@ interface PortfolioState {
     portfolio: Portfolio | null;
     orders: Order[];
     isLoading: boolean;
+    pricesLoading: boolean;
     error: string | null;
 
     fetchPortfolio: () => Promise<void>;
     fetchOrders: (limit?: number, offset?: number) => Promise<void>;
-    executeTrade: (symbol: string, instrumentKey: string, type: 'BUY' | 'SELL', quantity: number, orderType?: 'MARKET' | 'LIMIT', limitPrice?: number) => Promise<void>;
+    fetchLivePrices: () => Promise<void>;
+    executeTrade: (symbol: string, instrumentKey: string, type: 'BUY' | 'SELL', quantity: number, orderType?: 'MARKET' | 'LIMIT', limitPrice?: number, strategy?: string, notes?: string) => Promise<void>;
     cancelOrder: (orderId: string) => Promise<void>;
     updatePortfolioWithPrices: (prices: Map<string, number>) => void;
 }
@@ -19,6 +21,7 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
     portfolio: null,
     orders: [],
     isLoading: false,
+    pricesLoading: false,
     error: null,
 
     fetchPortfolio: async () => {
@@ -47,10 +50,50 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
         }
     },
 
-    executeTrade: async (symbol: string, instrumentKey: string, type: 'BUY' | 'SELL', quantity: number, orderType: 'MARKET' | 'LIMIT' = 'MARKET', limitPrice?: number) => {
+    // Fetch live Yahoo Finance prices for current holdings and recompute P&L
+    fetchLivePrices: async () => {
+        const { portfolio } = get();
+        if (!portfolio || portfolio.holdings.length === 0) return;
+        set({ pricesLoading: true });
+        try {
+            const symbols = portfolio.holdings.map(h => h.symbol);
+            const priceMap = await apiService.getLivePrices(symbols);
+
+            const updatedHoldings = portfolio.holdings.map(h => {
+                const q = priceMap[h.symbol];
+                if (!q || !q.price) return h;
+                const currentPrice = q.price;
+                const pnl = (currentPrice - h.avgPrice) * h.quantity;
+                const pnlPercent = ((currentPrice - h.avgPrice) / h.avgPrice) * 100;
+                return { ...h, currentPrice, pnl, pnlPercent, change: q.change, changePercent: q.changePercent };
+            });
+
+            const totalValue = updatedHoldings.reduce((s, h) => s + ((h.currentPrice || h.avgPrice) * h.quantity), 0);
+            const totalInvestment = updatedHoldings.reduce((s, h) => s + (h.avgPrice * h.quantity), 0);
+            const totalPnL = totalValue - totalInvestment;
+            const totalPnLPercent = totalInvestment > 0 ? (totalPnL / totalInvestment) * 100 : 0;
+
+            set({
+                pricesLoading: false,
+                portfolio: {
+                    ...portfolio,
+                    holdings: updatedHoldings,
+                    totalValue: totalValue + (portfolio.cashBalance || 0),
+                    totalInvestment,
+                    totalPnL,
+                    totalPnLPercent,
+                },
+            });
+        } catch (err) {
+            console.error('Failed to fetch live prices for holdings:', err);
+            set({ pricesLoading: false });
+        }
+    },
+
+    executeTrade: async (symbol: string, instrumentKey: string, type: 'BUY' | 'SELL', quantity: number, orderType: 'MARKET' | 'LIMIT' = 'MARKET', limitPrice?: number, strategy?: string, notes?: string) => {
         try {
             set({ isLoading: true, error: null });
-            await apiService.executeTrade(symbol, instrumentKey, type, quantity, orderType, limitPrice);
+            await apiService.executeTrade(symbol, instrumentKey, type, quantity, orderType, limitPrice, strategy, notes);
 
             // Refresh portfolio and orders after trade
             await get().fetchPortfolio();

@@ -8,6 +8,8 @@ interface OrderConfirmationModalProps {
     limitPrice: number;
     total: string;
     isTrading: boolean;
+    strategy?: string;
+    notes?: string;
     onConfirm: () => void;
     onCancel: () => void;
 }
@@ -20,6 +22,8 @@ export const OrderConfirmationModal = ({
     limitPrice,
     total,
     isTrading,
+    strategy,
+    notes,
     onConfirm,
     onCancel
 }: OrderConfirmationModalProps) => {
@@ -54,6 +58,23 @@ export const OrderConfirmationModal = ({
                     <span className="text-text-secondary">Estimated Total</span>
                     <span className="font-bold text-text-primary">₹{total}</span>
                 </div>
+                
+                {/* Journal Info */}
+                {(strategy || notes) && (
+                    <div className="pt-2 border-t border-border mt-2">
+                        {strategy && (
+                            <div className="flex justify-between mb-1">
+                                <span className="text-text-secondary">Strategy</span>
+                                <span className="font-medium text-text-primary px-2 py-0.5 bg-primary/10 rounded text-xs">{strategy}</span>
+                            </div>
+                        )}
+                        {notes && (
+                            <div className="mt-2 text-text-secondary text-xs italic bg-surface-hover p-2 rounded whitespace-pre-wrap rounded border border-border">
+                                "{notes}"
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             <div className="flex space-x-3 pt-2">

@@ -67,6 +67,7 @@ export const OrdersTable = ({ orders }: OrdersTableProps) => {
                             <th className="px-4 py-3 text-left">Time</th>
                             <th className="px-4 py-3 text-left">Symbol</th>
                             <th className="px-4 py-3 text-left">Type</th>
+                            <th className="px-4 py-3 text-left">Strategy</th>
                             <th className="px-4 py-3 text-right">Qty</th>
                             <th className="px-4 py-3 text-right">Price</th>
                             <th className="px-4 py-3 text-center">Status</th>
@@ -76,7 +77,7 @@ export const OrdersTable = ({ orders }: OrdersTableProps) => {
                     <tbody className="divide-y divide-gray-100">
                         {filteredOrders.length === 0 ? (
                             <tr>
-                                <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
+                                <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
                                     No orders found
                                 </td>
                             </tr>
@@ -101,6 +102,18 @@ export const OrdersTable = ({ orders }: OrdersTableProps) => {
                                         <span className={`text-xs font-bold ${order.type === 'BUY' ? 'text-emerald-600' : 'text-red-600'}`}>
                                             {order.type}
                                         </span>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {order.strategy ? (
+                                            <span 
+                                                className="inline-block px-2 py-0.5 text-[10px] bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 font-semibold rounded border border-purple-200 dark:border-purple-800 cursor-help"
+                                                title={order.notes || "No notes provided"}
+                                            >
+                                                {order.strategy}
+                                            </span>
+                                        ) : (
+                                            <span className="text-gray-400 text-xs italic">-</span>
+                                        )}
                                     </td>
                                     <td className="px-4 py-3 text-right font-mono text-gray-900">
                                         {order.quantity}

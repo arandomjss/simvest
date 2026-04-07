@@ -22,14 +22,23 @@ router.get('/indices', async (req, res) => {
 
         // Map to friendly names
         const nameMap = {
-            '^NSEI': 'NIFTY 50',
-            '^BSESN': 'SENSEX',
+            '^NSEI':    'NIFTY 50',
+            '^BSESN':   'SENSEX',
             '^NSEBANK': 'BANK NIFTY'
         };
 
         const indices = quotes.map(q => ({
-            ...q,
-            name: nameMap[q.symbol] || q.name
+            symbol:        q.symbol,
+            name:          nameMap[q.symbol] || q.name,
+            price:         q.price,
+            change:        q.change,
+            changePercent: q.changePercent,
+            high:          q.high,
+            low:           q.low,
+            open:          q.open,
+            previousClose: q.previousClose,
+            volume:        q.volume,
+            lastUpdated:   q.lastUpdated,
         }));
 
         res.json({ indices });
