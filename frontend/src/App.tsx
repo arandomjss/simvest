@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { DashboardPage } from './pages/DashboardPage';
 import { PortfolioPage } from './pages/PortfolioPage';
 import { LoginPage } from './pages/LoginPage';
+import { LandingPage } from './pages/LandingPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { useAuthStore } from './stores/authStore';
 import { useThemeStore } from './stores/themeStore';
@@ -12,6 +13,7 @@ import { PracticePage } from './pages/PracticePage';
 import { AdvisorPage } from './pages/AdvisorPage';
 import { OrdersPage } from './pages/OrdersPage';
 import { JournalPage } from './pages/JournalPage';
+import { DemoPage } from './pages/DemoPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 const App = () => {
@@ -44,10 +46,11 @@ const App = () => {
         <ErrorBoundary>
             <BrowserRouter>
                 <Routes>
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                    <Route path="/" element={<LandingPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/callback" element={<UpstoxCallbackPage />} />
+                    <Route path="/demo" element={<DemoPage />} />
 
                     {/* Protected Routes */}
                     <Route element={<ProtectedRoute />}>

@@ -93,8 +93,12 @@ export const Navbar = ({ showSearch = false, searchTerm = '', onSearchChange, cu
                             className="flex items-center gap-3 cursor-pointer group"
                             onClick={() => navigate('/dashboard')}
                         >
-                            <div className="w-9 h-9 bg-gradient-to-br from-primary to-blue-600 rounded-2xl shadow-lg shadow-primary/20 flex items-center justify-center text-white font-bold text-sm transform transition-transform group-hover:scale-105">
-                                SV
+                            <div className="w-9 h-9 rounded-xl overflow-hidden shadow-lg shadow-primary/20 transform transition-transform group-hover:scale-105">
+                                <img 
+                                    src={theme === 'dark' ? '/logo-dark.png' : '/logo-light.png'} 
+                                    alt="SimVest Logo" 
+                                    className="w-full h-full object-cover" 
+                                />
                             </div>
                             <h1 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight group-hover:text-primary transition-colors">SimVest</h1>
                         </div>
