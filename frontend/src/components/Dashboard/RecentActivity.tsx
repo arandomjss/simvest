@@ -6,7 +6,7 @@ interface RecentActivityProps {
 
 export const RecentActivity = ({ orders }: RecentActivityProps) => {
     // Sort by date desc (newest first) to ensure "Recent" is actually recent
-    const recentOrders = [...orders]
+    const recentOrders = [...(orders || [])]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 5);
 

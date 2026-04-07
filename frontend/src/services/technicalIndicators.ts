@@ -159,7 +159,7 @@ export const calculateMACD = (data: OHLCData[]): MACDData[] => {
 
     // Calculate MACD line (EMA12 - EMA26)
     const macdLine: IndicatorData[] = [];
-    const startIndex = 26 - 1; // Start from where EMA26 begins
+
 
     for (let i = 0; i < ema12.length; i++) {
         const ema12Index = i + (12 - 1);

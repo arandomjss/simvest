@@ -42,10 +42,7 @@ export const SectorAllocationChart = ({ holdings, stocks = [] }: SectorAllocatio
         percentage: item.percentage,
     }));
 
-    // Custom label
-    const renderLabel = (entry: any) => {
-        return `${entry.percentage}%`;
-    };
+
 
     // Custom tooltip
     const CustomTooltip = ({ active, payload }: any) => {
@@ -102,7 +99,7 @@ export const SectorAllocationChart = ({ holdings, stocks = [] }: SectorAllocatio
                         height={36}
                         iconType="circle"
                         iconSize={8}
-                        formatter={(value, entry: any) => (
+                        formatter={(value) => (
                             <span className="text-xs font-medium text-gray-600 dark:text-gray-300 ml-1">
                                 {value}
                             </span>

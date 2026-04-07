@@ -117,6 +117,7 @@ export const PortfolioPage = () => {
                                 </div>
                                 <div className="flex-1 flex items-center justify-center p-4">
                                     <SectorAllocationChart holdings={holdings} stocks={stocks} />
+                                    <SectorAllocationChart holdings={holdings} stocks={stocks} />
                                 </div>
                             </div>
 
