@@ -219,6 +219,92 @@
   display: block;
 }
 
+/* Ticker Animation */
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-wrap {
+  width: 100%;
+  overflow: hidden;
+  background: white;
+  border-bottom: 1px solid #f1f5f9;
+  padding: 10px 0;
+  white-space: nowrap;
+}
+
+.ticker-content {
+  display: inline-flex;
+  gap: 40px;
+  animation: ticker 40s linear infinite;
+}
+
+.ticker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.ticker-price {
+  color: #0f172a;
+}
+
+.ticker-change.up { color: #10b981; }
+.ticker-change.down { color: #ef4444; }
+
+/* FAQ Accordion */
+.faq-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.faq-item {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.faq-trigger {
+  width: 100%;
+  padding: 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: left;
+}
+
+.faq-content {
+  padding-bottom: 24px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+/* CTA Section */
+.cta-banner {
+  background: #0f172a;
+  color: white;
+  border-radius: 40px;
+  padding: 80px 40px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-banner::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
 @media (max-width: 768px) {
   .hero-cta {
     flex-direction: column;
@@ -228,5 +314,10 @@
   
   .hero-title {
     font-size: 2.5rem;
+  }
+  
+  .cta-banner {
+    padding: 60px 20px;
+    border-radius: 20px;
   }
 }

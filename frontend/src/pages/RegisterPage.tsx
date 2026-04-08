@@ -4,9 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { 
   ShieldCheck, Mail, Lock, UserPlus, ArrowRight, Eye, EyeOff, 
-  Check, CandlestickChart, Landmark, TrendingUp, Coins 
+  Check 
 } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
+import { DemoBackground } from '../components/ui/demo';
 
 const PasswordStrength = ({ password }: { password: string }) => {
     const strength = useMemo(() => {
@@ -36,27 +37,6 @@ const PasswordStrength = ({ password }: { password: string }) => {
         </div>
     );
 };
-
-const FloatingIcon = ({ icon: Icon, delay = 0, x = 0, y = 0 }: any) => (
-    <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ 
-            opacity: [0.1, 0.2, 0.1],
-            y: [y, y - 20, y],
-            rotate: [0, 10, -10, 0]
-        }}
-        transition={{ 
-            duration: 8, 
-            repeat: Infinity, 
-            delay,
-            ease: "easeInOut" 
-        }}
-        className="absolute text-slate-300 pointer-events-none"
-        style={{ left: `${x}%`, top: `${y}%` }}
-    >
-        <Icon size={40} />
-    </motion.div>
-);
 
 export const RegisterPage = () => {
     const [email, setEmail] = useState('');
@@ -101,23 +81,13 @@ export const RegisterPage = () => {
     const displayError = localError || error;
 
     return (
-        <div className="h-screen w-full bg-[#F8FAFC] font-sans transition-colors duration-500 flex flex-col justify-center relative overflow-hidden text-slate-900">
+        <div className="relative h-screen w-full font-sans transition-colors duration-500 flex flex-col justify-center overflow-hidden text-slate-900">
             <Helmet>
                 <title>Create Account | SimVest</title>
             </Helmet>
 
-            {/* Background Layer: Grid & Glows */}
-            <div className="fixed inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]"></div>
-                <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-500/5 blur-[140px] rounded-full animate-pulse" />
-                <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-emerald-500/5 blur-[140px] rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
-                
-                {/* Floating Particles */}
-                <FloatingIcon icon={CandlestickChart} x={15} y={20} delay={0} />
-                <FloatingIcon icon={Landmark} x={85} y={15} delay={2} />
-                <FloatingIcon icon={TrendingUp} x={10} y={75} delay={4} />
-                <FloatingIcon icon={Coins} x={80} y={80} delay={1} />
-            </div>
+            {/* Global Demo Background */}
+            <DemoBackground />
 
             <main className="relative z-10 w-full max-w-[440px] mx-auto px-6 py-4">
                 <motion.div

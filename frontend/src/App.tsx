@@ -15,6 +15,7 @@ import { OrdersPage } from './pages/OrdersPage';
 import { JournalPage } from './pages/JournalPage';
 import { DemoPage } from './pages/DemoPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { PublicRoute } from './components/PublicRoute';
 
 const App = () => {
     const { checkAuth } = useAuthStore();
@@ -46,9 +47,12 @@ const App = () => {
         <ErrorBoundary>
             <BrowserRouter>
                 <Routes>
-                    <Route path="/" element={<LandingPage />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register" element={<RegisterPage />} />
+                    {/* Public-only Routes */}
+                    <Route element={<PublicRoute />}>
+                        <Route path="/" element={<LandingPage />} />
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/register" element={<RegisterPage />} />
+                    </Route>
                     <Route path="/callback" element={<UpstoxCallbackPage />} />
                     <Route path="/demo" element={<DemoPage />} />
 
