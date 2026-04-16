@@ -6,8 +6,6 @@ import { Order } from '../types';
 import {
     BookOpen,
     Search,
-    TrendingUp,
-    TrendingDown,
     Filter,
     MessageSquare,
     Tag,
