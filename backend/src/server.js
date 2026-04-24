@@ -20,6 +20,7 @@ import tradeRoutes from './routes/trade.routes.js';
 import marketRoutes from './routes/market.routes.js';
 import upstoxRoutes from './routes/upstox.routes.js';
 import yahooRoutes from './routes/yahoo.routes.js';
+import advisorRoutes from './routes/advisor.routes.js';
 
 // Import middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -58,6 +59,7 @@ app.use('/api/trade', tradeRoutes);
 app.use('/api/market', marketRoutes);
 app.use('/api/upstox', upstoxRoutes);
 app.use('/api/yahoo', yahooRoutes);
+app.use('/api/advisor', advisorRoutes);
 
 // Error handlers
 app.use(notFoundHandler);

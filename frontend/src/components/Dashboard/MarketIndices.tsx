@@ -137,7 +137,7 @@ export const MarketIndices = ({ onIndexClick }: MarketIndicesProps) => {
                         maximumFractionDigits: 2
                     });
                     const changeAbs = Math.abs(index.change || 0).toFixed(2);
-                    const changePercent = (index.changePercent || 0).toFixed(2);
+                    const changePercent = Math.abs(index.changePercent || 0).toFixed(2);
 
                     return (
                         <div

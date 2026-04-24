@@ -17,7 +17,7 @@ class MarketDataService extends EventEmitter {
         this.previousCloses = new Map(); // Store previous close for day change calculation
         this.isRunning = false;
         this.lastFetchTime = 0;
-        this.fetchInterval = 10000; // Fetch from Yahoo every 10 seconds to avoid rate limits
+        this.fetchInterval = 5000; // Fetch from Yahoo every 5 seconds as requested
     }
 
 

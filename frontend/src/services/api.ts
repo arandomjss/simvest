@@ -123,6 +123,12 @@ export const apiService = {
         });
         return response.data.signals;
     },
+
+    // Advisor Intelligence
+    async getDeepAnalysis(symbol: string) {
+        const response = await api.get(`/api/advisor/analyze/${symbol}`);
+        return response.data.data;
+    },
 };
 
 export default api;

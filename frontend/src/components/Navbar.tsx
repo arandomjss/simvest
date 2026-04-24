@@ -1,3 +1,4 @@
+import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { useUpstoxStore } from '../stores/upstoxStore';
@@ -24,38 +25,6 @@ interface NavbarProps {
 }
 
 export const Navbar = ({ showSearch = false, searchTerm = '', onSearchChange, customSearch }: NavbarProps) => {
-    {/* Custom Search/Command Bar */ }
-    {
-        customSearch && (
-            <div className="hidden md:block">
-                {customSearch}
-            </div>
-        )
-    }
-
-    {/* Default Search */ }
-    {
-        !customSearch && showSearch && onSearchChange && (
-            <div className="relative group hidden md:block w-72">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400 group-focus-within:text-primary transition-colors" />
-                <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => onSearchChange(e.target.value)}
-                    className="w-full h-10 pl-10 pr-10 text-sm bg-gray-100 dark:bg-slate-800 border border-transparent focus:bg-white dark:focus:bg-slate-700 rounded-full focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-gray-500 dark:placeholder:text-gray-400"
-                    placeholder="Search markets..."
-                />
-                {searchTerm && (
-                    <button
-                        onClick={() => onSearchChange('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                    >
-                        <X className="w-3.5 h-3.5" />
-                    </button>
-                )}
-            </div>
-        )
-    }
     const navigate = useNavigate();
     const location = useLocation();
     const { user, signOut } = useAuthStore();

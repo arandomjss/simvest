@@ -261,14 +261,6 @@ export const PracticePage = () => {
                         }}
                     />
 
-                    <div className="mt-8 p-4 bg-primary/5 rounded-lg border border-primary/10">
-                        <h3 className="text-sm font-semibold text-primary mb-2">Live Terminal ⚡</h3>
-                        <p className="text-xs text-text-secondary leading-relaxed">
-                            This is your active trading environment. Use the chart to identify entry/exit points and execute orders instantly.
-                            <br /><br />
-                            <strong>System Status:</strong> <span className="text-profit">Online</span>
-                        </p>
-                    </div>
                 </div>
             </div>
         </div>

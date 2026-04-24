@@ -11,9 +11,18 @@ interface MarketWatchProps {
     searchTerm: string;
     isLoading?: boolean;
     compact?: boolean;
+    onSelect?: (stock: Stock) => void;
+    disablePopup?: boolean;
 }
 
-export const MarketWatch = ({ stocks, searchTerm, isLoading = false, compact = false }: MarketWatchProps) => {
+export const MarketWatch = ({ 
+    stocks, 
+    searchTerm, 
+    isLoading = false, 
+    compact = false, 
+    onSelect,
+    disablePopup = false 
+}: MarketWatchProps) => {
     const {
         watchlists, activeWatchlistId, setActiveWatchlist,
         createWatchlist, deleteWatchlist, renameWatchlist,
@@ -209,7 +218,12 @@ export const MarketWatch = ({ stocks, searchTerm, isLoading = false, compact = f
                             <div
                                 key={stock.instrumentKey}
                                 className={`grid grid-cols-12 gap-2 px-3 py-2 border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors ${isSelected ? 'bg-primary/5 dark:bg-primary/10 border-l-2 border-l-primary' : ''}`}
-                                onClick={() => setChartStockKey(stock.instrumentKey)}
+                                onClick={() => {
+                                    if (!disablePopup) {
+                                        setChartStockKey(stock.instrumentKey);
+                                    }
+                                    if (onSelect) onSelect(stock);
+                                }}
                             >
                                 <div className="col-span-4 flex items-center">
                                     <button

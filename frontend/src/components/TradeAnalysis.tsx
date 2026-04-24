@@ -1,227 +1,145 @@
-import { useEffect, useState } from 'react';
-import {
-    calculateRSI,
-    calculateMACD,
-    calculateSMA,
-    calculateEMA,
-    calculateBollingerBands
-} from '../services/technicalIndicators';
-import { OHLCData } from '../services/historicalData';
-import { apiService } from '../services/api';
+import { motion } from 'framer-motion';
+import { Target, ShieldAlert, Zap, TrendingUp } from 'lucide-react';
 
 interface TradeAnalysisProps {
-    stock: any;
-    currentPrice: number;
+    analysis: any; // The rich object from our backend
+    isLoading?: boolean;
 }
 
-export const TradeAnalysis = ({ stock, currentPrice }: TradeAnalysisProps) => {
-    const [ohlc, setOhlc] = useState<OHLCData[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [signal, setSignal] = useState<'BUY' | 'SELL' | 'NEUTRAL'>('NEUTRAL');
-    const [strength, setStrength] = useState<number>(0); // 0-100
-    const [indicators, setIndicators] = useState<{
-        rsi: number;
-        macd: { value: number; signal: number; histogram: number };
-        sma20: number;
-        ema50: number;
-        bb: { upper: number; middle: number; lower: number; width: number };
-    } | null>(null);
+export const TradeAnalysis = ({ analysis, isLoading }: TradeAnalysisProps) => {
+    if (isLoading) {
+        return (
+            <div className="space-y-4 animate-pulse">
+                <div className="h-32 bg-gray-100 dark:bg-slate-800 rounded-2xl" />
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="h-20 bg-gray-100 dark:bg-slate-800 rounded-xl" />
+                    <div className="h-20 bg-gray-100 dark:bg-slate-800 rounded-xl" />
+                </div>
+            </div>
+        );
+    }
 
-    // Fetch real historical data
-    useEffect(() => {
-        const fetchData = async () => {
-            if (!stock?.instrumentKey) return;
+    if (!analysis) return null;
 
-            setIsLoading(true);
-            setError(null);
+    const { aiAnalysis, indicators, signals } = analysis;
+    const { verdict, thesis, risk, confidence_score } = aiAnalysis;
 
-            try {
-                // Fetch daily candles for analysis (6 months for EMA50)
-                const candles = await apiService.getHistoricalData(stock.instrumentKey, '1d', '6mo');
-
-                if (!candles || candles.length === 0) {
-                    throw new Error('No historical data available');
-                }
-
-                // Map API response (timestamp usually in ms) to OHLCData (time in seconds)
-                const mappedData: OHLCData[] = candles.map((c: any) => ({
-                    time: Math.floor(c.timestamp / 1000), // Convert ms to s
-                    open: c.open,
-                    high: c.high,
-                    low: c.low,
-                    close: c.close
-                })).sort((a: OHLCData, b: OHLCData) => a.time - b.time); // Ensure chronological order
-
-                setOhlc(mappedData);
-            } catch (err: any) {
-                console.error('Failed to fetch analysis data:', err);
-                setError('Could not fetch data for analysis');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [stock.instrumentKey]);
-
-    // Calculate Indicators (only when we have data)
-    useEffect(() => {
-        if (ohlc.length === 0) return;
-
-        try {
-            // RSI
-            const rsiData = calculateRSI(ohlc, 14);
-            const currentRSI = rsiData[rsiData.length - 1]?.value || 50;
-
-            // MACD
-            const macdData = calculateMACD(ohlc);
-            const currentMACD = macdData[macdData.length - 1] || { macd: 0, signal: 0, histogram: 0 };
-
-            // SMA & EMA
-            const smaData = calculateSMA(ohlc, 20);
-            const emaData = calculateEMA(ohlc, 50);
-            const currentSMA = smaData[smaData.length - 1]?.value || currentPrice;
-            const currentEMA = emaData[emaData.length - 1]?.value || currentPrice;
-
-            // Bollinger Bands
-            const bbData = calculateBollingerBands(ohlc, 20, 2);
-            const currentBB = bbData[bbData.length - 1] || { upper: 0, middle: 0, lower: 0 };
-            const bbWidth = currentBB.middle ? ((currentBB.upper - currentBB.lower) / currentBB.middle) * 100 : 0;
-
-            setIndicators({
-                rsi: currentRSI,
-                macd: {
-                    value: currentMACD.macd,
-                    signal: currentMACD.signal,
-                    histogram: currentMACD.histogram
-                },
-                sma20: currentSMA,
-                ema50: currentEMA,
-                bb: { ...currentBB, width: bbWidth }
-            });
-
-            // Determine Signal
-            let buyScore = 0;
-            let sellScore = 0;
-
-            // RSI Logic
-            if (currentRSI < 30) buyScore += 2;
-            else if (currentRSI > 70) sellScore += 2;
-
-            // MACD Logic
-            if (currentMACD.histogram > 0 && currentMACD.histogram > (macdData[macdData.length - 2]?.histogram || 0)) buyScore += 1;
-            if (currentMACD.histogram < 0 && currentMACD.histogram < (macdData[macdData.length - 2]?.histogram || 0)) sellScore += 1;
-
-            // Trend Logic
-            // Use last close for trend analysis if currentPrice is 0 or not updated
-            const price = currentPrice || ohlc[ohlc.length - 1].close;
-
-            if (price > currentSMA) buyScore += 1;
-            else sellScore += 1;
-
-            if (price > currentEMA) buyScore += 1;
-            else sellScore += 1;
-
-            // Final Decision
-            if (buyScore > sellScore + 1) {
-                setSignal('BUY');
-                setStrength(Math.min(100, buyScore * 20 + 20)); // Base strength
-            } else if (sellScore > buyScore + 1) {
-                setSignal('SELL');
-                setStrength(Math.min(100, sellScore * 20 + 20));
-            } else {
-                setSignal('NEUTRAL');
-                setStrength(50);
-            }
-        } catch (err) {
-            console.error('Error calculating indicators:', err);
-            // Fallback to neutral if calculation fails
-            setSignal('NEUTRAL');
-            setStrength(0);
-        }
-
-    }, [ohlc, currentPrice]);
-
-    const getSignalColor = () => {
-        switch (signal) {
-            case 'BUY': return 'text-success bg-success/10 border-success/20';
-            case 'SELL': return 'text-danger bg-danger/10 border-danger/20';
-            default: return 'text-text-secondary bg-gray-100 border-gray-200';
-        }
+    const getVerdictColor = () => {
+        const v = verdict.toLowerCase();
+        if (v.includes('buy') || v.includes('bullish')) return 'text-emerald-600 border-emerald-500/20 bg-emerald-50';
+        if (v.includes('sell') || v.includes('bearish')) return 'text-rose-600 border-rose-500/20 bg-rose-50';
+        return 'text-amber-600 border-amber-500/20 bg-amber-50';
     };
-
-    const getRecommendation = () => {
-        if (signal === 'BUY') return `Strong buying momentum detected (RSI: ${indicators?.rsi.toFixed(0)}). Good entry point.`;
-        if (signal === 'SELL') return `Overbought or downtrend (RSI: ${indicators?.rsi.toFixed(0)}). Consider selling.`;
-        return 'Market is ranging. Wait for a clearer signal.';
-    };
-
-    if (isLoading) return <div className="p-4 text-center text-xs text-text-secondary">Fetching real market data...</div>;
-    if (error) return <div className="p-4 text-center text-xs text-danger">{error}</div>;
-    if (!indicators) return null;
-
-    const support = (currentPrice * 0.98).toFixed(2);
-    const resistance = (currentPrice * 1.02).toFixed(2);
 
     return (
-        <div className="bg-background-light/50 rounded-lg p-4 border border-border mt-4">
-            <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-semibold text-text-primary">AI Trade Signal (Real-Time)</h4>
-                <div className={`px-3 py-1 rounded-full text-xs font-bold border ${getSignalColor()}`}>
-                    {signal} {strength > 0 && `(${strength}%)`}
+        <div className="space-y-6">
+            {/* Master Verdict Card */}
+            <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-3xl p-6 relative overflow-hidden shadow-sm"
+            >
+                <div className="absolute top-0 right-0 p-4 opacity-5">
+                    <Zap size={80} className="text-emerald-600" />
+                </div>
+                
+                <div className="relative z-10">
+                    <div className="flex items-center gap-2 mb-4">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-emerald-400">Institutional Synthesis</span>
+                        <div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
+                    </div>
+                    
+                    <h2 className={`text-3xl font-black mb-4 tracking-tight ${getVerdictColor().split(' ')[0]}`}>
+                        {verdict}
+                    </h2>
+
+                    <div className="space-y-3">
+                        {thesis.map((point: string, i: number) => (
+                            <div key={i} className="flex gap-3 text-sm text-slate-600 dark:text-gray-400 leading-relaxed font-medium">
+                                <div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500/40 flex-shrink-0" />
+                                {point}
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="mt-6 pt-6 border-t border-slate-100 dark:border-white/5 flex flex-wrap gap-4 items-center">
+                        <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            <ShieldAlert size={14} className="text-rose-500" />
+                            Risk Level: <span className="text-slate-900 dark:text-gray-300 ml-1">{risk}</span>
+                        </div>
+                        <div className="ml-auto flex items-center gap-2 px-3 py-1 bg-emerald-50 dark:bg-white/5 rounded-full border border-emerald-100 dark:border-white/10">
+                            <span className="text-[10px] text-emerald-700/60 dark:text-gray-500 uppercase font-black">Confidence</span>
+                            <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">{confidence_score}%</span>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+
+            {/* Technical Matrix Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {/* RSI Gauge */}
+                <div className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                    <span className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest">Momentum</span>
+                    <div className="relative w-16 h-16 flex items-center justify-center mb-2">
+                        <svg className="w-full h-full -rotate-90">
+                            <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-slate-200 dark:text-white/5" />
+                            <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" 
+                                className={indicators.rsi > 70 ? 'text-rose-500' : indicators.rsi < 30 ? 'text-emerald-500' : 'text-blue-500'}
+                                strokeDasharray={175.9}
+                                strokeDashoffset={175.9 * (1 - indicators.rsi / 100)}
+                            />
+                        </svg>
+                        <span className="absolute text-sm font-black text-slate-900 dark:text-white">{Math.round(indicators.rsi)}</span>
+                    </div>
+                    <span className="text-[9px] font-bold text-slate-500 uppercase">RSI (14)</span>
+                </div>
+
+                {/* MACD Status */}
+                <div className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                    <span className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest">Trend</span>
+                    <div className={`p-3 rounded-xl mb-3 ${indicators.macd.histogram > 0 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-500'}`}>
+                        <TrendingUp size={24} />
+                    </div>
+                    <span className="text-[9px] font-bold text-slate-500 uppercase">MACD Hist</span>
+                </div>
+
+                {/* Support/Resistance */}
+                <div className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                    <span className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest">Support</span>
+                    <div className="text-sm font-mono font-black text-emerald-600 dark:text-emerald-500 mb-1">
+                         ₹{(analysis.price * 0.98).toFixed(1)}
+                    </div>
+                    <span className="text-[9px] font-bold text-slate-500 uppercase">S1 Floor</span>
+                </div>
+
+                {/* Resistance */}
+                <div className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                    <span className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest">Target</span>
+                    <div className="text-sm font-mono font-black text-blue-600 dark:text-blue-400 mb-1">
+                         ₹{(analysis.price * 1.05).toFixed(1)}
+                    </div>
+                    <span className="text-[9px] font-bold text-slate-500 uppercase">AI Target</span>
                 </div>
             </div>
 
-            <p className="text-xs text-text-secondary mb-4">{getRecommendation()}</p>
-
-            <div className="grid grid-cols-2 gap-3 text-xs mb-4">
-                <div className="p-2 bg-background rounded border border-border">
-                    <span className="text-text-secondary block mb-1">Support</span>
-                    <span className="font-semibold text-success">₹{support}</span>
+            {/* Signal Log (AI Thoughts) */}
+            <div className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-3xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                    <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600">
+                        <Target size={14} />
+                    </div>
+                    <span className="text-xs font-black uppercase text-slate-900 dark:text-white tracking-widest">Live Detection Logs</span>
                 </div>
-                <div className="p-2 bg-background rounded border border-border">
-                    <span className="text-text-secondary block mb-1">Resistance</span>
-                    <span className="font-semibold text-danger">₹{resistance}</span>
-                </div>
-            </div>
-
-            <div className="pt-3 border-t border-border grid grid-cols-4 gap-2 text-[10px] text-text-secondary">
-                <div>
-                    <span className="block mb-1">RSI (14)</span>
-                    <span className={`font-semibold text-xs ${indicators.rsi > 70 ? 'text-danger' : indicators.rsi < 30 ? 'text-success' : 'text-text-primary'}`}>
-                        {indicators.rsi.toFixed(2)}
-                    </span>
-                    <span className="block text-[9px] opacity-70 mt-0.5">
-                        {indicators.rsi > 70 ? 'Overbought' : indicators.rsi < 30 ? 'Oversold' : 'Neutral'}
-                    </span>
-                </div>
-                <div>
-                    <span className="block mb-1">MACD</span>
-                    <span className={`font-semibold text-xs ${indicators.macd.histogram > 0 ? 'text-success' : 'text-danger'}`}>
-                        {indicators.macd.histogram.toFixed(2)}
-                    </span>
-                    <span className="block text-[9px] opacity-70 mt-0.5">
-                        {indicators.macd.histogram > 0 ? 'Bullish' : 'Bearish'}
-                    </span>
-                </div>
-                <div>
-                    <span className="block mb-1">Trend (EMA50)</span>
-                    <span className={`font-semibold text-xs ${currentPrice > indicators.ema50 ? 'text-success' : 'text-danger'}`}>
-                        {currentPrice > indicators.ema50 ? 'Bullish' : 'Bearish'}
-                    </span>
-                    <span className="block text-[9px] opacity-70 mt-0.5">
-                        Short-term
-                    </span>
-                </div>
-                <div>
-                    <span className="block mb-1">Volatility (BB)</span>
-                    <span className={`font-semibold text-xs text-text-primary`}>
-                        {indicators.bb.width.toFixed(2)}%
-                    </span>
-                    <span className="block text-[9px] opacity-70 mt-0.5">
-                        {indicators.bb.width < 5 ? 'Squeeze' : indicators.bb.width > 20 ? 'High Vol' : 'Normal'}
-                    </span>
+                <div className="space-y-3">
+                    {signals.map((signal: string, i: number) => (
+                        <div key={i} className="flex items-center justify-between text-[11px] font-mono border-b border-slate-100 dark:border-white/5 pb-2 last:border-0 hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
+                            <span className="text-slate-600 dark:text-gray-300">{signal}</span>
+                            <span className="text-emerald-600 font-bold px-2 py-0.5 rounded bg-emerald-500/10">VALIDATED</span>
+                        </div>
+                    ))}
+                    {signals.length === 0 && (
+                        <div className="text-center py-4 text-xs text-slate-400 italic">Continuous scanning... No signals detected.</div>
+                    )}
                 </div>
             </div>
         </div>
