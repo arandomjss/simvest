@@ -1,4 +1,15 @@
 /** @type {import('tailwindcss').Config} */
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
+let scrollbarPlugin = null;
+try {
+    const pluginFactory = require('tailwind-scrollbar');
+    scrollbarPlugin = pluginFactory({ nocompatible: true });
+} catch (e) {
+    // If the plugin isn't installed or has incompatible peer deps, skip it gracefully.
+}
+
 export default {
     content: [
         "./index.html",
@@ -110,7 +121,5 @@ export default {
             }
         },
     },
-    plugins: [
-        require('tailwind-scrollbar')({ nocompatible: true }),
-    ],
+    plugins: scrollbarPlugin ? [scrollbarPlugin] : [],
 }
