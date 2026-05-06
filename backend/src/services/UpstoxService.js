@@ -34,14 +34,6 @@ class UpstoxService {
             params.append('redirect_uri', this.redirectUri);
             params.append('grant_type', 'authorization_code');
 
-            console.log('🔍 Token Exchange Request Details:');
-            console.log('URL:', `${this.baseUrl}/login/authorization/token`);
-            console.log('Code:', code);
-            console.log('Client ID:', this.apiKey);
-            console.log('Redirect URI:', this.redirectUri);
-            console.log('Grant Type:', 'authorization_code');
-            console.log('Request Body:', params.toString());
-
             const response = await axios.post(
                 `${this.baseUrl}/login/authorization/token`,
                 params.toString(),
@@ -53,14 +45,9 @@ class UpstoxService {
                 }
             );
 
-            console.log('✅ Token response received:', response.data);
             return response.data;
         } catch (error) {
-            console.error('❌ Token exchange failed');
-            console.error('Error message:', error.message);
-            console.error('Error response data:', JSON.stringify(error.response?.data, null, 2));
-            console.error('Error response status:', error.response?.status);
-            console.error('Error response headers:', error.response?.headers);
+            console.error('❌ Token exchange failed:', error.response?.status, error.response?.data?.message);
             throw new Error(error.response?.data?.message || 'Failed to get access token');
         }
     }

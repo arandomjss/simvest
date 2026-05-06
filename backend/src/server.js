@@ -1,13 +1,17 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import compression from 'compression';
-import dotenv from 'dotenv';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 
 // Import configurations
 import './config/supabase.config.js';
-import { loadNifty50Instruments } from './config/nifty50.config.js';
+import { loadNifty50Instruments, getInstrumentKey, getAllInstrumentKeys } from './config/nifty50.config.js';
 
 // Import services
 import MarketStreamService from './services/MarketStreamService.js';
@@ -25,8 +29,6 @@ import advisorRoutes from './routes/advisor.routes.js';
 // Import middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
-dotenv.config();
-
 const app = express();
 const httpServer = createServer(app);
 
@@ -40,13 +42,35 @@ const io = new Server(httpServer, {
 });
 
 // Middleware
+app.use(helmet()); // Secure HTTP headers
 app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     credentials: true
 }));
+
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: { error: 'Too many requests from this IP, please try again after 15 minutes' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+app.use('/api/', limiter); // Apply rate limit to all /api routes
+
+// Stricter rate limit for auth / OAuth routes
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    message: { error: 'Too many auth requests, please try again later' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+app.use('/auth/', authLimiter);
+
 app.use(compression());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10kb' })); // Body limit to prevent DOS
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // Health check
 app.get('/health', (req, res) => {
@@ -69,13 +93,15 @@ app.use(errorHandler);
 io.on('connection', (socket) => {
     console.log(`✅ Client connected: ${socket.id}`);
 
-    // Join rooms for specific instruments
+    // Join rooms for specific instruments — validate keys before subscribing
     socket.on('subscribe', (instrumentKeys) => {
         if (Array.isArray(instrumentKeys)) {
-            instrumentKeys.forEach(key => {
-                socket.join(`room:${key}`);
-            });
-            console.log(`📡 Client ${socket.id} subscribed to ${instrumentKeys.length} instruments`);
+            const validKeys = new Set(getAllInstrumentKeys());
+            const allowed = instrumentKeys.filter(k => typeof k === 'string' && k.length < 100 && validKeys.has(k));
+            allowed.forEach(key => socket.join(`room:${key}`));
+            if (allowed.length > 0) {
+                console.log(`📡 Client ${socket.id} subscribed to ${allowed.length} instruments`);
+            }
         }
     });
 
@@ -102,8 +128,6 @@ async function initializeServices() {
         const useMockData = process.env.USE_MOCK_DATA === 'true';
 
         if (useMockData) {
-            // Use mock service for development
-            console.log('💡 Using Mock WebSocket Service (USE_MOCK_DATA=true)');
             // Use mock service for development
             console.log('💡 Using Mock WebSocket Service (USE_MOCK_DATA=true)');
             marketStreamService = new MarketDataService(io);

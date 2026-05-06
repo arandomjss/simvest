@@ -12,7 +12,7 @@ interface IntelligenceHubProps {
     stocks: Stock[];
     orders: Order[];
     portfolio: Portfolio;
-    portfolioHistory: any[];
+    portfolioHistory: Array<{ date: string; value: number }>;
 }
 
 export const IntelligenceHub: React.FC<IntelligenceHubProps> = ({

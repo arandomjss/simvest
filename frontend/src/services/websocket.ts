@@ -2,9 +2,18 @@ import { io, Socket } from 'socket.io-client';
 
 const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:3000';
 
+export interface PriceUpdateData {
+    symbol: string;
+    instrumentKey: string;
+    ltp: number;
+    change: number;
+    changePercent: number;
+    timestamp: number;
+}
+
 class WebSocketService {
     private socket: Socket | null = null;
-    private priceCallbacks: Map<string, (data: any) => void> = new Map();
+    private priceCallbacks: Map<string, (data: PriceUpdateData) => void> = new Map();
     private pendingSubscribeAll = false;
     private pendingInstruments: string[] = [];
 
@@ -85,7 +94,7 @@ class WebSocketService {
         console.log('📡 Subscribed to all instruments');
     }
 
-    onPriceUpdate(callback: (data: any) => void): () => void {
+    onPriceUpdate(callback: (data: PriceUpdateData) => void): () => void {
         const id = Math.random().toString(36);
         this.priceCallbacks.set(id, callback);
 

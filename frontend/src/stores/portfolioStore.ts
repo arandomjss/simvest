@@ -5,7 +5,8 @@ import type { Portfolio, Order } from '../types';
 interface PortfolioState {
     portfolio: Portfolio | null;
     orders: Order[];
-    isLoading: boolean;
+    isPortfolioLoading: boolean;  // BUG-016: was a single isLoading shared by both fetch operations
+    isOrdersLoading: boolean;
     pricesLoading: boolean;
     error: string | null;
 
@@ -20,37 +21,34 @@ interface PortfolioState {
 export const usePortfolioStore = create<PortfolioState>((set, get) => ({
     portfolio: null,
     orders: [],
-    isLoading: false,
+    isPortfolioLoading: false,
+    isOrdersLoading: false,
     pricesLoading: false,
     error: null,
 
     fetchPortfolio: async () => {
         try {
-            set({ isLoading: true, error: null });
+            set({ isPortfolioLoading: true, error: null });
             const portfolio = await apiService.getPortfolio();
-            set({ portfolio, isLoading: false });
+            set({ portfolio, isPortfolioLoading: false });
         } catch (error: any) {
-            set({
-                error: error.message || 'Failed to fetch portfolio',
-                isLoading: false,
-            });
+            set({ error: error.message || 'Failed to fetch portfolio', isPortfolioLoading: false });
         }
     },
 
     fetchOrders: async (limit = 50, offset = 0) => {
         try {
-            set({ isLoading: true, error: null });
+            set({ isOrdersLoading: true, error: null });
             const orders = (await apiService.getOrderHistory(limit, offset)) || [];
-            set({ orders, isLoading: false });
+            set({ orders, isOrdersLoading: false });
         } catch (error: any) {
-            set({
-                error: error.message || 'Failed to fetch orders',
-                isLoading: false,
-            });
+            set({ error: error.message || 'Failed to fetch orders', isOrdersLoading: false });
         }
     },
 
-    // Fetch live Yahoo Finance prices for current holdings and recompute P&L
+    // Fetch live Yahoo Finance prices for current holdings and recompute P&L.
+    // BUG-002 fix: Only update holdings and derived P&L fields. Do not touch cashBalance or
+    // other portfolio fields — this prevents REST price refresh from racing with WebSocket prices.
     fetchLivePrices: async () => {
         const { portfolio } = get();
         if (!portfolio || portfolio.holdings.length === 0) return;
@@ -59,13 +57,29 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
             const symbols = portfolio.holdings.map(h => h.symbol);
             const priceMap = await apiService.getLivePrices(symbols);
 
-            const updatedHoldings = portfolio.holdings.map(h => {
+            // Re-read portfolio from store (could have changed while awaiting)
+            const currentPortfolio = get().portfolio;
+            if (!currentPortfolio) return;
+
+            // Dynamically import marketStore to avoid circular dependency issues
+            const { useMarketStore } = await import('./marketStore');
+            const wsPrices = useMarketStore.getState().prices;
+
+            const updatedHoldings = currentPortfolio.holdings.map(h => {
                 const q = priceMap[h.symbol];
-                if (!q || !q.price) return h;
-                const currentPrice = q.price;
+                
+                // BUG-003 fix: Prevent REST data from clobbering fresh WebSocket ticks.
+                // We use the WS price if available, falling back to Yahoo Finance, then to the last known price.
+                const currentPrice = wsPrices.get(h.instrumentKey) || (q && q.price) || h.currentPrice || h.avgPrice;
+                
                 const pnl = (currentPrice - h.avgPrice) * h.quantity;
-                const pnlPercent = ((currentPrice - h.avgPrice) / h.avgPrice) * 100;
-                return { ...h, currentPrice, pnl, pnlPercent, change: q.change, changePercent: q.changePercent };
+                const pnlPercent = h.avgPrice > 0 ? ((currentPrice - h.avgPrice) / h.avgPrice) * 100 : 0;
+                
+                // Preserve Yahoo finance change stats if WS hasn't provided them yet
+                const change = q?.change || h.change;
+                const changePercent = q?.changePercent || h.changePercent;
+
+                return { ...h, currentPrice, pnl, pnlPercent, change, changePercent };
             });
 
             const totalValue = updatedHoldings.reduce((s, h) => s + ((h.currentPrice || h.avgPrice) * h.quantity), 0);
@@ -76,54 +90,42 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
             set({
                 pricesLoading: false,
                 portfolio: {
-                    ...portfolio,
+                    ...currentPortfolio,
                     holdings: updatedHoldings,
-                    totalValue: totalValue + (portfolio.cashBalance || 0),
+                    // BUG-004 fix: totalValue = equities only (cashBalance added by UI at render time)
+                    totalValue,
                     totalInvestment,
                     totalPnL,
                     totalPnLPercent,
                 },
             });
         } catch (err) {
-            console.error('Failed to fetch live prices for holdings:', err);
             set({ pricesLoading: false });
         }
     },
 
-    executeTrade: async (symbol: string, instrumentKey: string, type: 'BUY' | 'SELL', quantity: number, orderType: 'MARKET' | 'LIMIT' = 'MARKET', limitPrice?: number, strategy?: string, notes?: string) => {
+    executeTrade: async (symbol, instrumentKey, type, quantity, orderType = 'MARKET', limitPrice?, strategy?, notes?) => {
         try {
-            set({ isLoading: true, error: null });
+            set({ isPortfolioLoading: true, error: null });
             await apiService.executeTrade(symbol, instrumentKey, type, quantity, orderType, limitPrice, strategy, notes);
-
-            // Refresh portfolio and orders after trade
             await get().fetchPortfolio();
             await get().fetchOrders();
-
-            set({ isLoading: false });
+            set({ isPortfolioLoading: false });
         } catch (error: any) {
-            set({
-                error: error.message || 'Failed to execute trade',
-                isLoading: false,
-            });
+            set({ error: error.message || 'Failed to execute trade', isPortfolioLoading: false });
             throw error;
         }
     },
 
     cancelOrder: async (orderId: string) => {
         try {
-            set({ isLoading: true, error: null });
+            set({ isOrdersLoading: true, error: null });
             await apiService.cancelOrder(orderId);
-
-            // Refresh data
             await get().fetchPortfolio();
             await get().fetchOrders();
-
-            set({ isLoading: false });
+            set({ isOrdersLoading: false });
         } catch (error: any) {
-            set({
-                error: error.message || 'Failed to cancel order',
-                isLoading: false,
-            });
+            set({ error: error.message || 'Failed to cancel order', isOrdersLoading: false });
             throw error;
         }
     },

@@ -14,7 +14,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         if (!isAuthenticated && !isLoading) {
             checkAuth();
         }
-    }, []);
+    }, [isAuthenticated, isLoading, checkAuth]);
 
     if (isLoading) {
         return (

@@ -56,7 +56,7 @@ const IntelligenceLog = ({ symbol, isComplete }: { symbol: string, isComplete: b
                 <motion.div 
                     initial={{ opacity: 0, x: -2 }} 
                     animate={{ opacity: 1, x: 0 }} 
-                    key={i}
+                    key={log + i}
                     className="flex gap-2"
                 >
                     <span className="text-emerald-600/50 dark:text-emerald-500/30">›</span> {log}
@@ -100,13 +100,16 @@ export const AdvisorPage = () => {
         setIsAnalyzing(true);
         try {
             const data = await apiService.getDeepAnalysis(symbol);
-            setTimeout(() => {
-                setAnalysis(data);
-                setIsAnalyzing(false);
-            }, 2500);
-        } catch (e) {
-            console.error("Analysis failed", e);
+            // BUG-008 fix: Removed the artificial 2500ms setTimeout. The delay was added purely
+            // to sync with the fake "log" animation, but it held back real data and caused stale
+            // results to flash when switching stocks rapidly.
+            setAnalysis(data);
             setIsAnalyzing(false);
+        } catch (e: any) {
+            // Ignore abort errors (user switched stocks mid-request)
+            if (e?.name !== 'AbortError' && e?.code !== 'ERR_CANCELED') {
+                setIsAnalyzing(false);
+            }
         }
     };
 

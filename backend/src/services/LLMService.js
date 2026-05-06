@@ -35,7 +35,7 @@ class LLMService {
                     headers: {
                         'Authorization': `Bearer ${this.apiKey}`,
                         'Content-Type': 'application/json',
-                        'HTTP-Referer': 'http://localhost:3000', // Required by OpenRouter
+                        'HTTP-Referer': 'https://simvest.app', // Production domain
                         'X-Title': 'SimVest Professional Terminal'
                     }
                 }

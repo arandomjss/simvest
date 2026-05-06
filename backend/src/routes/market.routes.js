@@ -1,5 +1,6 @@
 import express from 'express';
 import yahooFinanceService from '../services/YahooFinanceService.js';
+import signalGeneratorService from '../services/SignalGeneratorService.js';
 import { getSymbolFromKey, getInstrumentKey, NIFTY_50_SYMBOLS } from '../config/nifty50.config.js';
 import { supabase } from '../config/supabase.config.js';
 
@@ -22,23 +23,23 @@ router.get('/indices', async (req, res) => {
 
         // Map to friendly names
         const nameMap = {
-            '^NSEI':    'NIFTY 50',
-            '^BSESN':   'SENSEX',
+            '^NSEI': 'NIFTY 50',
+            '^BSESN': 'SENSEX',
             '^NSEBANK': 'BANK NIFTY'
         };
 
         const indices = quotes.map(q => ({
-            symbol:        q.symbol,
-            name:          nameMap[q.symbol] || q.name,
-            price:         q.price,
-            change:        q.change,
+            symbol: q.symbol,
+            name: nameMap[q.symbol] || q.name,
+            price: q.price,
+            change: q.change,
             changePercent: q.changePercent,
-            high:          q.high,
-            low:           q.low,
-            open:          q.open,
+            high: q.high,
+            low: q.low,
+            open: q.open,
             previousClose: q.previousClose,
-            volume:        q.volume,
-            lastUpdated:   q.lastUpdated,
+            volume: q.volume,
+            lastUpdated: q.lastUpdated,
         }));
 
         res.json({ indices });
@@ -54,37 +55,33 @@ router.get('/indices', async (req, res) => {
  */
 router.get('/instruments', async (req, res) => {
     try {
-        // Fetch quotes for all symbols in batch to ensure we have initial data (High, Low, Open, etc.)
+        // Fetch quotes for all symbols in batch
         const quotes = await yahooFinanceService.getQuotes(NIFTY_50_SYMBOLS);
         const quoteMap = new Map(quotes.map(q => [q.symbol, q]));
 
-        const instruments = [];
+        // Fetch sectors in parallel (only for symbols missing from cache)
+        const symbolsMissingCache = NIFTY_50_SYMBOLS.filter(s => !SECTOR_CACHE[s]);
+        if (symbolsMissingCache.length > 0) {
+            await Promise.all(
+                symbolsMissingCache.map(async (symbol) => {
+                    try {
+                        const profile = await yahooFinanceService.getCompanyProfile(symbol);
+                        SECTOR_CACHE[symbol] = profile?.sector || 'Others';
+                    } catch {
+                        SECTOR_CACHE[symbol] = 'Others';
+                    }
+                })
+            );
+        }
 
-        // Parallel sector fetching if needed (though batch profile would be better if Yahoo supported it, but it doesn't easily)
-        // We'll stick to sequential or Promise.all for sectors if cache missing, but we can reuse the existing structure partially.
-
-        // Let's just Loop and build.
-        for (const symbol of NIFTY_50_SYMBOLS) {
+        const instruments = NIFTY_50_SYMBOLS.map(symbol => {
             const instrumentKey = getInstrumentKey(symbol);
-            if (!instrumentKey) continue;
-
-            if (!SECTOR_CACHE[symbol]) {
-                try {
-                    // Start async fetch but don't block everything? 
-                    // No, for first load valid data is better.
-                    const profile = await yahooFinanceService.getCompanyProfile(symbol);
-                    SECTOR_CACHE[symbol] = profile?.sector || 'Others';
-                } catch (e) {
-                    SECTOR_CACHE[symbol] = 'Others';
-                }
-            }
-
+            if (!instrumentKey) return null;
             const quote = quoteMap.get(symbol) || {};
-
-            instruments.push({
+            return {
                 symbol,
                 instrumentKey,
-                sector: SECTOR_CACHE[symbol],
+                sector: SECTOR_CACHE[symbol] || 'Others',
                 price: quote.price || 0,
                 change: quote.change || 0,
                 changePercent: quote.changePercent || 0,
@@ -94,8 +91,8 @@ router.get('/instruments', async (req, res) => {
                 open: quote.open || 0,
                 previousClose: quote.previousClose || 0,
                 marketCap: quote.marketCap || 0
-            });
-        }
+            };
+        }).filter(Boolean);
 
         res.json({ instruments });
     } catch (error) {
@@ -111,22 +108,15 @@ router.get('/instruments', async (req, res) => {
 router.get('/historical/:instrumentKey', async (req, res) => {
     try {
         const { instrumentKey } = req.params;
-        const interval = req.query.interval || '1d';
+        const yahooInterval = req.query.interval || '1d';
+        const period = req.query.period || '1mo';
 
-        // Convert instrument key to symbol
         const symbol = getSymbolFromKey(instrumentKey);
         if (!symbol) {
             throw new Error('Invalid instrument key');
         }
 
-        // Map interval to Yahoo Finance format
-        // Yahoo supports: 1m, 2m, 5m, 15m, 30m, 60m, 90m, 1h, 1d, 5d, 1wk, 1mo, 3mo
-        // We accept params from frontend or default to reasonable values
-        const yahooInterval = req.query.interval || '1d';
-        const period = req.query.period || '1mo';
-
         const candles = await yahooFinanceService.getHistoricalData(symbol, period, yahooInterval);
-
         res.json({ candles });
     } catch (error) {
         console.error('Historical data fetch error:', error);
@@ -140,16 +130,8 @@ router.get('/historical/:instrumentKey', async (req, res) => {
  */
 router.get('/signals', async (req, res) => {
     try {
-        const limit = parseInt(req.query.limit) || 20;
-
-        const { data: signals, error } = await supabase
-            .from('market_signals')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(limit);
-
-        if (error) throw error;
-
+        const limit = Math.min(parseInt(req.query.limit) || 20, 50);
+        const signals = await signalGeneratorService.getSignals(limit);
         res.json({ signals });
     } catch (error) {
         console.error('Signals fetch error:', error);

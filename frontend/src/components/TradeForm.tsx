@@ -4,6 +4,7 @@ import { Stock } from '../types';
 import { TradeInputForm } from './TradeInputForm';
 import { OrderConfirmationModal } from './OrderConfirmationModal';
 import { TradeSuccessMessage } from './TradeSuccessMessage';
+import toast from 'react-hot-toast';
 
 interface TradeFormProps {
     stock: Stock;
@@ -82,7 +83,7 @@ export const TradeForm = ({ stock, initialSide = 'BUY', onSuccess, onCancel }: T
         } catch (error: any) {
             console.error('Trade failed:', error);
             const errorMessage = error.response?.data?.error || error.message || 'Trade failed';
-            alert(`Trade failed: ${errorMessage}`);
+            toast.error(`Trade failed: ${errorMessage}`);
             setShowConfirmation(false);
         } finally {
             setIsTrading(false);

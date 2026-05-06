@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
     plugins: [react()],
     resolve: {
         alias: {
@@ -22,5 +22,12 @@ export default defineConfig({
                 changeOrigin: true,
             }
         }
-    }
-})
+    },
+    // ── PRODUCTION HARDENING ──────────────────────────────────────────────────
+    // Strip all console calls and debugger statements at build time.
+    // This prevents architecture leakage in users' DevTools (e.g. subscription
+    // counts, mock mode flags, error details) without touching source files.
+    esbuild: {
+        drop: mode === 'production' ? ['console', 'debugger'] : [],
+    },
+}))

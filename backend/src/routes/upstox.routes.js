@@ -1,12 +1,13 @@
 import express from 'express';
 import upstoxService from '../services/UpstoxService.js';
+import requireAdminSecret from '../middleware/adminAuth.middleware.js';
 
 const router = express.Router();
 
 /**
  * Get Upstox login URL (admin only)
  */
-router.get('/login-url', (req, res) => {
+router.get('/login-url', requireAdminSecret, (req, res) => {
     try {
         const state = Math.random().toString(36).substring(7);
         const loginUrl = upstoxService.getLoginUrl(state);
@@ -27,23 +28,18 @@ router.get('/login-url', (req, res) => {
 /**
  * Handle OAuth callback and exchange code for token (admin only)
  */
-router.post('/callback', async (req, res) => {
+router.post('/callback', requireAdminSecret, async (req, res) => {
     try {
-        console.log('📥 Upstox Callback received');
-        console.log('Request body:', JSON.stringify(req.body, null, 2));
         const { code } = req.body;
 
         if (!code) {
-            console.error('❌ No authorization code provided');
             return res.status(400).json({
                 success: false,
                 message: 'Authorization code is required'
             });
         }
 
-        console.log('🔄 Exchanging authorization code for access token...');
         const tokenData = await upstoxService.getAccessToken(code);
-        console.log('✅ Token exchange successful');
 
         // Store as admin token (shared for all users)
         upstoxService.setAdminToken(tokenData.access_token);
@@ -53,13 +49,10 @@ router.post('/callback', async (req, res) => {
             message: 'Admin successfully connected to Upstox! All users can now access live market data.'
         });
     } catch (error) {
-        console.error('❌ Callback error:', error.message);
-        console.error('Error response:', error.response?.data);
-        console.error('Error status:', error.response?.status);
+        console.error('❌ Upstox callback error:', error.message);
         res.status(500).json({
             success: false,
-            message: error.message,
-            details: error.response?.data
+            message: error.message
         });
     }
 });
@@ -127,7 +120,7 @@ router.get('/historical/:instrumentKey/:interval/:toDate', async (req, res) => {
 /**
  * Disconnect from Upstox (admin only)
  */
-router.post('/disconnect', (req, res) => {
+router.post('/disconnect', requireAdminSecret, (req, res) => {
     try {
         upstoxService.setAdminToken(null);
 

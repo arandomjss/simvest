@@ -1,5 +1,5 @@
-import MoneyflowLandingPage from "@/components/ui/fin-tech-landing-page";
+import { Navigate } from 'react-router-dom';
 
 export const DemoPage = () => {
-  return <MoneyflowLandingPage />;
+  return <Navigate to="/" replace />;
 };

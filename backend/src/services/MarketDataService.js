@@ -5,7 +5,7 @@ import yahooFinanceService from './YahooFinanceService.js';
 
 /**
  * Market Data Service
- * Provides real-time market data from Yahoo Finance (and simulates ticks)
+ * Provides real-time market data from Yahoo Finance
  */
 class MarketDataService extends EventEmitter {
     constructor(io) {
@@ -174,7 +174,6 @@ class MarketDataService extends EventEmitter {
             const priceUpdate = {
                 symbol,
                 instrumentKey,
-                ltp,
                 ltp,
                 change,
                 changePercent,

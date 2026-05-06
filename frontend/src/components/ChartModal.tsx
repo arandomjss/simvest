@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StockChart } from './StockChart';
-import { TradeAnalysis } from './TradeAnalysis';
+import { TradeAnalysis, DeepAnalysisData } from './TradeAnalysis';
 import { apiService } from '../services/api';
 import { generateHistoricalData, Timeframe } from '../services/historicalData';
 import {
@@ -36,10 +36,29 @@ export const ChartModal = ({ stock, onClose }: ChartModalProps) => {
         sma200?: IndicatorData[];
         ema12?: IndicatorData[];
         ema26?: IndicatorData[];
-
     }>({});
 
-    // Generate chart data when timeframe changes
+    const [analysisData, setAnalysisData] = useState<DeepAnalysisData | null>(null);
+    const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(true);
+
+    useEffect(() => {
+        const fetchAnalysis = async () => {
+            if (!stock.symbol) return;
+            setIsLoadingAnalysis(true);
+            try {
+                const data = await apiService.getDeepAnalysis(stock.symbol);
+                setAnalysisData(data);
+            } catch (error) {
+                console.error("Failed to fetch analysis", error);
+            } finally {
+                setIsLoadingAnalysis(false);
+            }
+        };
+
+        fetchAnalysis();
+    }, [stock.symbol]);
+
+
     // Generate chart data when timeframe changes
     useEffect(() => {
         const fetchChartData = async () => {
@@ -386,8 +405,8 @@ export const ChartModal = ({ stock, onClose }: ChartModalProps) => {
                             </p>
                         </div>
                         <TradeAnalysis
-                            stock={stock}
-                            currentPrice={stock.ltp || 0}
+                            analysis={analysisData}
+                            isLoading={isLoadingAnalysis}
                         />
                     </div>
                 </div>

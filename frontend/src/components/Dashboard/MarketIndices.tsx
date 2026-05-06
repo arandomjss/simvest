@@ -20,7 +20,7 @@ const RangeBar = ({ low, high, current, open }: { low: number; high: number; cur
     const openPct = ((open - low) / range) * 100;
 
     return (
-        <div className="mt-3">
+        <div className="mt-4">
             <div className="flex justify-between text-[9px] text-gray-400 dark:text-slate-500 mb-1 font-mono">
                 <span>L {low.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
                 <span className="text-[9px] text-gray-400">Day Range</span>

@@ -2,6 +2,36 @@ import { create } from 'zustand';
 import { authService } from '../services/supabase';
 import type { User } from '../types';
 
+// ─── Security Helper ──────────────────────────────────────────────────────────
+// Supabase returns raw internal error strings that can enable user enumeration.
+// For example "User already registered" confirms an email exists in the system.
+// This function maps all such messages to a safe generic equivalent.
+function sanitizeAuthError(message: string): string {
+    const m = (message || '').toLowerCase();
+    if (m.includes('invalid login credentials') || m.includes('invalid password') || m.includes('wrong password')) {
+        return 'Invalid email or password.';
+    }
+    if (m.includes('user already registered') || m.includes('already been registered')) {
+        // Don't confirm whether an email is registered — return same message as wrong password
+        return 'Invalid email or password.';
+    }
+    if (m.includes('email not confirmed') || m.includes('email link is invalid or has expired')) {
+        return 'Please confirm your email address before signing in.';
+    }
+    if (m.includes('too many requests') || m.includes('rate limit')) {
+        return 'Too many login attempts. Please wait a few minutes and try again.';
+    }
+    if (m.includes('password') && m.includes('characters')) {
+        return 'Password must be at least 8 characters.';
+    }
+    if (m.includes('network') || m.includes('fetch') || m.includes('timeout')) {
+        return 'Connection error. Please check your internet and try again.';
+    }
+    // Default: don't expose the raw message
+    return 'An error occurred. Please try again.';
+}
+
+
 interface AuthState {
     user: User | null;
     isLoading: boolean;
@@ -25,135 +55,62 @@ export const useAuthStore = create<AuthState>((set) => ({
         try {
             set({ isLoading: true, error: null });
             const { user, session } = await authService.signIn(email, password);
-
-            if (session?.access_token) {
-                localStorage.setItem('supabase.auth.token', session.access_token);
-            }
-
+            // Supabase SDK persists the session automatically — no manual localStorage write needed.
             set({
                 user: user ? { id: user.id, email: user.email! } : null,
-                isAuthenticated: !!user,
+                isAuthenticated: !!user && !!session,
                 isLoading: false,
             });
         } catch (error: any) {
-            set({
-                error: error.message || 'Failed to sign in',
-                isLoading: false,
-            });
-            throw error;
+            // Sanitize Supabase error messages to prevent user enumeration.
+            // e.g. "Invalid login credentials" is safe; raw internal errors are not.
+            const safeMessage = sanitizeAuthError(error.message);
+            set({ error: safeMessage, isLoading: false });
+            throw new Error(safeMessage);
         }
     },
 
     signUp: async (email: string, password: string) => {
         try {
             set({ isLoading: true, error: null });
-            const { user } = await authService.signUp(email, password);
-
-            set({
-                user: user ? { id: user.id, email: user.email! } : null,
-                isAuthenticated: false, // Email confirmation required
-                isLoading: false,
-            });
+            await authService.signUp(email, password);
+            // Never set isAuthenticated=true here. Email confirmation is required.
+            // The user must verify their email and sign in separately.
+            set({ user: null, isAuthenticated: false, isLoading: false });
         } catch (error: any) {
-            set({
-                error: error.message || 'Failed to sign up',
-                isLoading: false,
-            });
-            throw error;
+            const safeMessage = sanitizeAuthError(error.message);
+            set({ error: safeMessage, isLoading: false });
+            throw new Error(safeMessage);
         }
     },
 
     signOut: async () => {
-        try {
-            await authService.signOut();
-            localStorage.removeItem('supabase.auth.token');
-            set({
-                user: null,
-                isAuthenticated: false,
-                error: null,
-            });
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to sign out' });
-            throw error;
-        }
+        // Always clear local state regardless of network errors.
+        // This ensures the user is never stuck in a broken authenticated state.
+        await authService.signOut().catch(() => {});
+        localStorage.removeItem('supabase.auth.token'); // Clear legacy key if still set
+        set({ user: null, isAuthenticated: false, error: null });
     },
 
     checkAuth: async () => {
+        set({ isLoading: true });
         try {
-            set({ isLoading: true });
+            // Supabase SDK handles token persistence and auto-refresh natively.
+            // We just ask for the current session — no manual localStorage reads.
+            const session = await authService.getSession();
 
-            // Check for mock token (Quick Start)
-            const mockToken = localStorage.getItem('supabase.auth.token');
-            if (mockToken === 'mock-token-dev') {
+            if (session?.user && session?.access_token) {
                 set({
-                    user: { id: '11111111-1111-1111-1111-111111111111', email: 'dev@simvest.com' },
+                    user: { id: session.user.id, email: session.user.email! },
                     isAuthenticated: true,
                     isLoading: false,
                 });
-                return;
+            } else {
+                set({ user: null, isAuthenticated: false, isLoading: false });
             }
-
-            // Retry logic for real Supabase session
-            let retries = 3;
-            let lastError;
-            
-            while (retries > 0) {
-                try {
-                    const timeoutPromise = new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('Auth check timeout')), 15000)
-                    );
-
-                    const sessionPromise = authService.getSession();
-                    const session = await Promise.race([sessionPromise, timeoutPromise]) as any;
-
-                    if (session?.access_token) {
-                        localStorage.setItem('supabase.auth.token', session.access_token);
-                        const user = session.user;
-                        set({
-                            user: user ? { id: user.id, email: user.email! } : null,
-                            isAuthenticated: !!user,
-                            isLoading: false,
-                        });
-                        return;
-                    } else {
-                        set({
-                            user: null,
-                            isAuthenticated: false,
-                            isLoading: false,
-                        });
-                        return;
-                    }
-                } catch (error) {
-                    if (error instanceof Error && 
-                        (error.message.includes('timeout') || 
-                         error.message.includes('fetch failed') ||
-                         error.message.includes('network'))) {
-                        retries--;
-                        lastError = error;
-                        console.log(`Auth check failed, retrying... (${retries} attempts left)`);
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                        continue;
-                    }
-                    throw error;
-                }
-            }
-            
-            // All retries failed
-            console.warn('Auth check failed after all retries:', lastError);
-            set({
-                user: null,
-                isAuthenticated: false,
-                isLoading: false,
-                error: 'Connection failed. Please check your internet connection and try again.'
-            });
-        } catch (error) {
-            console.warn('Auth check failed, user not authenticated:', error);
-            set({
-                user: null,
-                isAuthenticated: false,
-                isLoading: false,
-                error: error instanceof Error ? error.message : 'Authentication failed'
-            });
+        } catch {
+            // Network failure — treat as unauthenticated, don't surface error message
+            set({ user: null, isAuthenticated: false, isLoading: false });
         }
     },
 

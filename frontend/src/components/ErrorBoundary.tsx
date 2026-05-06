@@ -34,14 +34,22 @@ export class ErrorBoundary extends Component<Props, State> {
                     </div>
                     <h2 className="text-xl font-bold text-text-primary mb-2">Something went wrong</h2>
                     <p className="text-text-secondary mb-6 max-w-md">
-                        We encountered an unexpected error. Please try reloading the page.
+                        An unexpected error occurred. Please try reloading the page. If the issue persists, contact support.
                     </p>
-                    {this.state.error && (
-                        <div className="mb-6 p-3 bg-background rounded text-left overflow-auto max-w-lg w-full max-h-32">
-                            <p className="text-xs text-danger font-mono whitespace-pre-wrap">
-                                {this.state.error.message}
-                            </p>
-                        </div>
+                    {/* BUG-005 fix: Never show raw error messages to users — they can leak internal
+                        architecture, Supabase errors, or stack traces. Wrap in a details element
+                        so only developers who actively expand it can see the technical message. */}
+                    {import.meta.env.DEV && this.state.error && (
+                        <details className="mb-6 text-left w-full max-w-lg">
+                            <summary className="text-xs text-danger font-mono cursor-pointer mb-1 select-none">
+                                [DEV] Error details (hidden in production)
+                            </summary>
+                            <div className="p-3 bg-background rounded overflow-auto max-h-32 mt-1">
+                                <p className="text-xs text-danger font-mono whitespace-pre-wrap">
+                                    {this.state.error.message}
+                                </p>
+                            </div>
+                        </details>
                     )}
                     <button
                         onClick={() => window.location.reload()}

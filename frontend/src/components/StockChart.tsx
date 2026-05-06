@@ -8,7 +8,8 @@ import {
     ISeriesApi,
     Time,
     ColorType,
-    CrosshairMode
+    CrosshairMode,
+    LogicalRange
 } from 'lightweight-charts';
 import { OHLCData, VolumeData } from '../services/historicalData';
 import { IndicatorData, MACDData, BollingerBandsData, getMACDHistogramColor } from '../services/technicalIndicators';
@@ -29,7 +30,7 @@ interface StockChartProps {
         bollinger?: BollingerBandsData[];
     };
     activeIndicators?: string[];
-    liveCandle?: any; // OHLCData + time as number/string
+    liveCandle?: OHLCData; // Typed strictly
 }
 
 export const StockChart = ({
@@ -211,7 +212,7 @@ export const StockChart = ({
         // A more robust solution would involve storing unsubscribe functions.
 
         // Leader-Follower Sync: Main chart drives all others
-        const handleVisibleLogicalRangeChange = (range: any) => {
+        const handleVisibleLogicalRangeChange = (range: LogicalRange | null) => {
             if (range) {
                 // Determine which charts to update (all except main)
                 // Note: allCharts includes mainChartRef.current, so we filter it out
@@ -279,7 +280,7 @@ export const StockChart = ({
 
         // C. Indicators
         // Helper to manage series map
-        const updateSeries = (key: string, data: any[] | undefined, type: 'Line' | 'Histogram', options: any, chart: IChartApi | null) => {
+        const updateSeries = (key: string, data: Record<string, unknown>[] | undefined, type: 'Line' | 'Histogram', options: Record<string, unknown>, chart: IChartApi | null) => {
             if (!chart) return;
 
             let series = indicatorSeriesRef.current.get(key);

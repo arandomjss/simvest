@@ -19,7 +19,7 @@ export const PracticePage = () => {
     const [searchParams] = useSearchParams();
     const initialSymbol = searchParams.get('symbol');
 
-    const { stocks, fetchInstruments, connectWebSocket, disconnectWebSocket } = useMarketStore();
+    const { stocks, fetchInstruments, prices } = useMarketStore();
 
     // Local state for stock selection
     const [selectedSymbol, setSelectedSymbol] = useState<string | null>(initialSymbol || null);
@@ -42,16 +42,18 @@ export const PracticePage = () => {
     // Chart State
     const [timeframe, setTimeframe] = useState<Timeframe>('1D');
     const [chartType] = useState<'candlestick' | 'line'>('candlestick');
-    const [chartData, setChartData] = useState<{ ohlc: any[], volume: any[] }>({ ohlc: [], volume: [] });
+    
+    interface OHLCData { time: number | string; open: number; high: number; low: number; close: number; }
+    interface VolumeData { time: number | string; value: number; color: string; }
+    interface CandleData { timestamp: number; open: number; high: number; low: number; close: number; volume: number; }
+    
+    const [chartData, setChartData] = useState<{ ohlc: OHLCData[], volume: VolumeData[] }>({ ohlc: [], volume: [] });
     const [activeIndicators, setActiveIndicators] = useState<string[]>([]);
-    const [indicators, setIndicators] = useState<any>({});
-    const [liveCandle, setLiveCandle] = useState<any>(null);
+    const [indicators, setIndicators] = useState<Record<string, unknown>>({});
+    const [liveCandle, setLiveCandle] = useState<OHLCData | null>(null);
 
-    // Initial Data Fetch
     useEffect(() => {
         fetchInstruments();
-        connectWebSocket();
-        return () => disconnectWebSocket();
     }, []);
 
     // Generate Chart Data when Stock/Timeframe changes
@@ -92,9 +94,9 @@ export const PracticePage = () => {
                 const candles = await apiService.getHistoricalData(key, interval, period);
 
                 if (candles && candles.length > 0) {
-                    const validCandles = candles.filter((c: any) => c.close > 0 && c.timestamp > 0);
+                    const validCandles = candles.filter((c: CandleData) => c.close > 0 && c.timestamp > 0);
 
-                    const ohlc = validCandles.map((c: any) => ({
+                    const ohlc = validCandles.map((c: CandleData) => ({
                         time: c.timestamp / 1000,
                         open: c.open,
                         high: c.high,
@@ -102,7 +104,7 @@ export const PracticePage = () => {
                         close: c.close
                     }));
 
-                    const volume = validCandles.map((c: any) => ({
+                    const volume = validCandles.map((c: CandleData) => ({
                         time: c.timestamp / 1000,
                         value: c.volume,
                         color: c.close >= c.open ? 'rgba(34, 197, 94, 0.4)' : 'rgba(239, 68, 68, 0.4)' // Hardcoded colors or import
@@ -144,7 +146,7 @@ export const PracticePage = () => {
     useEffect(() => {
         if (chartData.ohlc.length === 0) return;
 
-        const newIndicators: any = {};
+        const newIndicators: Record<string, unknown> = {};
         if (activeIndicators.includes('SMA20')) newIndicators.sma20 = calculateSMA(chartData.ohlc, 20);
         if (activeIndicators.includes('SMA50')) newIndicators.sma50 = calculateSMA(chartData.ohlc, 50);
         if (activeIndicators.includes('SMA200')) newIndicators.sma200 = calculateSMA(chartData.ohlc, 200);
@@ -256,9 +258,7 @@ export const PracticePage = () => {
                     <TradeForm
                         stock={activeStock}
                         initialSide={(searchParams.get('side') as 'BUY' | 'SELL') || 'BUY'}
-                        onSuccess={() => {
-                            console.log('Trade Executed');
-                        }}
+                        onSuccess={() => {}}
                     />
 
                 </div>

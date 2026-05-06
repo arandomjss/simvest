@@ -95,16 +95,30 @@ export const useWatchlistStore = create<WatchlistState>()(
         }),
         {
             name: 'simvest-watchlist',
-            merge: (persistedState: any, currentState) => {
+            merge: (persistedState: unknown, currentState) => {
+                // BUG-022 fix: Validate persistedState instead of blindly merging 'any'
+                // which could accept corrupt localStorage data and crash the app.
+                if (!persistedState || typeof persistedState !== 'object') {
+                    return currentState;
+                }
+
+                const state = persistedState as Partial<WatchlistState> & { watchlist?: string[] };
+
                 // Migration path from old format ({ watchlist: string[] })
-                if (persistedState && persistedState.watchlist && Array.isArray(persistedState.watchlist) && !persistedState.watchlists) {
+                if (state.watchlist && Array.isArray(state.watchlist) && !state.watchlists) {
                     return {
                         ...currentState,
-                        watchlists: [{ id: 'default', name: 'My Watchlist', items: persistedState.watchlist }],
+                        watchlists: [{ id: 'default', name: 'My Watchlist', items: state.watchlist }],
                         activeWatchlistId: 'default'
                     };
                 }
-                return { ...currentState, ...persistedState };
+                
+                // Ensure watchlists is an array if present
+                if (state.watchlists && !Array.isArray(state.watchlists)) {
+                     return currentState;
+                }
+
+                return { ...currentState, ...state };
             }
         }
     )

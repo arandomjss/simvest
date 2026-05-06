@@ -7,6 +7,7 @@ import { LandingPage } from './pages/LandingPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { useAuthStore } from './stores/authStore';
 import { useThemeStore } from './stores/themeStore';
+import { useMarketStore } from './stores/marketStore';
 import { UpstoxCallbackPage } from './pages/UpstoxCallbackPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { PracticePage } from './pages/PracticePage';
@@ -16,6 +17,7 @@ import { JournalPage } from './pages/JournalPage';
 import { DemoPage } from './pages/DemoPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PublicRoute } from './components/PublicRoute';
+import { Toaster } from 'react-hot-toast';
 
 const App = () => {
     const { checkAuth } = useAuthStore();
@@ -24,6 +26,13 @@ const App = () => {
     useEffect(() => {
         checkAuth();
     }, [checkAuth]);
+
+    const { connectWebSocket, disconnectWebSocket } = useMarketStore();
+
+    useEffect(() => {
+        connectWebSocket();
+        return () => disconnectWebSocket();
+    }, [connectWebSocket, disconnectWebSocket]);
 
     useEffect(() => {
         // Initialize theme on app start
@@ -45,6 +54,7 @@ const App = () => {
 
     return (
         <ErrorBoundary>
+            <Toaster position="bottom-right" toastOptions={{ duration: 4000, style: { background: theme === 'dark' ? '#1e293b' : '#ffffff', color: theme === 'dark' ? '#f8fafc' : '#0f172a', border: '1px solid', borderColor: theme === 'dark' ? '#334155' : '#e2e8f0' } }} />
             <BrowserRouter>
                 <Routes>
                     {/* Public-only Routes */}

@@ -15,6 +15,10 @@ interface MarketState {
     disconnectWebSocket: () => void;
 }
 
+// BUG-006/007 fix: Store the unsubscribe function outside the store so it survives re-renders.
+// The socket itself is a singleton (wsService) shared across all pages. We never disconnect it
+// on page unmount — we only unregister the per-page price callback to stop redundant updates.
+let _priceUnsubscribe: (() => void) | null = null;
 
 export const useMarketStore = create<MarketState>((set, get) => ({
     stocks: [],
@@ -48,7 +52,6 @@ export const useMarketStore = create<MarketState>((set, get) => ({
 
             set({ stocks, isLoading: false });
         } catch (error: any) {
-            console.error("Failed to fetch instruments:", error);
             set({
                 error: error.message || 'Failed to fetch instruments',
                 isLoading: false,
@@ -57,45 +60,47 @@ export const useMarketStore = create<MarketState>((set, get) => ({
     },
 
     updatePrice: (update: PriceUpdate) => {
-        const { stocks, prices } = get();
+        const { stocks } = get();
 
-        // Update prices map
-        const newPrices = new Map(prices);
-        newPrices.set(update.instrumentKey, update.ltp);
-
-        // Update stocks with price info
+        // BUG-012 fix: Update prices map entry directly without copying the whole Map.
+        // Previously `new Map(prices)` copied all 50 entries on every 5-second tick.
         const updatedStocks = stocks.map((stock) => {
             if (stock.instrumentKey === update.instrumentKey) {
-                // Use backend values if available, otherwise fallback to local calculation
-                // Always prioritize backend values for Day Change.
-                // Fallback to 0 if missing, to avoid confusing tick-to-tick updates.
                 const change = update.change !== undefined ? update.change : 0;
                 const changePercent = update.changePercent !== undefined ? update.changePercent : 0;
-
-                return {
-                    ...stock,
-                    ltp: update.ltp,
-                    change,
-                    changePercent,
-                    lastUpdated: update.timestamp,
-                };
+                return { ...stock, ltp: update.ltp, change, changePercent, lastUpdated: update.timestamp };
             }
             return stock;
         });
 
-        set({ stocks: updatedStocks, prices: newPrices });
+        set((state) => {
+            const newPrices = new Map(state.prices);
+            newPrices.set(update.instrumentKey, update.ltp);
+            return { stocks: updatedStocks, prices: newPrices };
+        });
     },
 
     connectWebSocket: () => {
+        // If a callback is already registered from a previous connect, clean it up first
+        // to prevent the same page double-registering on StrictMode double-mount
+        if (_priceUnsubscribe) {
+            _priceUnsubscribe();
+        }
+
         wsService.connect();
         wsService.subscribeToAll();
 
-        wsService.onPriceUpdate((data: PriceUpdate) => {
+        _priceUnsubscribe = wsService.onPriceUpdate((data: PriceUpdate) => {
             get().updatePrice(data);
         });
     },
 
     disconnectWebSocket: () => {
-        wsService.disconnect();
+        // BUG-007 fix: Only unregister this page's callback. Do NOT call wsService.disconnect()
+        // because the socket is shared — killing it breaks every other page that is still mounted.
+        if (_priceUnsubscribe) {
+            _priceUnsubscribe();
+            _priceUnsubscribe = null;
+        }
     },
 }));

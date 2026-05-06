@@ -1,8 +1,21 @@
 import { motion } from 'framer-motion';
 import { Target, ShieldAlert, Zap, TrendingUp } from 'lucide-react';
 
+export interface DeepAnalysisData {
+    price: number;
+    aiAnalysis: {
+        verdict: string;
+        thesis: string[];
+        risk: string;
+        confidence_score: number;
+        catalysts?: string[];
+    };
+    indicators: Record<string, any>;
+    signals: string[];
+}
+
 interface TradeAnalysisProps {
-    analysis: any; // The rich object from our backend
+    analysis: DeepAnalysisData | null; // The rich object from our backend
     isLoading?: boolean;
 }
 

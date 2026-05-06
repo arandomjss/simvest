@@ -4,12 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { ShieldCheck, Mail, Lock, ArrowRight, Eye, EyeOff, Check } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
+import toast from 'react-hot-toast';
 
 const PasswordStrength = ({ password }: { password: string }) => {
     const strength = useMemo(() => {
         if (!password) return 0;
         let s = 0;
-        if (password.length > 6) s++;
+        if (password.length >= 8) s++;
         if (/[A-Z]/.test(password)) s++;
         if (/[0-9]/.test(password)) s++;
         if (/[^A-Za-z0-9]/.test(password)) s++;
@@ -70,22 +71,17 @@ export const RegisterPage = () => {
             return;
         }
 
-        if (password.length < 6) {
-            setLocalError('Password must be at least 6 characters.');
+        if (password.length < 8) {
+            setLocalError('Password must be at least 8 characters.');
             return;
         }
 
         try {
             await signUp(email, password);
-            try {
-                await new Promise(resolve => setTimeout(resolve, 800));
-                const { signIn } = useAuthStore.getState();
-                await signIn(email, password);
-                navigate('/dashboard');
-            } catch (loginErr) {
-                alert('Account created! You can now log in.');
-                navigate('/login');
-            }
+            // Always redirect to login with email verification instruction.
+            // Never attempt auto-login — it would bypass email confirmation.
+            toast.success('Account created! Please check your email to verify your account before signing in.');
+            navigate('/login');
         } catch (err) {}
     };
 
@@ -148,7 +144,9 @@ export const RegisterPage = () => {
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
-                                        placeholder="••••••••"
+                                        minLength={8}
+                                        autoComplete="new-password"
+                                        placeholder="Min. 8 characters"
                                         className="w-full pl-11 pr-11 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm placeholder:text-slate-400"
                                     />
                                     <button

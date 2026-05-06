@@ -12,7 +12,7 @@ import { IntelligenceHub } from '../components/Dashboard/IntelligenceHub';
 
 export const PortfolioPage = () => {
     const navigate = useNavigate();
-    const { prices, stocks, fetchInstruments, connectWebSocket, disconnectWebSocket } = useMarketStore();
+    const { stocks, fetchInstruments, prices } = useMarketStore();
     const { portfolio, fetchPortfolio, updatePortfolioWithPrices, orders, fetchOrders, fetchLivePrices, pricesLoading } = usePortfolioStore();
 
     const holdings = portfolio?.holdings || [];
@@ -48,8 +48,6 @@ export const PortfolioPage = () => {
         if (stocks.length === 0) {
             fetchInstruments();
         }
-        connectWebSocket();
-        return () => disconnectWebSocket();
     }, []);
 
     // Once portfolio loads, immediately fetch live Yahoo Finance prices for all holdings

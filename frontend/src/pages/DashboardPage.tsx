@@ -16,7 +16,7 @@ import { Footer } from '../components/Footer';
 
 
 export const DashboardPage = () => {
-    const { stocks, fetchInstruments, connectWebSocket, disconnectWebSocket, prices } = useMarketStore();
+    const { stocks, fetchInstruments, prices, isLoading: isMarketLoading } = useMarketStore();
     const { portfolio, orders, fetchPortfolio, fetchOrders, updatePortfolioWithPrices } = usePortfolioStore();
     const { checkStatus: checkUpstoxStatus } = useUpstoxStore();
     const [searchTerm, setSearchTerm] = useState('');
@@ -26,12 +26,7 @@ export const DashboardPage = () => {
         fetchInstruments();
         fetchPortfolio();
         fetchOrders();
-        connectWebSocket();
         checkUpstoxStatus();
-
-        return () => {
-            disconnectWebSocket();
-        };
     }, []);
 
     useEffect(() => {
@@ -65,7 +60,7 @@ export const DashboardPage = () => {
                         <MarketWatch
                             stocks={stocks}
                             searchTerm={searchTerm}
-                            isLoading={stocks.length === 0}
+                            isLoading={isMarketLoading}
                             compact={true}
                         />
                     </ErrorBoundary>
@@ -75,7 +70,6 @@ export const DashboardPage = () => {
                 <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-900 p-1">
                     <div className="max-w-7xl mx-auto space-y-4 p-4">
                         {/* Indices Ticker */}
-                        {/* Indices Ticker */}
                         <ErrorBoundary>
                             <MarketIndices onIndexClick={setSelectedStock} />
                         </ErrorBoundary>
@@ -84,7 +78,7 @@ export const DashboardPage = () => {
                         <div className="mb-6">
                             <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Market Overview</h2>
                             <ErrorBoundary>
-                                <MarketOverview stocks={stocks} isLoading={stocks.length === 0} />
+                                <MarketOverview stocks={stocks} isLoading={isMarketLoading} />
                             </ErrorBoundary>
                         </div>
 

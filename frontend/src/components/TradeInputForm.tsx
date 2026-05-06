@@ -101,9 +101,9 @@ export const TradeInputForm = ({
                     <div className="relative">
                         <input
                             type="number"
-                            min="0"
+                            min="1"
                             value={quantity === 0 ? '' : quantity}
-                            onChange={(e) => onQuantityChange(e.target.value === '' ? 0 : parseInt(e.target.value))}
+                            onChange={(e) => onQuantityChange(e.target.value === '' ? 0 : Math.max(1, parseInt(e.target.value) || 0))}
                             onFocus={(e) => e.target.select()}
                             className="w-full pl-3 pr-8 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-mono font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                         />
@@ -119,7 +119,7 @@ export const TradeInputForm = ({
                         <input
                             type="number"
                             step="0.05"
-                            value={orderType === 'MARKET' ? 0 : limitPrice}
+                            value={orderType === 'MARKET' ? (stock.ltp > 0 ? stock.ltp : '') : (limitPrice === 0 ? '' : limitPrice)}
                             disabled={orderType === 'MARKET'}
                             onChange={(e) => onLimitPriceChange(parseFloat(e.target.value) || 0)}
                             onFocus={(e) => e.target.select()}

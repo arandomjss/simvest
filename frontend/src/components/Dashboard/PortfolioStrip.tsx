@@ -23,13 +23,13 @@ export const PortfolioStrip = ({ portfolio }: PortfolioStripProps) => {
     };
 
     return (
-        <div className="w-full h-14 bg-gray-100 dark:bg-slate-800 backdrop-blur-md border-b border-gray-300 dark:border-slate-600 flex items-center justify-between px-6 sticky top-0 z-20">
+        <div className="w-full h-14 bg-gray-100 dark:bg-slate-800 backdrop-blur-md border-b border-gray-300 dark:border-slate-600 flex items-center justify-between px-6">
             {/* Left: Main Metrics */}
             <div className="flex items-center gap-8">
                 <div className="flex items-baseline gap-3">
                     <span className="text-xs text-gray-700 dark:text-gray-300 uppercase tracking-wider font-semibold">Net Worth</span>
                     <span className="text-xl font-mono font-bold text-gray-900 dark:text-gray-100 tracking-tight">
-                        {formatCurrency(portfolio.totalValue)}
+                        {formatCurrency((portfolio.totalValue || 0) + (portfolio.cashBalance || 0))}
                     </span>
                 </div>
 
@@ -38,7 +38,9 @@ export const PortfolioStrip = ({ portfolio }: PortfolioStripProps) => {
                 <div className="flex items-baseline gap-2">
                     <span className="text-xs text-gray-700 dark:text-gray-300 uppercase tracking-wider font-semibold">P&L</span>
                     <div className={`flex items-baseline gap-2 ${portfolio.totalPnL >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                        <span className="font-mono font-medium">{formatCurrency(Math.abs(portfolio.totalPnL))}</span>
+                        <span className="font-mono font-medium">
+                            {portfolio.totalPnL < 0 ? '-' : ''}{formatCurrency(Math.abs(portfolio.totalPnL))}
+                        </span>
                         <span className="text-xs font-mono">({formatPercent(portfolio.totalPnLPercent)})</span>
                     </div>
                 </div>

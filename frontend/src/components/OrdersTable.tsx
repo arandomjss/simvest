@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Order } from '../types';
 import { usePortfolioStore } from '../stores/portfolioStore';
 import { XCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface OrdersTableProps {
     orders: Order[];
@@ -15,8 +16,9 @@ export const OrdersTable = ({ orders }: OrdersTableProps) => {
         if (window.confirm('Are you sure you want to cancel this order?')) {
             try {
                 await cancelOrder(orderId);
+                toast.success('Order cancelled successfully');
             } catch (e) {
-                alert('Failed to cancel order');
+                toast.error('Failed to cancel order');
             }
         }
     };
@@ -95,7 +97,7 @@ export const OrdersTable = ({ orders }: OrdersTableProps) => {
                                             }
                                         })()}
                                     </td>
-                                    <td className="px-4 py-3 font-medium text-gray-900">
+                                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
                                         {order.symbol}
                                     </td>
                                     <td className="px-4 py-3">
@@ -115,10 +117,10 @@ export const OrdersTable = ({ orders }: OrdersTableProps) => {
                                             <span className="text-gray-400 text-xs italic">-</span>
                                         )}
                                     </td>
-                                    <td className="px-4 py-3 text-right font-mono text-gray-900">
+                                    <td className="px-4 py-3 text-right font-mono text-gray-900 dark:text-gray-100">
                                         {order.quantity}
                                     </td>
-                                    <td className="px-4 py-3 text-right font-mono text-gray-900">
+                                    <td className="px-4 py-3 text-right font-mono text-gray-900 dark:text-gray-100">
                                         ₹{order.execution_price ? order.execution_price.toFixed(2) : '0.00'}
                                     </td>
                                     <td className="px-4 py-3 text-center">

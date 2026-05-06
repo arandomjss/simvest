@@ -4,6 +4,7 @@ import { Navbar } from '../components/Navbar';
 import { OrdersTable } from '../components/OrdersTable';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { PortfolioStrip } from '../components/Dashboard/PortfolioStrip';
+import toast from 'react-hot-toast';
 
 export const OrdersPage = () => {
     const { orders, fetchOrders, portfolio, fetchPortfolio } = usePortfolioStore();
@@ -47,7 +48,7 @@ export const OrdersPage = () => {
                                     link.remove();
                                 } catch (error) {
                                     console.error('Failed to export XML:', error);
-                                    alert('Failed to export XML. Please try again.');
+                                    toast.error('Failed to export XML. Please try again.');
                                 }
                             }}
                             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition-colors flex items-center gap-2"
