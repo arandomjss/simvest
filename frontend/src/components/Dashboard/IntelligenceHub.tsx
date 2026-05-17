@@ -5,6 +5,7 @@ import { PortfolioRiskAnalysis } from '../PortfolioRiskAnalysis';
 import { StrategyAnalytics } from '../StrategyAnalytics';
 import { PortfolioNews } from '../PortfolioNews';
 import { Stock, Order, Portfolio, Holding } from '../../types';
+import { PortfolioHistoryPoint } from '../../services/portfolioHistory';
 import { getSector } from '../../utils/sectorUtils';
 
 interface IntelligenceHubProps {
@@ -12,7 +13,7 @@ interface IntelligenceHubProps {
     stocks: Stock[];
     orders: Order[];
     portfolio: Portfolio;
-    portfolioHistory: Array<{ date: string; value: number }>;
+    portfolioHistory: PortfolioHistoryPoint[];
 }
 
 export const IntelligenceHub: React.FC<IntelligenceHubProps> = ({

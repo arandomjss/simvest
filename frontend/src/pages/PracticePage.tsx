@@ -4,7 +4,7 @@ import { Navbar } from '../components/Navbar';
 import { TradeForm } from '../components/TradeForm';
 import { StockChart } from '../components/StockChart';
 import { useMarketStore } from '../stores/marketStore';
-import { generateHistoricalData, Timeframe } from '../services/historicalData';
+import { generateHistoricalData, Timeframe, OHLCData, VolumeData } from '../services/historicalData';
 import {
     calculateSMA,
     calculateEMA,
@@ -19,7 +19,7 @@ export const PracticePage = () => {
     const [searchParams] = useSearchParams();
     const initialSymbol = searchParams.get('symbol');
 
-    const { stocks, fetchInstruments, prices } = useMarketStore();
+    const { stocks, fetchInstruments } = useMarketStore();
 
     // Local state for stock selection
     const [selectedSymbol, setSelectedSymbol] = useState<string | null>(initialSymbol || null);
@@ -43,14 +43,12 @@ export const PracticePage = () => {
     const [timeframe, setTimeframe] = useState<Timeframe>('1D');
     const [chartType] = useState<'candlestick' | 'line'>('candlestick');
     
-    interface OHLCData { time: number | string; open: number; high: number; low: number; close: number; }
-    interface VolumeData { time: number | string; value: number; color: string; }
     interface CandleData { timestamp: number; open: number; high: number; low: number; close: number; volume: number; }
     
-    const [chartData, setChartData] = useState<{ ohlc: OHLCData[], volume: VolumeData[] }>({ ohlc: [], volume: [] });
+    const [chartData, setChartData] = useState<{ ohlc: OHLCData[]; volume: VolumeData[] }>({ ohlc: [], volume: [] });
     const [activeIndicators, setActiveIndicators] = useState<string[]>([]);
     const [indicators, setIndicators] = useState<Record<string, unknown>>({});
-    const [liveCandle, setLiveCandle] = useState<OHLCData | null>(null);
+    const [liveCandle, setLiveCandle] = useState<OHLCData | undefined>(undefined);
 
     useEffect(() => {
         fetchInstruments();
@@ -60,7 +58,7 @@ export const PracticePage = () => {
     useEffect(() => {
         const fetchChartData = async () => {
             if (!activeStock) return;
-            setLiveCandle(null);
+            setLiveCandle(undefined);
 
             try {
                 // Map timeframe to API interval and period

@@ -280,7 +280,7 @@ export const StockChart = ({
 
         // C. Indicators
         // Helper to manage series map
-        const updateSeries = (key: string, data: Record<string, unknown>[] | undefined, type: 'Line' | 'Histogram', options: Record<string, unknown>, chart: IChartApi | null) => {
+        const updateSeries = (key: string, data: any[] | undefined, type: 'Line' | 'Histogram', options: Record<string, unknown>, chart: IChartApi | null) => {
             if (!chart) return;
 
             let series = indicatorSeriesRef.current.get(key);

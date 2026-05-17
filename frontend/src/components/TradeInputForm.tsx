@@ -119,7 +119,7 @@ export const TradeInputForm = ({
                         <input
                             type="number"
                             step="0.05"
-                            value={orderType === 'MARKET' ? (stock.ltp > 0 ? stock.ltp : '') : (limitPrice === 0 ? '' : limitPrice)}
+                            value={orderType === 'MARKET' ? (stock.ltp !== undefined && stock.ltp > 0 ? stock.ltp : '') : (limitPrice === 0 ? '' : limitPrice)}
                             disabled={orderType === 'MARKET'}
                             onChange={(e) => onLimitPriceChange(parseFloat(e.target.value) || 0)}
                             onFocus={(e) => e.target.select()}
