@@ -40,7 +40,7 @@ export const RecentActivity = ({ orders }: RecentActivityProps) => {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <div className={`text-xs font-bold ${order.status === 'COMPLETED' ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'}`}>
+                                    <div className={`text-xs font-bold ${order.status === 'EXECUTED' ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'}`}>
                                         {order.status}
                                     </div>
                                     <div className="text-[10px] text-gray-500 dark:text-gray-400">

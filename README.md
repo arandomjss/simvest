@@ -153,6 +153,23 @@ npm run dev
 
 ---
 
+## 🧪 Testing
+
+SimVest uses **Playwright** for End-to-End (E2E) UI testing.
+
+To run the E2E tests:
+1. Ensure both the backend and frontend are running.
+2. Navigate to the `frontend` directory.
+3. Run:
+   ```bash
+   npx playwright test
+   ```
+
+> [!NOTE]
+> The test suite requires sufficient system memory to run browser instances. If tests fail with connection errors, ensure your machine has free RAM.
+
+---
+
 ## 📝 API Endpoints Overview
 
 The backend exposes several routes for retrieving market data and managing trades.

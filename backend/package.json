@@ -6,8 +6,9 @@
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
+    "predev": "npx kill-port 3000 || true",
     "dev": "nodemon src/server.js",
-    "test": "jest"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "keywords": [
     "trading",
@@ -36,6 +37,7 @@
   },
   "devDependencies": {
     "jest": "^29.7.0",
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.0.2",
+    "supertest": "^7.2.2"
   }
 }

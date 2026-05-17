@@ -11,6 +11,8 @@ const router = express.Router();
  * Get NIFTY 50 instrument list
  */
 const SECTOR_CACHE = {};
+let INSTRUMENTS_CACHE = null;
+let CACHE_TIMESTAMP = 0;
 
 /**
  * GET /api/market/indices
@@ -55,6 +57,12 @@ router.get('/indices', async (req, res) => {
  */
 router.get('/instruments', async (req, res) => {
     try {
+        const now = Date.now();
+        // Serve from cache if available and fresh (15 seconds TTL)
+        if (INSTRUMENTS_CACHE && (now - CACHE_TIMESTAMP) < 15000) {
+            return res.json({ instruments: INSTRUMENTS_CACHE });
+        }
+
         // Fetch quotes for all symbols in batch
         const quotes = await yahooFinanceService.getQuotes(NIFTY_50_SYMBOLS);
         const quoteMap = new Map(quotes.map(q => [q.symbol, q]));
@@ -62,16 +70,16 @@ router.get('/instruments', async (req, res) => {
         // Fetch sectors in parallel (only for symbols missing from cache)
         const symbolsMissingCache = NIFTY_50_SYMBOLS.filter(s => !SECTOR_CACHE[s]);
         if (symbolsMissingCache.length > 0) {
-            await Promise.all(
-                symbolsMissingCache.map(async (symbol) => {
-                    try {
-                        const profile = await yahooFinanceService.getCompanyProfile(symbol);
-                        SECTOR_CACHE[symbol] = profile?.sector || 'Others';
-                    } catch {
-                        SECTOR_CACHE[symbol] = 'Others';
-                    }
-                })
-            );
+            // BUG-FIX: Don't await 50 parallel requests to Yahoo Finance which causes rate-limiting/hanging.
+            // Start them in the background and default to 'Others' for now.
+            symbolsMissingCache.forEach(symbol => {
+                SECTOR_CACHE[symbol] = 'Others'; // Default immediately
+                yahooFinanceService.getCompanyProfile(symbol)
+                    .then(profile => {
+                        if (profile?.sector) SECTOR_CACHE[symbol] = profile.sector;
+                    })
+                    .catch(() => {});
+            });
         }
 
         const instruments = NIFTY_50_SYMBOLS.map(symbol => {
@@ -93,6 +101,10 @@ router.get('/instruments', async (req, res) => {
                 marketCap: quote.marketCap || 0
             };
         }).filter(Boolean);
+
+        // Update cache
+        INSTRUMENTS_CACHE = instruments;
+        CACHE_TIMESTAMP = now;
 
         res.json({ instruments });
     } catch (error) {

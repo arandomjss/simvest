@@ -34,9 +34,9 @@ export const OrdersTable = ({ orders }: OrdersTableProps) => {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'COMPLETED': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+            case 'EXECUTED': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
             case 'PENDING': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-            case 'REJECTED': return 'bg-red-100 text-red-700 border-red-200';
+            case 'FAILED': return 'bg-red-100 text-red-700 border-red-200';
             case 'CANCELLED': return 'bg-gray-100 text-gray-700 border-gray-200';
             default: return 'bg-gray-100 text-gray-700 border-gray-200';
         }
@@ -47,7 +47,7 @@ export const OrdersTable = ({ orders }: OrdersTableProps) => {
             {/* Toolbar */}
             <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-600 flex items-center gap-4">
                 <div className="flex gap-2">
-                    {['ALL', 'COMPLETED', 'PENDING', 'REJECTED'].map(f => (
+                    {['ALL', 'EXECUTED', 'PENDING', 'FAILED', 'CANCELLED'].map(f => (
                         <button
                             key={f}
                             onClick={() => setFilter(f)}
