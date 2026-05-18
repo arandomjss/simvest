@@ -33,7 +33,7 @@ const app = express();
 const httpServer = createServer(app);
 
 // Socket.io setup with CORS
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:4173', 'https://simvestpapertrades.vercel.app'];
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:4173', 'https://simvestpapertrades.vercel.app', 'https://www.simvest.online'];
 if (process.env.FRONTEND_URL && !allowedOrigins.includes(process.env.FRONTEND_URL)) {
     allowedOrigins.push(process.env.FRONTEND_URL);
 }
