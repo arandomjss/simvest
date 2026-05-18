@@ -27,12 +27,12 @@ describe('Security Smoke Tests (Rate Limiting & CORS)', () => {
     });
 
     describe('Rate Limiting (Auth Routes)', () => {
-        // The auth limiter is configured to max 20 requests per 15 minutes.
+        // The auth limiter is configured to max 20 requests per 15 minutes in test environment.
         test('Should block excessive requests to /auth routes', async () => {
             let lastStatus = 200;
             // Send 22 requests to trigger the rate limiter
             for (let i = 0; i < 22; i++) {
-                const res = await request(API_URL).post('/auth/register').send({});
+                const res = await request(API_URL).get('/auth/upstox');
                 lastStatus = res.status;
                 if (lastStatus === 429) break;
             }
@@ -42,12 +42,12 @@ describe('Security Smoke Tests (Rate Limiting & CORS)', () => {
     });
 
     describe('Rate Limiting (API Routes)', () => {
-        // The api limiter is configured to max 100 requests per 15 minutes.
+        // The api limiter is configured to max 100 requests per 15 minutes in test environment.
         test('Should block excessive requests to /api routes', async () => {
             let lastStatus = 200;
             // Send 102 requests to trigger the rate limiter
             for (let i = 0; i < 102; i++) {
-                const res = await request(API_URL).get('/api/market/quotes');
+                const res = await request(API_URL).get('/api/market/instruments');
                 lastStatus = res.status;
                 if (lastStatus === 429) break;
             }

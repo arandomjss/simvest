@@ -58,14 +58,57 @@ class AdvisorService {
             let score = 0; // -100 to 100
             const signals = [];
 
-            if (lastRSI < 30) { score += 30; signals.push("RSI Oversold"); }
-            else if (lastRSI > 70) { score -= 30; signals.push("RSI Overbought"); }
+            // RSI Scoring (Continuous-ish)
+            if (lastRSI < 30) {
+                score += 30;
+                signals.push(`RSI Oversold (${lastRSI.toFixed(1)})`);
+            } else if (lastRSI > 70) {
+                score -= 30;
+                signals.push(`RSI Overbought (${lastRSI.toFixed(1)})`);
+            } else if (lastRSI < 40) {
+                score += 10; // Mildly oversold
+                signals.push("RSI Mildly Oversold");
+            } else if (lastRSI > 60) {
+                score -= 10; // Mildly overbought
+                signals.push("RSI Mildly Overbought");
+            }
 
-            if (lastMACD && lastMACD.histogram > 0) { score += 20; signals.push("MACD Bullish Histogram"); }
-            else { score -= 20; signals.push("MACD Bearish Histogram"); }
+            // MACD Scoring
+            if (lastMACD && lastMACD.histogram > 0) {
+                score += 20;
+                signals.push("MACD Bullish Histogram");
+            } else if (lastMACD && lastMACD.histogram < 0) {
+                score -= 20;
+                signals.push("MACD Bearish Histogram");
+            }
 
-            if (currentPrice > lastEMA50) { score += 15; signals.push("Price above 50-day EMA"); }
-            if (currentPrice > lastEMA200) { score += 15; signals.push("Price above 200-day EMA"); }
+            // EMA Scoring & Crosses
+            const priceAboveEMA50 = currentPrice > lastEMA50;
+            const priceAboveEMA200 = currentPrice > lastEMA200;
+            
+            if (typeof lastEMA50 === 'number') {
+                if (priceAboveEMA50) { score += 15; signals.push("Price above 50-day EMA"); }
+                else { score -= 10; signals.push("Price below 50-day EMA"); }
+            }
+            
+            if (typeof lastEMA200 === 'number') {
+                if (priceAboveEMA200) { score += 15; signals.push("Price above 200-day EMA"); }
+                else { score -= 10; signals.push("Price below 200-day EMA"); }
+            }
+
+            // Golden Cross / Death Cross
+            if (typeof lastEMA50 === 'number' && typeof lastEMA200 === 'number') {
+                if (lastEMA50 > lastEMA200) {
+                    score += 20;
+                    signals.push("Golden Cross (EMA50 > EMA200)");
+                } else {
+                    score -= 20;
+                    signals.push("Death Cross (EMA50 < EMA200)");
+                }
+            }
+
+            // Normalize score to -100 to 100 range (capping)
+            score = Math.max(-100, Math.min(100, score));
 
             // 5. News Summary for LLM
             const newsSummary = news.slice(0, 5).map(n => n.title).join('\n');
@@ -75,27 +118,32 @@ class AdvisorService {
 
             // 6. Generate AI Thesis
             const prompt = `
-                Analyze ${symbol} (${profile?.industry || 'Unknown Industry'}).
+                You are a cynical, highly analytical institutional stock market analyst for the Indian market.
+                Analyze the symbol ${symbol} (${profile?.industry || 'Unknown Industry'}) based on the following data.
                 
                 Current Market Data:
                 - Price: ₹${currentPrice.toFixed(2)}
-                - RSI: ${lastRSI.toFixed(2)} (${lastRSI > 70 ? 'Overbought' : lastRSI < 30 ? 'Oversold' : 'Neutral'})
-                - MACD Histogram: ${lastMACD?.histogram.toFixed(2) || 'N/A'} (${lastMACD?.histogram > 0 ? 'Bullish' : 'Bearish'})
-                - 50-day EMA: ₹${lastEMA50?.toFixed(2) || 'N/A'} (Price is ${currentPrice > lastEMA50 ? 'ABOVE' : 'BELOW'})
-                - 200-day EMA: ₹${lastEMA200?.toFixed(2) || 'N/A'} (Price is ${currentPrice > lastEMA200 ? 'ABOVE' : 'BELOW'})
-                - Technical Signal Alignment Score: ${score} out of 100 (positive = bullish, negative = bearish)
-                - Active Signals: ${signals.join(', ') || 'None'}
+                - RSI: ${lastRSI.toFixed(2)}
+                - MACD Histogram: ${lastMACD?.histogram.toFixed(2) || 'N/A'}
+                - 50-day EMA: ₹${lastEMA50?.toFixed(2) || 'N/A'}
+                - 200-day EMA: ₹${lastEMA200?.toFixed(2) || 'N/A'}
+                - Calculated Technical Score: ${score} (Range: -100 to 100, where positive is bullish, negative is bearish)
+                - Active Signals detected by system: ${signals.join(', ') || 'None'}
                 
                 Recent News Headlines:
                 ${newsSummary || 'No recent news found.'}
                 
-                Provide a professional "SimVest Verdict" including:
-                1. A one-sentence Master Verdict.
-                2. A structured rationale (Investment Thesis) in 3 bullet points.
-                3. A risk assessment (one sentence).
-                4. A confidence score (0-100). Base it on the Signal Alignment Score of ${score}.
+                Provide a brutal, honest assessment ("SimVest Verdict"). Do not be generic. If the signals are mixed, say so.
                 
-                Format the response as a valid JSON object with keys: "verdict", "thesis" (array of 3 strings), "risk", "confidence_score". No markdown, no extra text.
+                You must return your analysis in the following JSON format ONLY:
+                {
+                    "verdict": "A concise one-sentence master verdict (e.g., 'Strong Buy', 'Avoid', 'Hold with Caution')",
+                    "thesis": ["Bullet point 1", "Bullet point 2", "Bullet point 3"],
+                    "risk": "A one-sentence risk assessment",
+                    "confidence_score": <number between 0 and 100 representing your confidence in this analysis>
+                }
+                
+                Do NOT include any markdown formatting (like \`\`\`json), do NOT include any text before or after the JSON. Return ONLY the raw JSON string.
             `;
 
             const aiResponseRaw = await LLMService.generateAnalysis(prompt);
@@ -114,7 +162,11 @@ class AdvisorService {
                 }
             }
 
-            if (!aiAnalysis) {
+            const requiredKeys = ['verdict', 'thesis', 'risk', 'confidence_score'];
+            const hasAllKeys = requiredKeys.every(key => aiAnalysis && aiAnalysis.hasOwnProperty(key));
+
+            if (!aiAnalysis || !hasAllKeys) {
+                console.warn('⚠️ AI Response missing keys or invalid, using fallback');
                 aiAnalysis = {
                     verdict: score > 20 ? "Cautious Buy" : score < -20 ? "Strategic Sell" : "Strategic Hold",
                     thesis: ["Technical indicators show consolidation.", "Volume is steady but lacks breakout catalyst.", "Long-term trend remains positive."],

@@ -54,9 +54,10 @@ app.use(cors({
 }));
 
 // Rate limiting
+const isTest = process.env.NODE_ENV === 'test';
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10000, // Increased for Playwright testing
+    max: process.env.RATE_LIMIT_MAX ? parseInt(process.env.RATE_LIMIT_MAX) : (isTest ? 100 : 10000),
     message: { error: 'Too many requests from this IP, please try again after 15 minutes' },
     standardHeaders: true,
     legacyHeaders: false,
@@ -66,7 +67,7 @@ app.use('/api/', limiter); // Apply rate limit to all /api routes
 // Stricter rate limit for auth / OAuth routes
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 1000, // Increased for Playwright testing
+    max: process.env.AUTH_LIMIT_MAX ? parseInt(process.env.AUTH_LIMIT_MAX) : (isTest ? 20 : 1000),
     message: { error: 'Too many auth requests, please try again later' },
     standardHeaders: true,
     legacyHeaders: false,

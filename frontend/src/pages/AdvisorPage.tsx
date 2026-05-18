@@ -288,22 +288,22 @@ export const AdvisorPage = () => {
                                     </div>
 
                                     {/* Algorithm Information */}
-                                    <div className="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden">
-                                        <div className="absolute top-0 right-0 p-4 opacity-5">
+                                    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/5 rounded-3xl p-8 shadow-sm relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-4 opacity-5 text-slate-900 dark:text-white">
                                             <Cpu size={120} />
                                         </div>
                                         <h3 className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] mb-6">Terminal Pulse</h3>
                                         <div className="space-y-4 relative z-10">
                                             <div className="flex justify-between items-start gap-4">
                                                 <div>
-                                                    <div className="text-[10px] font-black text-white uppercase mb-1">Signal Sync: <span className="text-emerald-500">Live</span></div>
-                                                    <p className="text-[9px] text-slate-400 font-medium uppercase leading-relaxed">Aggregating L2 Data Streams every 5 seconds for execution precision.</p>
+                                                    <div className="text-[10px] font-black text-slate-900 dark:text-white uppercase mb-1">Signal Sync: <span className="text-emerald-500">Live</span></div>
+                                                    <p className="text-[9px] text-slate-500 dark:text-slate-400 font-medium uppercase leading-relaxed">Aggregating L2 Data Streams every 5 seconds for execution precision.</p>
                                                 </div>
                                             </div>
-                                            <div className="h-px bg-white/5" />
+                                            <div className="h-px bg-slate-100 dark:bg-white/5" />
                                             <div>
-                                                <div className="text-[10px] font-black text-white uppercase mb-1">Advisor Cycle: <span className="text-blue-400">On-Demand</span></div>
-                                                <p className="text-[9px] text-slate-400 font-medium uppercase leading-relaxed">AI thesis generation is optimized for request-based synthesis (Manual Refresh enabled).</p>
+                                                <div className="text-[10px] font-black text-slate-900 dark:text-white uppercase mb-1">Advisor Cycle: <span className="text-blue-400">On-Demand</span></div>
+                                                <p className="text-[9px] text-slate-500 dark:text-slate-400 font-medium uppercase leading-relaxed">AI thesis generation is optimized for request-based synthesis (Manual Refresh enabled).</p>
                                             </div>
                                         </div>
                                     </div>
