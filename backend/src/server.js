@@ -33,9 +33,14 @@ const app = express();
 const httpServer = createServer(app);
 
 // Socket.io setup with CORS
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:4173', 'https://simvestpapertrades.vercel.app'];
+if (process.env.FRONTEND_URL && !allowedOrigins.includes(process.env.FRONTEND_URL)) {
+    allowedOrigins.push(process.env.FRONTEND_URL);
+}
+
 const io = new Server(httpServer, {
     cors: {
-        origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:4173'],
+        origin: allowedOrigins,
         methods: ['GET', 'POST'],
         credentials: true
     }
@@ -44,7 +49,7 @@ const io = new Server(httpServer, {
 // Middleware
 app.use(helmet()); // Secure HTTP headers
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:4173'],
+    origin: allowedOrigins,
     credentials: true
 }));
 
