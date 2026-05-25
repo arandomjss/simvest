@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { TrendingUp, TrendingDown, Star, Plus, Trash2, Edit2, X } from 'lucide-react';
+import { TrendingUp, TrendingDown, Star, Plus, Trash2, Edit2, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { Stock } from '../types';
 import { useWatchlistStore } from '../stores/watchlistStore';
 import { getSector } from '../utils/sectorUtils';
@@ -30,10 +30,32 @@ export const MarketWatch = ({
     } = useWatchlistStore();
 
     const [sectorFilter] = useState('All');
-    const [sortBy] = useState('symbol-asc');
+    const [sortBy, setSortBy] = useState('symbol-asc');
     const [quickFilter, setQuickFilter] = useState('');
     const [chartStockKey, setChartStockKey] = useState<string | null>(null);
     const [managerModal, setManagerModal] = useState<{ isOpen: boolean; mode: 'create' | 'rename' | 'delete'; value: string } | null>(null);
+
+    const handleSort = (column: 'symbol' | 'price' | 'change') => {
+        if (column === 'symbol') {
+            setSortBy(prev => prev === 'symbol-asc' ? 'symbol-desc' : 'symbol-asc');
+        } else if (column === 'price') {
+            setSortBy(prev => prev === 'price-desc' ? 'price-asc' : 'price-desc');
+        } else if (column === 'change') {
+            setSortBy(prev => prev === 'change-desc' ? 'change-asc' : 'change-desc');
+        }
+    };
+
+    const renderSortIcon = (column: 'symbol' | 'price' | 'change') => {
+        const isCurrent = sortBy.startsWith(column);
+        const isAsc = sortBy.endsWith('-asc');
+
+        if (!isCurrent) return null;
+        return isAsc ? (
+            <ChevronUp className="inline-block w-3 h-3 ml-0.5" />
+        ) : (
+            <ChevronDown className="inline-block w-3 h-3 ml-0.5" />
+        );
+    };
 
     const chartStock = useMemo(() =>
         stocks.find(s => s.instrumentKey === chartStockKey) || null,
@@ -125,7 +147,15 @@ export const MarketWatch = ({
                     {compact && <span className="ml-1">Watchlist</span>}
                 </button>
                 <button
-                    onClick={() => setQuickFilter(quickFilter === 'gainers' ? '' : 'gainers')}
+                    onClick={() => {
+                        if (quickFilter === 'gainers') {
+                            setQuickFilter('');
+                            setSortBy('symbol-asc');
+                        } else {
+                            setQuickFilter('gainers');
+                            setSortBy('change-desc');
+                        }
+                    }}
                     className={`p-1.5 text-xs font-medium rounded transition flex items-center justify-center flex-1 ${quickFilter === 'gainers'
                         ? 'bg-emerald-600 text-white'
                         : 'bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-300 bg-surface hover:bg-surface-hover border-border text-text-secondary'
@@ -136,7 +166,15 @@ export const MarketWatch = ({
                     {compact && <span className="ml-1.5 font-semibold">Gainers</span>}
                 </button>
                 <button
-                    onClick={() => setQuickFilter(quickFilter === 'losers' ? '' : 'losers')}
+                    onClick={() => {
+                        if (quickFilter === 'losers') {
+                            setQuickFilter('');
+                            setSortBy('symbol-asc');
+                        } else {
+                            setQuickFilter('losers');
+                            setSortBy('change-asc');
+                        }
+                    }}
                     className={`p-1.5 text-xs font-medium rounded transition flex items-center justify-center flex-1 ${quickFilter === 'losers'
                         ? 'bg-red-600 text-white'
                         : 'bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-300 bg-surface hover:bg-surface-hover border-border text-text-secondary'
@@ -196,10 +234,28 @@ export const MarketWatch = ({
             )}
 
             {/* Table Header */}
-            <div className="grid grid-cols-12 gap-2 px-3 py-2 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50 text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400">
-                <div className="col-span-4">Symbol</div>
-                <div className="col-span-4 text-right">Price</div>
-                <div className="col-span-4 text-right">Chg%</div>
+            <div className="grid grid-cols-12 gap-2 px-3 py-2 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50 text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400 select-none">
+                <div 
+                    className="col-span-4 flex items-center cursor-pointer hover:text-gray-900 dark:hover:text-white transition-colors"
+                    onClick={() => handleSort('symbol')}
+                >
+                    <span>Symbol</span>
+                    {renderSortIcon('symbol')}
+                </div>
+                <div 
+                    className="col-span-4 flex items-center justify-end cursor-pointer hover:text-gray-900 dark:hover:text-white transition-colors"
+                    onClick={() => handleSort('price')}
+                >
+                    <span>Price</span>
+                    {renderSortIcon('price')}
+                </div>
+                <div 
+                    className="col-span-4 flex items-center justify-end cursor-pointer hover:text-gray-900 dark:hover:text-white transition-colors"
+                    onClick={() => handleSort('change')}
+                >
+                    <span>Chg%</span>
+                    {renderSortIcon('change')}
+                </div>
             </div>
 
             {/* Scrollable List */}

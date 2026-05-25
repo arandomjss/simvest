@@ -65,12 +65,11 @@
     .glass-card {
         background-color: var(--bg-secondary);
         border-color: var(--border);
-        box-shadow: 0 1px 3px 0 var(--shadow), 0 1px 2px 0 var(--shadow);
-        @apply border rounded-lg hover:shadow-md transition-all duration-200;
+        @apply border rounded-lg;
     }
 
     .dark .glass-card {
-        box-shadow: 0 4px 6px -1px var(--shadow), 0 2px 4px -1px var(--shadow);
+        box-shadow: none;
     }
 
     /* Buttons */

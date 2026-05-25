@@ -13,7 +13,7 @@ interface PortfolioState {
     fetchPortfolio: () => Promise<void>;
     fetchOrders: (limit?: number, offset?: number) => Promise<void>;
     fetchLivePrices: () => Promise<void>;
-    executeTrade: (symbol: string, instrumentKey: string, type: 'BUY' | 'SELL', quantity: number, orderType?: 'MARKET' | 'LIMIT', limitPrice?: number, strategy?: string, notes?: string) => Promise<void>;
+    executeTrade: (symbol: string, instrumentKey: string, type: 'BUY' | 'SELL', quantity: number, orderType?: 'MARKET' | 'LIMIT', limitPrice?: number, strategy?: string, notes?: string) => Promise<any>;
     cancelOrder: (orderId: string) => Promise<void>;
     updatePortfolioWithPrices: (prices: Map<string, number>) => void;
 }
@@ -107,10 +107,16 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
     executeTrade: async (symbol, instrumentKey, type, quantity, orderType = 'MARKET', limitPrice?, strategy?, notes?) => {
         try {
             set({ isPortfolioLoading: true, error: null });
-            await apiService.executeTrade(symbol, instrumentKey, type, quantity, orderType, limitPrice, strategy, notes);
+            const result = await apiService.executeTrade(symbol, instrumentKey, type, quantity, orderType, limitPrice, strategy, notes);
+            
+            if (result && result.success === false) {
+                throw new Error(result.message || 'Trade was rejected by the market engine');
+            }
+            
             await get().fetchPortfolio();
             await get().fetchOrders();
             set({ isPortfolioLoading: false });
+            return result;
         } catch (error: any) {
             set({ error: error.message || 'Failed to execute trade', isPortfolioLoading: false });
             throw error;

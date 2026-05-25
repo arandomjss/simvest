@@ -67,24 +67,24 @@ export const PracticePage = () => {
 
                 switch (timeframe) {
                     case '1D':
-                        interval = '2m';  // 2m gives good intraday detail without hitting 1m limits
-                        period = '1d';
+                        interval = '5m';  // 5m interval is robust for 5 days of history
+                        period = '5d';    // Fetch 5 days of data, allowing scrolling back
                         break;
                     case '1W':
-                        interval = '15m';
-                        period = '5d';
+                        interval = '30m';
+                        period = '1mo';   // Fetch 1 month, allowing scrolling back
                         break;
                     case '1M':
                         interval = '1d';
-                        period = '1mo';
+                        period = '6mo';   // Fetch 6 months of daily history
                         break;
                     case '3M':
                         interval = '1d';
-                        period = '3mo';
+                        period = '1y';    // Fetch 1 full year of history
                         break;
                     case '1Y':
                         interval = '1wk';
-                        period = '1y';
+                        period = '5y';    // Fetch 5 years of weekly candles
                         break;
                 }
 
@@ -94,21 +94,35 @@ export const PracticePage = () => {
                 if (candles && candles.length > 0) {
                     const validCandles = candles.filter((c: CandleData) => c.close > 0 && c.timestamp > 0);
 
-                    const ohlc = validCandles.map((c: CandleData) => ({
-                        time: c.timestamp / 1000,
-                        open: c.open,
-                        high: c.high,
-                        low: c.low,
-                        close: c.close
-                    }));
+                    if (validCandles.length > 0) {
+                        // Detect and correct system clock/API time drift (e.g. system is set to the future, or API is stale)
+                        const lastApiTimestamp = validCandles[validCandles.length - 1].timestamp;
+                        const currentSystemTimestamp = Date.now();
+                        
+                        // If drift is larger than 1 day (86400000 ms), shift all timestamps to align the last candle with now
+                        const driftThreshold = 24 * 60 * 60 * 1000;
+                        const timeOffset = Math.abs(currentSystemTimestamp - lastApiTimestamp) > driftThreshold
+                            ? currentSystemTimestamp - lastApiTimestamp
+                            : 0;
 
-                    const volume = validCandles.map((c: CandleData) => ({
-                        time: c.timestamp / 1000,
-                        value: c.volume,
-                        color: c.close >= c.open ? 'rgba(34, 197, 94, 0.4)' : 'rgba(239, 68, 68, 0.4)' // Hardcoded colors or import
-                    }));
+                        const ohlc = validCandles.map((c: CandleData) => ({
+                            time: Math.floor((c.timestamp + timeOffset) / 1000),
+                            open: c.open,
+                            high: c.high,
+                            low: c.low,
+                            close: c.close
+                        }));
 
-                    setChartData({ ohlc, volume });
+                        const volume = validCandles.map((c: CandleData) => ({
+                            time: Math.floor((c.timestamp + timeOffset) / 1000),
+                            value: c.volume,
+                            color: c.close >= c.open ? 'rgba(34, 197, 94, 0.4)' : 'rgba(239, 68, 68, 0.4)'
+                        }));
+
+                        setChartData({ ohlc, volume });
+                    } else {
+                        throw new Error("No valid candles after filtering");
+                    }
                 } else {
                     throw new Error("No API data");
                 }
@@ -164,7 +178,20 @@ export const PracticePage = () => {
         setActiveIndicators(prev => prev.includes(ind) ? prev.filter(i => i !== ind) : [...prev, ind]);
     };
 
-    if (!activeStock) return <div className="text-center p-10">Loading Market...</div>;
+    const isMarketOpen = () => {
+        const now = new Date();
+        const day = now.getDay();
+        if (day === 0 || day === 6) return false;
+        
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        const timeVal = hours * 60 + minutes;
+        
+        // NSE/BSE: 9:15 AM (555) to 3:30 PM (930)
+        return timeVal >= 555 && timeVal <= 930;
+    };
+
+    if (!activeStock) return <div className="text-center p-10 bg-gray-50 dark:bg-slate-900 text-slate-500 h-screen flex items-center justify-center font-semibold">Loading Market Terminal...</div>;
 
     return (
         <div className="h-screen bg-gray-50 dark:bg-slate-900 flex flex-col overflow-hidden">
@@ -196,6 +223,18 @@ export const PracticePage = () => {
                                     <div className="text-[10px] text-text-secondary opacity-60">
                                         • {activeStock.lastUpdated ? new Date(activeStock.lastUpdated).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : ''}
                                     </div>
+                                    <div className="h-3 w-px bg-slate-200 dark:bg-slate-700/50 mx-0.5" />
+                                    {isMarketOpen() ? (
+                                        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100/70 dark:border-emerald-900/30 text-[8px] font-black uppercase text-emerald-600 dark:text-emerald-400">
+                                            <span className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
+                                            Market Open
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 text-[8px] font-black uppercase text-slate-500 dark:text-slate-400">
+                                            <span className="h-1 w-1 rounded-full bg-slate-400" />
+                                            Market Closed
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -244,6 +283,7 @@ export const PracticePage = () => {
                                 indicators={indicators}
                                 activeIndicators={activeIndicators}
                                 liveCandle={liveCandle}
+                                timeframe={timeframe}
                             />
                         )}
                     </div>

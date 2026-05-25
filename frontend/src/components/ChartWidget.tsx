@@ -37,36 +37,53 @@ export const ChartWidget = ({ stock }: ChartWidgetProps) => {
 
             try {
                 let interval = '1d';
+                let period = '1mo';
                 switch (timeframe) {
-                    case '1D': interval = '1m'; break;
-                    case '1W': interval = '15m'; break;
-                    case '1M': interval = '1d'; break;
-                    case '3M': interval = '1d'; break;
-                    case '1Y': interval = '1wk'; break;
+                    case '1D': interval = '5m'; period = '5d'; break;
+                    case '1W': interval = '30m'; period = '1mo'; break;
+                    case '1M': interval = '1d'; period = '6mo'; break;
+                    case '3M': interval = '1d'; period = '1y'; break;
+                    case '1Y': interval = '1wk'; period = '5y'; break;
                 }
 
                 const key = (stock as any).instrumentKey || `NSE_EQ|${stock.symbol}`;
-                const candles = await apiService.getHistoricalData(key, interval);
+                const candles = await apiService.getHistoricalData(key, interval, period);
 
                 if (candles && candles.length > 0) {
                     const validCandles = candles.filter((c: any) => c.close > 0 && c.timestamp > 0)
                         .sort((a: any, b: any) => a.timestamp - b.timestamp);
 
-                    const ohlc = validCandles.map((c: any) => ({
-                        time: c.timestamp / 1000,
-                        open: c.open,
-                        high: c.high,
-                        low: c.low,
-                        close: c.close
-                    }));
+                    if (validCandles.length > 0) {
+                        // Detect and correct system clock/API time drift (e.g. system is set to the future, or API is stale)
+                        const lastApiTimestamp = validCandles[validCandles.length - 1].timestamp;
+                        const currentSystemTimestamp = Date.now();
+                        
+                        // If drift is larger than 1 day (86400000 ms), shift all timestamps to align the last candle with now
+                        const driftThreshold = 24 * 60 * 60 * 1000;
+                        const timeOffset = Math.abs(currentSystemTimestamp - lastApiTimestamp) > driftThreshold
+                            ? currentSystemTimestamp - lastApiTimestamp
+                            : 0;
 
-                    const volume = validCandles.map((c: any) => ({
-                        time: c.timestamp / 1000,
-                        value: c.volume,
-                        color: c.close >= c.open ? '#00d09c40' : '#eb5b3c40'
-                    }));
+                        const ohlc = validCandles.map((c: any) => ({
+                            time: Math.floor((c.timestamp + timeOffset) / 1000),
+                            open: c.open,
+                            high: c.high,
+                            low: c.low,
+                            close: c.close
+                        }));
 
-                    setChartData({ ohlc, volume });
+                        const volume = validCandles.map((c: any) => ({
+                            time: Math.floor((c.timestamp + timeOffset) / 1000),
+                            value: c.volume,
+                            color: c.close >= c.open ? '#00d09c40' : '#eb5b3c40'
+                        }));
+
+                        setChartData({ ohlc, volume });
+                    } else {
+                        // Fallback if no valid data
+                        const data = generateHistoricalData(stock.ltp || 100, timeframe);
+                        setChartData(data);
+                    }
                 } else {
                     // Fallback if no real data
                     const data = generateHistoricalData(stock.ltp || 100, timeframe);
@@ -197,6 +214,7 @@ export const ChartWidget = ({ stock }: ChartWidgetProps) => {
                         indicators={indicators}
                         activeIndicators={activeIndicators}
                         liveCandle={liveCandle}
+                        timeframe={timeframe}
                     />
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-text-secondary">

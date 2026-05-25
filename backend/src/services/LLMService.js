@@ -29,7 +29,7 @@ class LLMService {
                         { role: 'user', content: prompt }
                     ],
                     temperature: 0.3, // Keep it precise for financial analysis
-                    max_tokens: 1000
+                    max_tokens: 450
                 },
                 {
                     headers: {

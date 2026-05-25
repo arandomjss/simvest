@@ -31,6 +31,7 @@ interface StockChartProps {
     };
     activeIndicators?: string[];
     liveCandle?: OHLCData; // Typed strictly
+    timeframe?: string; // Optional timeframe prop for smart pre-zooming
 }
 
 export const StockChart = ({
@@ -39,7 +40,8 @@ export const StockChart = ({
     chartType,
     indicators = {},
     activeIndicators = [],
-    liveCandle
+    liveCandle,
+    timeframe
 }: StockChartProps) => {
     // Contains Refs
     const mainContainerRef = useRef<HTMLDivElement>(null);
@@ -145,21 +147,6 @@ export const StockChart = ({
         resizeObserver.observe(mainContainerRef.current);
         resizeObserver.observe(volumeContainerRef.current);
 
-        // Sync Logic - Initial setup for main and volume
-        // We'll re-subscribe in the next effect for dynamic panes
-        if (mainChartRef.current && volumeChartRef.current) {
-            mainChartRef.current.timeScale().subscribeVisibleLogicalRangeChange(range => {
-                if (range) {
-                    volumeChartRef.current?.timeScale().setVisibleLogicalRange(range);
-                }
-            });
-            volumeChartRef.current.timeScale().subscribeVisibleLogicalRangeChange(range => {
-                if (range) {
-                    mainChartRef.current?.timeScale().setVisibleLogicalRange(range);
-                }
-            });
-        }
-
         return () => {
             resizeObserver.disconnect();
             clean();
@@ -206,32 +193,41 @@ export const StockChart = ({
         // Re-Apply Sync whenever chart instances change
         const allCharts = [mainChartRef.current, volumeChartRef.current, rsiChartRef.current, macdChartRef.current].filter(Boolean) as IChartApi[];
 
-        // Clear previous subscriptions to avoid duplicates
-        // This is a bit of a hack as Lightweight Charts doesn't expose a way to get/clear all subscriptions easily.
-        // For simplicity, we'll just re-subscribe, assuming the old ones will be garbage collected or overwritten.
-        // A more robust solution would involve storing unsubscribe functions.
+        // Sync lock to prevent recursive loops and blank charts
+        let isSyncing = false;
 
-        // Leader-Follower Sync: Main chart drives all others
-        const handleVisibleLogicalRangeChange = (range: LogicalRange | null) => {
-            if (range) {
-                // Determine which charts to update (all except main)
-                // Note: allCharts includes mainChartRef.current, so we filter it out
-                allCharts
-                    .filter(c => c !== mainChartRef.current)
-                    .forEach(c => c.timeScale().setVisibleLogicalRange(range));
-            }
-        };
+        const unsubscribes = allCharts.map(chart => {
+            const handleVisibleLogicalRangeChange = (range: LogicalRange | null) => {
+                if (!range || isSyncing) return;
+                isSyncing = true;
 
-        if (mainChartRef.current) {
-            mainChartRef.current.timeScale().subscribeVisibleLogicalRangeChange(handleVisibleLogicalRangeChange);
-        }
+                allCharts.forEach(otherChart => {
+                    if (otherChart !== chart) {
+                        try {
+                            otherChart.timeScale().setVisibleLogicalRange(range);
+                        } catch (e) {
+                            // Guard against lightweight chart edge case errors
+                        }
+                    }
+                });
+
+                isSyncing = false;
+            };
+
+            chart.timeScale().subscribeVisibleLogicalRangeChange(handleVisibleLogicalRangeChange);
+
+            return () => {
+                try {
+                    chart.timeScale().unsubscribeVisibleLogicalRangeChange(handleVisibleLogicalRangeChange);
+                } catch (e) {
+                    // Ignore errors during unsubscription/unmounting
+                }
+            };
+        });
 
         return () => {
-            if (mainChartRef.current) {
-                mainChartRef.current.timeScale().unsubscribeVisibleLogicalRangeChange(handleVisibleLogicalRangeChange);
-            }
+            unsubscribes.forEach(unsub => unsub());
         };
-
     }, [activeIndicators]);
 
 
@@ -262,9 +258,26 @@ export const StockChart = ({
             } else {
                 (mainSeriesRef.current as ISeriesApi<"Line">).setData(ohlcData.map(d => ({ time: d.time as Time, value: d.close })));
             }
-            // Ensure chart fits data
+            // Ensure chart fits data or sets a pre-zoomed visible range for deep scrolling history
             requestAnimationFrame(() => {
-                mainChartRef.current?.timeScale().fitContent();
+                if (mainChartRef.current) {
+                    const timeScale = mainChartRef.current.timeScale();
+                    let count = 0;
+                    if (timeframe === '1D') count = 78;      // 1 day of 5-min candles
+                    else if (timeframe === '1W') count = 65; // 1 week of 30-min candles
+                    else if (timeframe === '1M') count = 30; // 1 month of daily candles
+                    else if (timeframe === '3M') count = 90; // 3 months of daily candles
+                    else if (timeframe === '1Y') count = 52; // 1 year of weekly candles
+
+                    if (count > 0 && ohlcData.length > count) {
+                        timeScale.setVisibleLogicalRange({
+                            from: ohlcData.length - count,
+                            to: ohlcData.length - 1
+                        });
+                    } else {
+                        timeScale.fitContent();
+                    }
+                }
             });
         }
 

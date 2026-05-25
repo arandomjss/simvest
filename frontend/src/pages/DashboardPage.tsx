@@ -78,7 +78,7 @@ export const DashboardPage = () => {
                         <div className="mb-6">
                             <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Market Overview</h2>
                             <ErrorBoundary>
-                                <MarketOverview stocks={stocks} isLoading={isMarketLoading} />
+                                <MarketOverview stocks={stocks} isLoading={isMarketLoading} onStockClick={setSelectedStock} />
                             </ErrorBoundary>
                         </div>
 

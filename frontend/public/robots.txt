@@ -1,7 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /dashboard
-Disallow: /portfolio
-Disallow: /orders
 
 Sitemap: https://www.simvest.online/sitemap.xml

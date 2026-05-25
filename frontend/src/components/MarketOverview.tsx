@@ -6,9 +6,10 @@ import { Skeleton } from './common/Skeleton';
 interface MarketOverviewProps {
     stocks: Stock[];
     isLoading?: boolean;
+    onStockClick?: (stock: Stock) => void;
 }
 
-export const MarketOverview = ({ stocks, isLoading = false }: MarketOverviewProps) => {
+export const MarketOverview = ({ stocks, isLoading = false, onStockClick }: MarketOverviewProps) => {
 
     // ... calculations (memoized) ...
     // Calculate Sector Performance
@@ -76,7 +77,7 @@ export const MarketOverview = ({ stocks, isLoading = false }: MarketOverviewProp
                 <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Sector Performance</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {sectorPerformance.map((item) => (
-                        <div key={item.sector} className="p-3 bg-gray-50 dark:bg-slate-800/50 rounded-lg border border-gray-100 dark:border-slate-700 hover:shadow-md transition-all group">
+                        <div key={item.sector} className="p-3 bg-gray-50 dark:bg-slate-800/50 rounded-lg border border-gray-100 dark:border-slate-700 group">
                             <div className="flex justify-between items-center mb-2">
                                 <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">{item.sector}</span>
                                 <span className={`text-xs font-bold ${item.avgChange >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
@@ -104,7 +105,11 @@ export const MarketOverview = ({ stocks, isLoading = false }: MarketOverviewProp
                     </p>
                     <div className="space-y-2">
                         {topGainers.map((stock) => (
-                            <div key={stock.instrumentKey} className="flex justify-between text-sm py-1 border-b border-gray-100 dark:border-slate-800 last:border-0">
+                            <div 
+                                key={stock.instrumentKey} 
+                                className={`flex justify-between text-sm py-1 border-b border-gray-100 dark:border-slate-800 last:border-0 px-1 rounded transition-colors ${onStockClick ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50' : ''}`}
+                                onClick={() => onStockClick?.(stock)}
+                            >
                                 <span className="font-medium text-gray-900 dark:text-white">{stock.symbol}</span>
                                 <span className="font-bold text-emerald-600 dark:text-emerald-400">+{stock.changePercent?.toFixed(2)}%</span>
                             </div>
@@ -118,7 +123,11 @@ export const MarketOverview = ({ stocks, isLoading = false }: MarketOverviewProp
                     </p>
                     <div className="space-y-2">
                         {topLosers.map((stock) => (
-                            <div key={stock.instrumentKey} className="flex justify-between text-sm py-1 border-b border-gray-100 dark:border-slate-800 last:border-0">
+                            <div 
+                                key={stock.instrumentKey} 
+                                className={`flex justify-between text-sm py-1 border-b border-gray-100 dark:border-slate-800 last:border-0 px-1 rounded transition-colors ${onStockClick ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50' : ''}`}
+                                onClick={() => onStockClick?.(stock)}
+                            >
                                 <span className="font-medium text-gray-900 dark:text-white">{stock.symbol}</span>
                                 <span className="font-bold text-red-600 dark:text-red-400">{stock.changePercent?.toFixed(2)}%</span>
                             </div>

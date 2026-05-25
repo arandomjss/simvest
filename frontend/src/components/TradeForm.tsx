@@ -26,6 +26,7 @@ export const TradeForm = ({ stock, initialSide = 'BUY', onSuccess, onCancel }: T
     const [strategy, setStrategy] = useState<string>('');
     const [notes, setNotes] = useState<string>('');
     const [isTrading, setIsTrading] = useState(false);
+    const [orderStatus, setOrderStatus] = useState<string>('EXECUTED');
 
     // Initialize/Reset when stock changes
     useEffect(() => {
@@ -61,7 +62,7 @@ export const TradeForm = ({ stock, initialSide = 'BUY', onSuccess, onCancel }: T
     const confirmTrade = async () => {
         setIsTrading(true);
         try {
-            await executeTrade(
+            const result = await executeTrade(
                 stock.symbol,
                 stock.instrumentKey,
                 tradeType,
@@ -71,6 +72,12 @@ export const TradeForm = ({ stock, initialSide = 'BUY', onSuccess, onCancel }: T
                 strategy,
                 notes
             );
+
+            if (result && result.status) {
+                setOrderStatus(result.status);
+            } else {
+                setOrderStatus('EXECUTED');
+            }
 
             await fetchPortfolio();
             setShowConfirmation(false);
@@ -96,6 +103,7 @@ export const TradeForm = ({ stock, initialSide = 'BUY', onSuccess, onCancel }: T
                 symbol={stock.symbol}
                 side={tradeType}
                 quantity={quantity}
+                status={orderStatus}
                 onClose={handleSuccessClose}
             />
         );

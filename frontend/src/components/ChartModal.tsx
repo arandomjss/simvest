@@ -71,24 +71,24 @@ export const ChartModal = ({ stock, onClose }: ChartModalProps) => {
 
                 switch (timeframe) {
                     case '1D':
-                        interval = '2m'; // 2 minute interval for 1 day
-                        period = '1d';
+                        interval = '5m';
+                        period = '5d'; // Fetch 5 days of data, allowing scrolling back
                         break;
                     case '1W':
-                        interval = '15m'; // 15 min interval for 1 week
-                        period = '5d';
+                        interval = '30m';
+                        period = '1mo'; // Fetch 1 month, allowing scrolling back
                         break;
                     case '1M':
                         interval = '1d';
-                        period = '1mo';
+                        period = '6mo'; // Fetch 6 months of daily history
                         break;
                     case '3M':
                         interval = '1d';
-                        period = '3mo';
+                        period = '1y'; // Fetch 1 full year of history
                         break;
                     case '1Y':
                         interval = '1wk';
-                        period = '1y';
+                        period = '5y'; // Fetch 5 years of weekly candles
                         break;
                 }
 
@@ -106,21 +106,35 @@ export const ChartModal = ({ stock, onClose }: ChartModalProps) => {
                 if (candles && candles.length > 0) {
                     const validCandles = candles.filter((c: any) => c.close > 0 && c.timestamp > 0);
 
-                    const ohlc = validCandles.map((c: any) => ({
-                        time: c.timestamp / 1000,
-                        open: c.open,
-                        high: c.high,
-                        low: c.low,
-                        close: c.close
-                    }));
+                    if (validCandles.length > 0) {
+                        // Detect and correct system clock/API time drift (e.g. system is set to the future, or API is stale)
+                        const lastApiTimestamp = validCandles[validCandles.length - 1].timestamp;
+                        const currentSystemTimestamp = Date.now();
+                        
+                        // If drift is larger than 1 day (86400000 ms), shift all timestamps to align the last candle with now
+                        const driftThreshold = 24 * 60 * 60 * 1000;
+                        const timeOffset = Math.abs(currentSystemTimestamp - lastApiTimestamp) > driftThreshold
+                            ? currentSystemTimestamp - lastApiTimestamp
+                            : 0;
 
-                    const volume = validCandles.map((c: any) => ({
-                        time: c.timestamp / 1000,
-                        value: c.volume,
-                        color: c.close >= c.open ? `${colors.success.DEFAULT}40` : `${colors.danger.DEFAULT}40`
-                    }));
+                        const ohlc = validCandles.map((c: any) => ({
+                            time: Math.floor((c.timestamp + timeOffset) / 1000),
+                            open: c.open,
+                            high: c.high,
+                            low: c.low,
+                            close: c.close
+                        }));
 
-                    setChartData({ ohlc, volume });
+                        const volume = validCandles.map((c: any) => ({
+                            time: Math.floor((c.timestamp + timeOffset) / 1000),
+                            value: c.volume,
+                            color: c.close >= c.open ? `${colors.success.DEFAULT}40` : `${colors.danger.DEFAULT}40`
+                        }));
+
+                        setChartData({ ohlc, volume });
+                    } else {
+                        throw new Error("No valid candles after filtering");
+                    }
                 } else {
                     throw new Error("No data returned");
                 }
@@ -386,6 +400,7 @@ export const ChartModal = ({ stock, onClose }: ChartModalProps) => {
                                 indicators={indicators}
                                 activeIndicators={activeIndicators}
                                 liveCandle={liveCandle}
+                                timeframe={timeframe}
                             />
                         ) : (
                             <div className="flex items-center justify-center h-full text-text-secondary">
@@ -407,6 +422,7 @@ export const ChartModal = ({ stock, onClose }: ChartModalProps) => {
                         <TradeAnalysis
                             analysis={analysisData}
                             isLoading={isLoadingAnalysis}
+                            minimal={true}
                         />
                     </div>
                 </div>

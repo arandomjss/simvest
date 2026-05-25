@@ -277,10 +277,27 @@ class TradingEngine {
     async handleBuyOrder(userId, symbol, instrumentKey, quantity, price, totalAmount, orderType, currentPrice, strategy, notes) {
         // 0. Market Hours Check
         if (!this.isMarketOpen()) {
+            const { error: orderError } = await supabase
+                .from('orders')
+                .insert({
+                    user_id: userId,
+                    symbol,
+                    instrument_key: instrumentKey,
+                    type: 'BUY',
+                    quantity,
+                    execution_price: price,
+                    total_amount: totalAmount,
+                    status: 'FAILED',
+                    strategy,
+                    notes: notes ? `${notes} (Rejected: Market Closed)` : 'Rejected: Market Closed'
+                });
+            
+            if (orderError) throw orderError;
+
             return {
-                success: false,
-                status: 'REJECTED',
-                message: 'Market is currently closed. Trading is allowed from 9:15 AM to 3:30 PM IST on weekdays.'
+                success: true,
+                status: 'FAILED',
+                message: `Buy Order for ${symbol} was rejected: Market is currently closed.`
             };
         }
 
@@ -385,10 +402,27 @@ class TradingEngine {
     async handleSellOrder(userId, symbol, instrumentKey, quantity, price, totalAmount, orderType, currentPrice, strategy, notes) {
         // 0. Market Hours Check
         if (!this.isMarketOpen()) {
+            const { error: orderError } = await supabase
+                .from('orders')
+                .insert({
+                    user_id: userId,
+                    symbol,
+                    instrument_key: instrumentKey,
+                    type: 'SELL',
+                    quantity,
+                    execution_price: price,
+                    total_amount: totalAmount,
+                    status: 'FAILED',
+                    strategy,
+                    notes: notes ? `${notes} (Rejected: Market Closed)` : 'Rejected: Market Closed'
+                });
+
+            if (orderError) throw orderError;
+
             return {
-                success: false,
-                status: 'REJECTED',
-                message: 'Market is currently closed. Trading is allowed from 9:15 AM to 3:30 PM IST on weekdays.'
+                success: true,
+                status: 'FAILED',
+                message: `Sell Order for ${symbol} was rejected: Market is currently closed.`
             };
         }
 

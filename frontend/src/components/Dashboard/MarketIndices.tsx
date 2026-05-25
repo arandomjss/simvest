@@ -58,6 +58,19 @@ export const MarketIndices = ({ onIndexClick }: MarketIndicesProps) => {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
+    const isMarketOpen = () => {
+        const now = new Date();
+        const day = now.getDay();
+        if (day === 0 || day === 6) return false;
+        
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        const timeVal = hours * 60 + minutes;
+        
+        // NSE/BSE: 9:15 AM (555) to 3:30 PM (930)
+        return timeVal >= 555 && timeVal <= 930;
+    };
+
     const fetchIndices = async (silent = false) => {
         if (!silent) setIsLoading(true);
         else setIsRefreshing(true);
@@ -107,10 +120,17 @@ export const MarketIndices = ({ onIndexClick }: MarketIndicesProps) => {
                 <div className="flex items-center gap-2">
                     <Activity className="w-4 h-4 text-primary" />
                     <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Market Indices</span>
-                    <span className="flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse inline-block" />
-                        LIVE
-                    </span>
+                    {isMarketOpen() ? (
+                        <span className="flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse inline-block" />
+                            LIVE
+                        </span>
+                    ) : (
+                        <span className="flex items-center gap-1 text-[10px] text-gray-500 dark:text-gray-400 font-semibold bg-gray-50 dark:bg-slate-850 px-2 py-0.5 rounded-full border border-gray-200 dark:border-slate-700">
+                            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full inline-block" />
+                            OFFLINE
+                        </span>
+                    )}
                 </div>
                 <div className="flex items-center gap-2 text-[10px] text-gray-400">
                     {lastUpdated && (
@@ -144,11 +164,11 @@ export const MarketIndices = ({ onIndexClick }: MarketIndicesProps) => {
                             key={index.symbol}
                             onClick={() => onIndexClick?.({ ...index, ltp: index.price, instrumentKey: index.instrumentKey || `NSE_EQ|${index.symbol}` })}
                             className={`
-                                relative bg-white dark:bg-slate-800 rounded-xl border overflow-hidden transition-all duration-200 p-4
+                                relative bg-white dark:bg-slate-800 rounded-xl border overflow-hidden p-4
                                 ${isPositive
                                     ? 'border-emerald-100 dark:border-emerald-900/30'
                                     : 'border-red-100 dark:border-red-900/30'}
-                                ${onIndexClick ? 'cursor-pointer hover:shadow-md hover:scale-[1.01]' : ''}
+                                ${onIndexClick ? 'cursor-pointer hover:bg-gray-50/50 dark:hover:bg-slate-700/30' : ''}
                             `}
                         >
                             {/* Subtle background glow */}
