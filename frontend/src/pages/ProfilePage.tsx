@@ -11,7 +11,7 @@ import toast from 'react-hot-toast';
 export const ProfilePage = () => {
     const navigate = useNavigate();
     const { user, signOut, checkAuth } = useAuthStore();
-    const { portfolio, orders, fetchPortfolio, fetchOrders, isPortfolioLoading } = usePortfolioStore();
+    const { portfolio, orders, fetchPortfolio, fetchOrders } = usePortfolioStore();
     const { isConnected: upstoxConnected, connect: connectUpstox, disconnect: disconnectUpstox } = useUpstoxStore();
     const { theme, setTheme } = useThemeStore();
 
@@ -33,10 +33,7 @@ export const ProfilePage = () => {
     const [leaderboardVisibility, setLeaderboardVisibility] = useState(userMetadata.leaderboard_visibility !== false);
     const [notificationPreferences, setNotificationPreferences] = useState(userMetadata.notification_preferences !== false);
 
-    // 4. Verification Checkbox states
-    const termsAccepted = userMetadata.terms_accepted !== false;
-    const privacyPolicyAccepted = userMetadata.privacy_policy_accepted !== false;
-    const disclaimerAccepted = userMetadata.disclaimer_accepted !== false;
+    // 4. Verification Checkbox states (values available via `userMetadata` if needed)
 
     // Editable State Toggles
     const [isEditingIdentity, setIsEditingIdentity] = useState(false);
