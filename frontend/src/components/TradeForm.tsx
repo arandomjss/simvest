@@ -83,9 +83,11 @@ export const TradeForm = ({ stock, initialSide = 'BUY', onSuccess, onCancel }: T
             setShowConfirmation(false);
             setOrderSuccess(true);
 
-            setTimeout(() => {
-                handleSuccessClose();
-            }, 2000);
+            if (result && result.status !== 'FAILED') {
+                setTimeout(() => {
+                    handleSuccessClose();
+                }, 2000);
+            }
 
         } catch (error: any) {
             console.error('Trade failed:', error);

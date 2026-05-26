@@ -8,6 +8,7 @@ const AdvisorPage = lazy(() => import('./pages/AdvisorPage').then(m => ({ defaul
 const OrdersPage = lazy(() => import('./pages/OrdersPage').then(m => ({ default: m.OrdersPage })));
 const JournalPage = lazy(() => import('./pages/JournalPage').then(m => ({ default: m.JournalPage })));
 const DemoPage = lazy(() => import('./pages/DemoPage').then(m => ({ default: m.DemoPage })));
+const ProfilePage = lazy(() => import('./pages/ProfilePage').then(m => ({ default: m.ProfilePage })));
 
 import { LoginPage } from './pages/LoginPage';
 import { LandingPage } from './pages/LandingPage';
@@ -81,6 +82,7 @@ const App = () => {
                             <Route path="/journal" element={<JournalPage />} />
                             <Route path="/practice" element={<PracticePage />} />
                             <Route path="/advisor" element={<AdvisorPage />} />
+                            <Route path="/profile" element={<ProfilePage />} />
                         </Route>
 
                         {/* Fallback */}

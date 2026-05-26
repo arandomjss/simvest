@@ -1,4 +1,5 @@
 import { Order } from '../../types';
+import { History } from 'lucide-react';
 
 interface RecentActivityProps {
     orders: Order[];
@@ -14,7 +15,8 @@ export const RecentActivity = ({ orders }: RecentActivityProps) => {
         <div className="glass-card h-full flex flex-col overflow-hidden">
             <div className="p-3 border-b border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700/30 flex justify-between items-center">
                 <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
-                    <span>⚡</span> Recent Activity
+                    <History size={14} className="text-primary animate-pulse" />
+                    <span>Recent Activity</span>
                 </h3>
                 <button className="text-xs text-blue-600 dark:text-blue-400 hover:underline">View All</button>
             </div>
@@ -40,7 +42,13 @@ export const RecentActivity = ({ orders }: RecentActivityProps) => {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <div className={`text-xs font-bold ${order.status === 'EXECUTED' ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'}`}>
+                                    <div className={`text-xs font-bold ${
+                                        order.status === 'EXECUTED'
+                                            ? 'text-green-600 dark:text-green-400'
+                                            : order.status === 'FAILED'
+                                                ? 'text-red-600 dark:text-red-400'
+                                                : 'text-gray-600 dark:text-gray-400'
+                                    }`}>
                                         {order.status}
                                     </div>
                                     <div className="text-[10px] text-gray-500 dark:text-gray-400">

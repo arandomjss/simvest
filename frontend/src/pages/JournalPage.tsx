@@ -233,7 +233,7 @@ export const JournalPage = () => {
     return (
         <div className="h-screen bg-gray-50 dark:bg-slate-900 flex flex-col overflow-hidden text-gray-900 dark:text-white">
             {/* Navbar */}
-            <div className="flex-none z-30 relative bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
+            <div className="flex-none">
                 <Navbar />
             </div>
 

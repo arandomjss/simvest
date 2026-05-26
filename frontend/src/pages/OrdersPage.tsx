@@ -17,12 +17,12 @@ export const OrdersPage = () => {
     return (
         <div className="h-screen bg-gray-50 dark:bg-slate-900 flex flex-col overflow-hidden text-gray-900 dark:text-white">
             {/* Top Navigation */}
-            <div className="flex-none z-30 relative">
+            <div className="flex-none">
                 <Navbar />
             </div>
 
             {/* Status Bar (Portfolio Metrics) - Consistent with Dashboard */}
-            <div className="flex-none z-20 relative">
+            <div className="flex-none">
                 <PortfolioStrip portfolio={portfolio} />
             </div>
 

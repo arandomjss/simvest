@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StockChart } from './StockChart';
 import { TradeAnalysis, DeepAnalysisData } from './TradeAnalysis';
@@ -13,7 +13,8 @@ import {
 import { Stock } from '../types';
 import { colors } from '../styles/colors';
 import { useWatchlistStore } from '../stores/watchlistStore';
-import { Star } from 'lucide-react';
+import { Star, ChevronDown, CandlestickChart, BarChart3, LineChart, AreaChart, TrendingUp } from 'lucide-react';
+import { IndicatorsDropdown } from './IndicatorsDropdown';
 
 interface ChartModalProps {
     stock: Stock;
@@ -23,7 +24,20 @@ interface ChartModalProps {
 export const ChartModal = ({ stock, onClose }: ChartModalProps) => {
     const navigate = useNavigate();
     const [timeframe, setTimeframe] = useState<Timeframe>('1M');
-    const [chartType, setChartType] = useState<'candlestick' | 'line'>('candlestick');
+    const [chartType, setChartType] = useState<'candlestick' | 'line' | 'area' | 'bar' | 'baseline' | 'renko' | 'pointAndFigure'>('candlestick');
+    const [isChartTypeOpen, setIsChartTypeOpen] = useState(false);
+    const chartTypeRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (chartTypeRef.current && !chartTypeRef.current.contains(event.target as Node)) {
+                setIsChartTypeOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     const [chartData, setChartData] = useState<{
         ohlc: any[];
         volume: any[];
@@ -338,53 +352,69 @@ export const ChartModal = ({ stock, onClose }: ChartModalProps) => {
                             ))}
                         </div>
 
-                        {/* Chart Type Toggle */}
-                        <div className="flex space-x-1 bg-surface rounded p-1">
+                        {/* Chart Style Selector Dropdown */}
+                        <div className="relative" ref={chartTypeRef}>
                             <button
-                                onClick={() => setChartType('candlestick')}
-                                className={`px-3 py-1.5 text-sm font-medium rounded transition ${chartType === 'candlestick'
-                                    ? 'bg-primary text-white'
-                                    : 'text-text-secondary hover:bg-surface-hover'
-                                    }`}
-                                title="Candlestick Chart"
+                                onClick={() => setIsChartTypeOpen(!isChartTypeOpen)}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all duration-200 ${
+                                    isChartTypeOpen
+                                        ? 'bg-primary/10 text-primary border-primary/30'
+                                        : 'bg-white dark:bg-slate-800 text-text-secondary border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:border-gray-300 dark:hover:border-slate-600'
+                                }`}
+                                title="Select Chart Style"
                             >
-                                📊 Candles
+                                <span className="text-primary flex items-center justify-center">
+                                    {chartType === 'candlestick' && <CandlestickChart size={13} />}
+                                    {chartType === 'bar' && <BarChart3 size={13} />}
+                                    {chartType === 'line' && <LineChart size={13} />}
+                                    {chartType === 'area' && <AreaChart size={13} />}
+                                    {chartType === 'baseline' && <TrendingUp size={13} />}
+                                </span>
+                                <span className="capitalize text-[11px] font-bold">
+                                    {chartType === 'candlestick' ? 'Candles' : chartType === 'bar' ? 'Bars' : chartType === 'pointAndFigure' ? 'Point & Figure' : chartType}
+                                </span>
+                                <ChevronDown size={10} className={`opacity-60 transition-transform duration-200 ${isChartTypeOpen ? 'rotate-180' : ''}`} />
                             </button>
-                            <button
-                                onClick={() => setChartType('line')}
-                                className={`px-3 py-1.5 text-sm font-medium rounded transition ${chartType === 'line'
-                                    ? 'bg-primary text-white'
-                                    : 'text-text-secondary hover:bg-surface-hover'
-                                    }`}
-                                title="Line Chart"
-                            >
-                                📈 Line
-                            </button>
+                            {isChartTypeOpen && (
+                                <div className="absolute right-0 mt-2 w-44 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-gray-200 dark:border-slate-700 rounded-xl shadow-xl z-50 py-1 overflow-hidden">
+                                    {[
+                                        { id: 'candlestick', label: 'Candlestick', icon: <CandlestickChart size={12} /> },
+                                        { id: 'bar', label: 'OHLC Bars', icon: <BarChart3 size={12} /> },
+                                        { id: 'line', label: 'Line Chart', icon: <LineChart size={12} /> },
+                                        { id: 'area', label: 'Area Chart', icon: <AreaChart size={12} /> },
+                                        { id: 'baseline', label: 'Baseline', icon: <TrendingUp size={12} /> },
+                                        { id: 'renko', label: 'Renko', icon: <BarChart3 size={12} /> },
+                                        { id: 'pointAndFigure', label: 'Point & Figure', icon: <TrendingUp size={12} /> }
+                                    ].map((style) => (
+                                        <button
+                                            key={style.id}
+                                            onClick={() => {
+                                                setChartType(style.id as any);
+                                                setIsChartTypeOpen(false);
+                                            }}
+                                            className={`w-full flex items-center gap-2 px-3 py-2 text-left text-xs transition-colors ${
+                                                chartType === style.id
+                                                    ? 'bg-primary/10 text-primary font-bold'
+                                                    : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800/50'
+                                            }`}
+                                        >
+                                            <span className={chartType === style.id ? 'text-primary flex items-center' : 'text-gray-400 dark:text-gray-500 flex items-center'}>
+                                                {style.icon}
+                                            </span>
+                                            <span>{style.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
 
                     {/* Indicator Toggles */}
-                    <div className="flex items-center space-x-2 flex-wrap gap-2">
-                        <span className="text-xs text-text-secondary font-medium">Indicators:</span>
-
-                        {/* Moving Averages */}
-                        {['SMA20', 'SMA50', 'SMA200', 'EMA12', 'EMA26'].map(ind => (
-                            <button
-                                key={ind}
-                                onClick={() => toggleIndicator(ind)}
-                                className={`px-2 py-1 text-xs font-medium rounded transition ${activeIndicators.includes(ind)
-                                    ? 'bg-primary text-white'
-                                    : 'bg-surface text-text-secondary hover:bg-surface-hover'
-                                    }`}
-                            >
-                                {ind}
-                            </button>
-                        ))}
-
-                        <div className="border-l border-border h-6 mx-1" />
-
-                        {/* Oscillators */}
-
+                    <div className="flex items-center space-x-2">
+                        <IndicatorsDropdown
+                            activeIndicators={activeIndicators}
+                            onToggleIndicator={toggleIndicator}
+                        />
                     </div>
                 </div>
 

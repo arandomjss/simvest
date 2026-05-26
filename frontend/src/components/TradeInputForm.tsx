@@ -25,7 +25,6 @@ export const TradeInputForm = ({
     stock,
     side,
     quantity,
-    orderType,
     limitPrice,
     total,
     balance,
@@ -34,7 +33,6 @@ export const TradeInputForm = ({
     notes,
     onSideChange,
     onQuantityChange,
-    onOrderTypeChange,
     onLimitPriceChange,
     onStrategyChange,
     onNotesChange,
@@ -65,34 +63,6 @@ export const TradeInputForm = ({
                 </button>
             </div>
 
-            {/* Order Type Toggle */}
-            <div className="flex space-x-4 mb-4 border-b border-gray-100 dark:border-slate-800 pb-2">
-                <label className="flex items-center gap-2 cursor-pointer group">
-                    <div className={`w-3 h-3 rounded-full border flex items-center justify-center ${orderType === 'LIMIT' ? 'border-primary' : 'border-gray-300'}`}>
-                        {orderType === 'LIMIT' && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
-                    </div>
-                    <input
-                        type="radio"
-                        className="hidden"
-                        checked={orderType === 'LIMIT'}
-                        onChange={() => onOrderTypeChange('LIMIT')}
-                    />
-                    <span className={`text-xs font-bold ${orderType === 'LIMIT' ? 'text-gray-900 dark:text-white' : 'text-gray-400 group-hover:text-gray-600'}`}>Limit</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer group">
-                    <div className={`w-3 h-3 rounded-full border flex items-center justify-center ${orderType === 'MARKET' ? 'border-primary' : 'border-gray-300'}`}>
-                        {orderType === 'MARKET' && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
-                    </div>
-                    <input
-                        type="radio"
-                        className="hidden"
-                        checked={orderType === 'MARKET'}
-                        onChange={() => onOrderTypeChange('MARKET')}
-                    />
-                    <span className={`text-xs font-bold ${orderType === 'MARKET' ? 'text-gray-900 dark:text-white' : 'text-gray-400 group-hover:text-gray-600'}`}>Market</span>
-                </label>
-            </div>
-
             {/* Main Inputs Grid */}
             <div className="grid grid-cols-2 gap-3 mb-2">
                 {/* Quantity */}
@@ -119,12 +89,11 @@ export const TradeInputForm = ({
                         <input
                             type="number"
                             step="0.05"
-                            value={orderType === 'MARKET' ? (stock.ltp !== undefined && stock.ltp > 0 ? stock.ltp : '') : (limitPrice === 0 ? '' : limitPrice)}
-                            disabled={orderType === 'MARKET'}
+                            value={limitPrice === 0 ? '' : limitPrice}
                             onChange={(e) => onLimitPriceChange(parseFloat(e.target.value) || 0)}
                             onFocus={(e) => e.target.select()}
-                            placeholder={orderType === 'MARKET' ? "MKT" : "0.00"}
-                            className={`w-full pl-6 pr-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-mono font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all ${orderType === 'MARKET' ? 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-slate-800/50' : ''}`}
+                            placeholder="0.00"
+                            className="w-full pl-6 pr-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-mono font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                         />
                     </div>
                 </div>

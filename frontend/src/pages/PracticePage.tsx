@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Navbar } from '../components/Navbar';
 import { TradeForm } from '../components/TradeForm';
@@ -14,6 +14,8 @@ import {
 } from '../services/technicalIndicators';
 import { StockSelector } from '../components/StockSelector';
 import { apiService } from '../services/api';
+import { IndicatorsDropdown } from '../components/IndicatorsDropdown';
+import { ChevronDown, CandlestickChart, BarChart3, LineChart, AreaChart, TrendingUp } from 'lucide-react';
 
 export const PracticePage = () => {
     const [searchParams] = useSearchParams();
@@ -41,8 +43,20 @@ export const PracticePage = () => {
 
     // Chart State
     const [timeframe, setTimeframe] = useState<Timeframe>('1D');
-    const [chartType] = useState<'candlestick' | 'line'>('candlestick');
-    
+    const [chartType, setChartType] = useState<'candlestick' | 'line' | 'area' | 'bar' | 'baseline' | 'renko' | 'pointAndFigure'>('candlestick');
+    const [isChartTypeOpen, setIsChartTypeOpen] = useState(false);
+    const chartTypeRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (chartTypeRef.current && !chartTypeRef.current.contains(event.target as Node)) {
+                setIsChartTypeOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     interface CandleData { timestamp: number; open: number; high: number; low: number; close: number; volume: number; }
     
     const [chartData, setChartData] = useState<{ ohlc: OHLCData[]; volume: VolumeData[] }>({ ohlc: [], volume: [] });
@@ -195,7 +209,9 @@ export const PracticePage = () => {
 
     return (
         <div className="h-screen bg-gray-50 dark:bg-slate-900 flex flex-col overflow-hidden">
-            <Navbar />
+            <div className="flex-none">
+                <Navbar />
+            </div>
 
             <div className="flex-1 flex overflow-hidden">
                 {/* LEFT PANEL: CHART & TOOLS (65%) */}
@@ -240,36 +256,86 @@ export const PracticePage = () => {
                         </div>
 
                         {/* Chart Tools */}
-                        <div className="flex items-center space-x-2">
-                            {['1D', '1W', '1M', '3M', '1Y'].map((tf: any) => (
+                        <div className="flex items-center space-x-3">
+                            {/* Timeframe Segment */}
+                            <div className="flex items-center bg-gray-100 dark:bg-slate-800/80 p-0.5 rounded-lg border border-gray-200 dark:border-slate-700/50">
+                                {['1D', '1W', '1M', '3M', '1Y'].map((tf: any) => (
+                                    <button
+                                        key={tf}
+                                        onClick={() => setTimeframe(tf)}
+                                        className={`px-2.5 py-1 text-[10px] uppercase font-bold rounded-md transition-all duration-150 ${
+                                            timeframe === tf
+                                                ? 'bg-white dark:bg-slate-700 text-primary shadow-sm'
+                                                : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
+                                        }`}
+                                    >
+                                        {tf}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="h-4 w-px bg-border"></div>
+
+                            {/* Chart Style Selector Dropdown */}
+                            <div className="relative" ref={chartTypeRef}>
                                 <button
-                                    key={tf}
-                                    onClick={() => setTimeframe(tf)}
-                                    className={`px-3 py-1 text-xs font-medium rounded transition ${timeframe === tf ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-hover'}`}
+                                    onClick={() => setIsChartTypeOpen(!isChartTypeOpen)}
+                                    className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-all duration-200 ${
+                                        isChartTypeOpen
+                                            ? 'bg-primary/10 text-primary border-primary/30'
+                                            : 'bg-white dark:bg-slate-800 text-text-secondary border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 hover:border-gray-300 dark:hover:border-slate-600'
+                                    }`}
+                                    title="Select Chart Style"
                                 >
-                                    {tf}
+                                    <span className="text-primary flex items-center justify-center">
+                                        {chartType === 'candlestick' && <CandlestickChart size={13} />}
+                                        {chartType === 'bar' && <BarChart3 size={13} />}
+                                        {chartType === 'line' && <LineChart size={13} />}
+                                        {chartType === 'area' && <AreaChart size={13} />}
+                                        {chartType === 'baseline' && <TrendingUp size={13} />}
+                                    </span>
+                                    <span className="capitalize text-[10px] font-bold">
+                                        {chartType === 'candlestick' ? 'Candles' : chartType === 'bar' ? 'Bars' : chartType === 'pointAndFigure' ? 'Point & Figure' : chartType}
+                                    </span>
+                                    <ChevronDown size={10} className={`opacity-60 transition-transform duration-200 ${isChartTypeOpen ? 'rotate-180' : ''}`} />
                                 </button>
-                            ))}
-                            <div className="h-4 w-px bg-border mx-2"></div>
-                            {['SMA20', 'SMA50', 'EMA12', 'BB'].map(ind => (
-                                <button
-                                    key={ind}
-                                    onClick={() => toggleIndicator(ind)}
-                                    className={`px-2 py-1 text-xs font-medium rounded border ${activeIndicators.includes(ind) ? 'bg-primary/10 text-primary border-primary/20' : 'bg-transparent text-text-secondary border-transparent hover:border-border'}`}
-                                >
-                                    {ind}
-                                </button>
-                            ))}
-                            <div className="h-4 w-px bg-border mx-2"></div>
-                            {['RSI', 'MACD'].map(ind => (
-                                <button
-                                    key={ind}
-                                    onClick={() => toggleIndicator(ind)}
-                                    className={`px-2 py-1 text-xs font-medium rounded border ${activeIndicators.includes(ind) ? 'bg-purple-500/10 text-purple-500 border-purple-500/20' : 'bg-transparent text-text-secondary border-transparent hover:border-border'}`}
-                                >
-                                    {ind}
-                                </button>
-                            ))}
+                                {isChartTypeOpen && (
+                                    <div className="absolute right-0 mt-2 w-44 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-gray-200 dark:border-slate-700 rounded-xl shadow-xl z-50 py-1 overflow-hidden">
+                                        {[
+                                            { id: 'candlestick', label: 'Candlestick', icon: <CandlestickChart size={12} /> },
+                                            { id: 'bar', label: 'OHLC Bars', icon: <BarChart3 size={12} /> },
+                                            { id: 'line', label: 'Line Chart', icon: <LineChart size={12} /> },
+                                            { id: 'area', label: 'Area Chart', icon: <AreaChart size={12} /> },
+                                            { id: 'baseline', label: 'Baseline', icon: <TrendingUp size={12} /> },
+                                            { id: 'renko', label: 'Renko', icon: <BarChart3 size={12} /> },
+                                            { id: 'pointAndFigure', label: 'Point & Figure', icon: <TrendingUp size={12} /> }
+                                        ].map((style) => (
+                                            <button
+                                                key={style.id}
+                                                onClick={() => {
+                                                    setChartType(style.id as any);
+                                                    setIsChartTypeOpen(false);
+                                                }}
+                                                className={`w-full flex items-center gap-2 px-3 py-2 text-left text-xs transition-colors ${
+                                                    chartType === style.id
+                                                        ? 'bg-primary/10 text-primary font-bold'
+                                                        : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800/50'
+                                                }`}
+                                            >
+                                                <span className={chartType === style.id ? 'text-primary flex items-center' : 'text-gray-400 dark:text-gray-500 flex items-center'}>
+                                                    {style.icon}
+                                                </span>
+                                                <span>{style.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="h-4 w-px bg-border"></div>
+                            <IndicatorsDropdown
+                                activeIndicators={activeIndicators}
+                                onToggleIndicator={toggleIndicator}
+                            />
                         </div>
                     </div>
 

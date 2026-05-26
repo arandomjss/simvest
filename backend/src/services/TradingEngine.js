@@ -195,10 +195,11 @@ class TradingEngine {
                 const diff = roundCurrency((order.execution_price * order.quantity) - totalAmount);
 
                 if (diff > 0) {
-                    await supabase
-                        .from('profiles')
-                        .update({ virtual_balance: supabase.raw('virtual_balance + ?', [diff]) })
-                        .eq('id', order.user_id);
+                    const { error: adjustError } = await supabase.rpc('adjust_balance', {
+                        p_user_id: order.user_id,
+                        p_amount: diff
+                    });
+                    if (adjustError) console.error("❌ Failed to adjust balance on BUY execution refund:", adjustError);
                 }
 
                 // Grant Shares
@@ -214,11 +215,13 @@ class TradingEngine {
             } else if (order.type === 'SELL') {
                 // For SELL, shares were already deducted when order was placed.
                 // We just grant the cash (totalAmount).
-                await supabase
-                    .from('profiles')
-                    .update({ virtual_balance: supabase.raw('virtual_balance + ?', [totalAmount]) })
-                    .eq('id', order.user_id);
+                const { error: adjustError } = await supabase.rpc('adjust_balance', {
+                    p_user_id: order.user_id,
+                    p_amount: totalAmount
+                });
+                if (adjustError) console.error("❌ Failed to credit balance on SELL execution:", adjustError);
             }
+
 
         } catch (error) {
             console.error(`❌ Failed to execute pending order #${order.id}:`, error.message);
@@ -301,21 +304,18 @@ class TradingEngine {
             };
         }
 
-               // 1 + 2. Atomically check AND deduct balance in a single SQL statement.
+        // 1 + 2. Atomically check AND deduct balance in a single SQL statement.
         // BUG-003 fix: The old SELECT-then-UPDATE pattern was a race condition — two concurrent
         // requests could both read the same balance, both pass the check, and both deduct.
-        // This single UPDATE with WHERE virtual_balance >= totalAmount is atomic at the DB level.
-        const { data: updatedProfile, error: balanceError } = await supabase
-            .from('profiles')
-            .update({ virtual_balance: supabase.raw('virtual_balance - ?', [totalAmount]) })
-            .eq('id', userId)
-            .gte('virtual_balance', totalAmount)   // Only updates if sufficient balance exists
-            .select('virtual_balance')
-            .maybeSingle();
+        // The deduct_balance RPC with internal WHERE clause is atomic at the DB level.
+        const { data: newBalanceVal, error: balanceError } = await supabase.rpc('deduct_balance', {
+            p_user_id: userId,
+            p_amount: totalAmount
+        });
 
         if (balanceError) throw balanceError;
 
-        if (!updatedProfile) {
+        if (newBalanceVal === null) {
             // Either profile doesn't exist or balance was insufficient (race condition blocked)
             // Distinguish between missing profile and insufficient balance
             const { data: profile } = await supabase
@@ -328,7 +328,7 @@ class TradingEngine {
             throw new Error('Insufficient virtual balance');
         }
 
-        const newBalance = parseFloat(updatedProfile.virtual_balance);
+        const newBalance = parseFloat(newBalanceVal);
 
         // 3. Check Execution
         // If MARKET: Execute Immediately
@@ -351,10 +351,11 @@ class TradingEngine {
             // Refund the difference immediately since we blocked 'price' but executed at 'currentPrice'
             const diff = roundCurrency((price * quantity) - (finalExecPrice * quantity));
             if (diff > 0) {
-                await supabase
-                    .from('profiles')
-                    .update({ virtual_balance: roundCurrency(newBalance + diff) })
-                    .eq('id', userId);
+                const { error: refundError } = await supabase.rpc('adjust_balance', {
+                    p_user_id: userId,
+                    p_amount: diff
+                });
+                if (refundError) console.error("❌ Failed to adjust balance for immediate BUY refund:", refundError);
             }
         }
 
@@ -426,29 +427,37 @@ class TradingEngine {
             };
         }
 
-        // 1 + 2. Atomically check AND deduct holdings to prevent Double Spending
-        const { data: updatedHolding, error: holdingError } = await supabase
+        // 1. Fetch holding first to get original average price and verify ownership
+        const { data: holding, error: fetchHoldingError } = await supabase
             .from('holdings')
-            .update({ quantity: supabase.raw('quantity - ?', [quantity]) })
+            .select('quantity, avg_price')
             .eq('user_id', userId)
             .eq('instrument_key', instrumentKey)
-            .gte('quantity', quantity) // Only updates if sufficient shares exist
-            .select()
             .maybeSingle();
+
+        if (fetchHoldingError) throw fetchHoldingError;
+
+        if (!holding) {
+            throw new Error('You do not own this stock');
+        }
+
+        if (holding.quantity < quantity) {
+            throw new Error(`Insufficient holdings. You own ${holding.quantity}`);
+        }
+
+        const originalAvgPrice = parseFloat(holding.avg_price);
+
+        // 2. Atomically check AND deduct holdings to prevent Double Spending
+        const { data: deductResult, error: holdingError } = await supabase.rpc('deduct_holding', {
+            p_user_id: userId,
+            p_instrument_key: instrumentKey,
+            p_quantity: quantity
+        });
 
         if (holdingError) throw holdingError;
         
-        if (!updatedHolding) {
-            // Either holding doesn't exist or quantity was insufficient (race condition blocked)
-            const { data: holding } = await supabase
-                .from('holdings')
-                .select('quantity')
-                .eq('user_id', userId)
-                .eq('instrument_key', instrumentKey)
-                .maybeSingle();
-
-            if (!holding) throw new Error('You do not own this stock');
-            throw new Error(`Insufficient holdings. You own ${holding.quantity}`);
+        if (!deductResult) {
+            throw new Error('Insufficient holdings or transaction race condition');
         }
 
         // 3. Execution Check
@@ -470,13 +479,18 @@ class TradingEngine {
             // Atomic Cash Addition
             const realTotalAmount = roundCurrency(finalExecPrice * quantity);
 
-            await supabase
-                .from('profiles')
-                .update({ virtual_balance: supabase.raw('virtual_balance + ?', [realTotalAmount]) })
-                .eq('id', userId);
+            const { error: adjustError } = await supabase.rpc('adjust_balance', {
+                p_user_id: userId,
+                p_amount: realTotalAmount
+            });
+            if (adjustError) console.error("❌ Failed to adjust balance on SELL execution:", adjustError);
         }
 
-        // 4. Create Order Record
+        // 4. Create Order Record - Include original avg price in notes metadata for cancellation restoration
+        const extendedNotes = notes 
+            ? `${notes} (original_avg_price:${originalAvgPrice})` 
+            : `original_avg_price:${originalAvgPrice}`;
+
         const { error: orderError } = await supabase
             .from('orders')
             .insert({
@@ -489,7 +503,7 @@ class TradingEngine {
                 total_amount: roundCurrency(finalExecPrice * quantity),
                 status: status,
                 strategy,
-                notes
+                notes: extendedNotes
             });
 
         if (orderError) throw orderError;
@@ -621,20 +635,33 @@ class TradingEngine {
             // 3. Refund Logic
             if (order.type === 'BUY') {
                 // Atomic Refund Balance
-                await supabase
-                    .from('profiles')
-                    .update({ virtual_balance: supabase.raw('virtual_balance + ?', [order.total_amount]) })
-                    .eq('id', userId);
+                const { error: adjustError } = await supabase.rpc('adjust_balance', {
+                    p_user_id: userId,
+                    p_amount: order.total_amount
+                });
+                if (adjustError) console.error("❌ Failed to refund balance on BUY cancel:", adjustError);
 
                 console.log(`   💰 Refunded ₹${order.total_amount} to balance`);
 
             } else if (order.type === 'SELL') {
-                // Atomic Return Holdings
-                await supabase
-                    .from('holdings')
-                    .update({ quantity: supabase.raw('quantity + ?', [order.quantity]) })
-                    .eq('user_id', userId)
-                    .eq('instrument_key', order.instrument_key);
+                // Atomic Return Holdings using the return_holding RPC
+                let originalAvgPrice = order.execution_price; // Fallback
+                if (order.notes) {
+                    const match = order.notes.match(/original_avg_price:([0-9.]+)/);
+                    if (match) {
+                        originalAvgPrice = parseFloat(match[1]);
+                    }
+                }
+
+                const { error: returnError } = await supabase.rpc('return_holding', {
+                    p_user_id: userId,
+                    p_symbol: order.symbol,
+                    p_instrument_key: order.instrument_key,
+                    p_quantity: order.quantity,
+                    p_avg_price: originalAvgPrice
+                });
+                if (returnError) console.error("❌ Failed to return holding on SELL cancel:", returnError);
+
                 console.log(`   📦 Returned ${order.quantity} shares to holdings`);
             }
 

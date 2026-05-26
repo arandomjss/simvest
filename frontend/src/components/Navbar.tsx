@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { useUpstoxStore } from '../stores/upstoxStore';
 import { useThemeStore } from '../stores/themeStore';
+import { useMarketStore } from '../stores/marketStore';
 import {
     LayoutDashboard,
     BookOpen,
@@ -24,12 +25,50 @@ interface NavbarProps {
     customSearch?: React.ReactNode;
 }
 
-export const Navbar = ({ showSearch = false, searchTerm = '', onSearchChange, customSearch }: NavbarProps) => {
+export const Navbar = ({ showSearch = true, searchTerm = '', onSearchChange, customSearch }: NavbarProps) => {
     const navigate = useNavigate();
     const location = useLocation();
     const { user, signOut } = useAuthStore();
     const { isConnected: upstoxConnected, connect: connectUpstox, disconnect: disconnectUpstox } = useUpstoxStore();
     const { theme, toggleTheme } = useThemeStore();
+    const { stocks } = useMarketStore();
+
+    // Local search states for pages without parent states
+    const [localSearch, setLocalSearch] = React.useState('');
+    const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+    const searchRef = React.useRef<HTMLDivElement>(null);
+
+    const activeSearchTerm = onSearchChange ? searchTerm : localSearch;
+    const handleSearchChange = (val: string) => {
+        if (onSearchChange) {
+            onSearchChange(val);
+        } else {
+            setLocalSearch(val);
+        }
+    };
+
+    // Close dropdown on click outside
+    React.useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    // Filter stocks for the dropdown list
+    const filteredStocks = React.useMemo(() => {
+        if (!activeSearchTerm.trim()) {
+            return stocks.slice(0, 5); // Default quick jump items
+        }
+        const q = activeSearchTerm.toLowerCase();
+        return stocks.filter(s =>
+            s.symbol.toLowerCase().includes(q) ||
+            (s.name || '').toLowerCase().includes(q)
+        ).slice(0, 8);
+    }, [stocks, activeSearchTerm]);
 
     const handleSignOut = async () => {
         await signOut();
@@ -109,23 +148,69 @@ export const Navbar = ({ showSearch = false, searchTerm = '', onSearchChange, cu
                         )}
 
                         {/* Default Search */}
-                        {!customSearch && showSearch && onSearchChange && (
-                            <div className="relative group hidden md:block w-72">
+                        {!customSearch && showSearch && (
+                            <div className="relative group hidden md:block w-72" ref={searchRef}>
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400 group-focus-within:text-primary transition-colors" />
                                 <input
                                     type="text"
-                                    value={searchTerm}
-                                    onChange={(e) => onSearchChange(e.target.value)}
-                                    className="w-full h-10 pl-10 pr-10 text-sm bg-gray-100 dark:bg-slate-800 border border-transparent focus:bg-white dark:focus:bg-slate-700 rounded-full focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                                    value={activeSearchTerm}
+                                    onChange={(e) => {
+                                        handleSearchChange(e.target.value);
+                                        setIsDropdownOpen(true);
+                                    }}
+                                    onFocus={() => setIsDropdownOpen(true)}
+                                    className="w-full h-10 pl-10 pr-10 text-sm bg-gray-100 dark:bg-slate-800 border border-transparent focus:bg-white dark:focus:bg-slate-700 rounded-full focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-gray-500 dark:placeholder:text-gray-400 text-gray-900 dark:text-white"
                                     placeholder="Search markets..."
                                 />
-                                {searchTerm && (
+                                {activeSearchTerm && (
                                     <button
-                                        onClick={() => onSearchChange('')}
+                                        onClick={() => {
+                                            handleSearchChange('');
+                                            setIsDropdownOpen(false);
+                                        }}
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                                     >
                                         <X className="w-3.5 h-3.5" />
                                     </button>
+                                )}
+
+                                {/* Suggestions Dropdown */}
+                                {isDropdownOpen && filteredStocks.length > 0 && (
+                                    <div className="absolute top-full left-0 mt-2 w-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <div className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 px-4 py-1 uppercase tracking-wider">
+                                            {activeSearchTerm ? 'Search Results' : 'Trending Items'}
+                                        </div>
+                                        <div className="max-h-72 overflow-y-auto custom-scrollbar px-1 mt-1">
+                                            {filteredStocks.map((stock) => (
+                                                <button
+                                                    key={stock.instrumentKey}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        handleSearchChange('');
+                                                        setIsDropdownOpen(false);
+                                                        navigate(`/practice?symbol=${stock.symbol}`);
+                                                    }}
+                                                    className="w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-slate-800/80 rounded-xl flex justify-between items-center transition-colors duration-150"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-300">
+                                                            {stock.symbol[0]}
+                                                        </div>
+                                                        <div className="overflow-hidden">
+                                                            <div className="font-semibold text-xs text-gray-900 dark:text-white truncate">{stock.symbol}</div>
+                                                            <div className="text-[10px] text-gray-500 dark:text-gray-400 truncate max-w-[140px]">{stock.name}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right shrink-0">
+                                                        <div className="font-mono text-xs font-semibold text-gray-900 dark:text-white">₹{stock.ltp?.toFixed(2)}</div>
+                                                        <div className={`text-[10px] font-semibold ${(stock.changePercent || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                                            {(stock.changePercent || 0).toFixed(2)}%
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         )}
@@ -165,11 +250,15 @@ export const Navbar = ({ showSearch = false, searchTerm = '', onSearchChange, cu
                         </div>
 
                         {/* Profile Avatar */}
-                        <div className="pl-2 border-l border-gray-200 dark:border-slate-700 ml-2">
-                            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-blue-500 flex items-center justify-center text-white text-sm font-bold shadow ring-2 ring-white dark:ring-slate-800 select-none cursor-default">
+                        <button
+                            onClick={() => navigate('/profile')}
+                            className="pl-2 border-l border-gray-200 dark:border-slate-700 ml-2 group focus:outline-none"
+                            title="View Profile"
+                        >
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-blue-500 flex items-center justify-center text-white text-sm font-bold shadow ring-2 ring-white dark:ring-slate-800 select-none transform transition-transform group-hover:scale-105">
                                 {user?.email?.[0].toUpperCase() || 'U'}
                             </div>
-                        </div>
+                        </button>
                     </div>
                 </div>
             </div>

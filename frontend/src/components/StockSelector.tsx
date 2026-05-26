@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, ChevronDown, Command } from 'lucide-react';
+import { Search, ChevronDown } from 'lucide-react';
 import { useMarketStore } from '../stores/marketStore';
 
 interface StockSelectorProps {
@@ -108,9 +108,6 @@ export const StockSelector = ({ selectedSymbol, onSelect }: StockSelectorProps) 
                 </div>
 
                 <div className="flex items-center gap-1">
-                    <kbd className="hidden md:inline-flex h-5 items-center gap-1 rounded border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 px-1.5 font-mono text-[10px] font-medium text-gray-500 dark:text-gray-400">
-                        <Command className="w-3 h-3" />K
-                    </kbd>
                     <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
             </button>
