@@ -109,7 +109,6 @@ export const ProfilePage = () => {
     const startingCapital = userMetadata.starting_capital !== undefined && userMetadata.starting_capital !== null ? userMetadata.starting_capital : 1000000;
     const currentBalance = portfolio?.cashBalance !== undefined && portfolio?.cashBalance !== null ? portfolio.cashBalance : 1000000;
     const portfolioValue = portfolio?.totalValue || 0;
-    const netWorth = portfolioValue + currentBalance;
     
     // Performance Statistics
     const totalPnL = portfolio?.totalPnL || 0;
