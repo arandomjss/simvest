@@ -9,6 +9,7 @@ const OrdersPage = lazy(() => import('./pages/OrdersPage').then(m => ({ default:
 const JournalPage = lazy(() => import('./pages/JournalPage').then(m => ({ default: m.JournalPage })));
 const DemoPage = lazy(() => import('./pages/DemoPage').then(m => ({ default: m.DemoPage })));
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then(m => ({ default: m.ProfilePage })));
+const OnboardingPage = lazy(() => import('./pages/OnboardingPage').then(m => ({ default: m.OnboardingPage })));
 
 import { LoginPage } from './pages/LoginPage';
 import { LandingPage } from './pages/LandingPage';
@@ -44,9 +45,8 @@ const App = () => {
             const themeData = JSON.parse(savedTheme);
             setTheme(themeData.state.theme);
         } else {
-            // Check system preference
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            setTheme(prefersDark ? 'dark' : 'light');
+            // Default to light mode on first load
+            setTheme('light');
         }
     }, [setTheme]);
 
@@ -65,17 +65,20 @@ const App = () => {
                     </div>
                 }>
                     <Routes>
-                        {/* Public-only Routes */}
-                        <Route element={<PublicRoute />}>
-                            <Route path="/" element={<LandingPage />} />
-                            <Route path="/login" element={<LoginPage />} />
-                            <Route path="/register" element={<RegisterPage />} />
-                        </Route>
+                        {/* Fully Public Routes */}
+                        <Route path="/" element={<LandingPage />} />
                         <Route path="/callback" element={<UpstoxCallbackPage />} />
                         <Route path="/demo" element={<DemoPage />} />
 
+                        {/* Public-only Routes (authenticated users redirected) */}
+                        <Route element={<PublicRoute />}>
+                            <Route path="/login" element={<LoginPage />} />
+                            <Route path="/register" element={<RegisterPage />} />
+                        </Route>
+
                         {/* Protected Routes */}
                         <Route element={<ProtectedRoute />}>
+                            <Route path="/onboarding" element={<OnboardingPage />} />
                             <Route path="/dashboard" element={<DashboardPage />} />
                             <Route path="/portfolio" element={<PortfolioPage />} />
                             <Route path="/orders" element={<OrdersPage />} />

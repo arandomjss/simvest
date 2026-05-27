@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-    const { isAuthenticated, isLoading, checkAuth } = useAuthStore();
+    const { isAuthenticated, isLoading, checkAuth, user } = useAuthStore();
     const location = useLocation();
 
     useEffect(() => {
@@ -33,5 +33,13 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         return <Navigate to="/login" state={{ from: location.pathname }} replace />;
     }
 
+    // Onboarding gate: redirect to /onboarding if profile setup is not completed yet
+    // Allow access to /onboarding itself to prevent redirect loop
+    const onboardingCompleted = (user as any)?.onboarding_completed === true;
+    if (!onboardingCompleted && location.pathname !== '/onboarding') {
+        return <Navigate to="/onboarding" replace />;
+    }
+
     return children ? <>{children}</> : <Outlet />;
 };
+

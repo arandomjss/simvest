@@ -81,7 +81,7 @@ export const RegisterPage = () => {
             // Always redirect to login with email verification instruction.
             // Never attempt auto-login — it would bypass email confirmation.
             toast.success('Account created! Please check your email to verify your account before signing in.');
-            navigate('/login');
+            navigate('/login', { replace: true });
         } catch (err) {}
     };
 

@@ -29,7 +29,7 @@ export const PortfolioStrip = ({ portfolio }: PortfolioStripProps) => {
                 <div className="flex items-baseline gap-3">
                     <span className="text-xs text-gray-700 dark:text-gray-300 uppercase tracking-wider font-semibold">Net Worth</span>
                     <span className="text-xl font-mono font-bold text-gray-900 dark:text-gray-100 tracking-tight">
-                        {formatCurrency((portfolio.totalValue || 0) + (portfolio.cashBalance || 0))}
+                        {formatCurrency(portfolio.totalValue || 0)}
                     </span>
                 </div>
 

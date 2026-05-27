@@ -6,11 +6,13 @@ interface PublicRouteProps {
 }
 
 /**
- * PublicRoute prevents authenticated users from accessing pages like Login, Register, or Landing.
- * If a user is authenticated, it redirects them to the dashboard.
+ * PublicRoute prevents authenticated users from accessing pages like Login and Register.
+ * If a user is authenticated:
+ *   - onboarded → redirect to /dashboard
+ *   - not yet onboarded → redirect to /onboarding
  */
 export const PublicRoute = ({ children }: PublicRouteProps) => {
-    const { isAuthenticated, isLoading } = useAuthStore();
+    const { isAuthenticated, isLoading, user } = useAuthStore();
 
     if (isLoading) {
         return (
@@ -28,7 +30,8 @@ export const PublicRoute = ({ children }: PublicRouteProps) => {
     }
 
     if (isAuthenticated) {
-        return <Navigate to="/dashboard" replace />;
+        const onboardingDone = (user as any)?.onboarding_completed === true;
+        return <Navigate to={onboardingDone ? '/dashboard' : '/onboarding'} replace />;
     }
 
     return children ? <>{children}</> : <Outlet />;

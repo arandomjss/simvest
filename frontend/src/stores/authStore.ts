@@ -43,6 +43,7 @@ interface AuthState {
     signOut: () => Promise<void>;
     checkAuth: () => Promise<void>;
     clearError: () => void;
+    updateProfile: (data: Record<string, any>) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -57,7 +58,8 @@ export const useAuthStore = create<AuthState>((set) => ({
             const { user, session } = await authService.signIn(email, password);
             // Supabase SDK persists the session automatically — no manual localStorage write needed.
             set({
-                user: user ? { id: user.id, email: user.email! } : null,
+                // Include user_metadata so onboarding_completed and profile fields are accessible
+                user: user ? { id: user.id, email: user.email!, ...(user.user_metadata || {}) } as any : null,
                 isAuthenticated: !!user && !!session,
                 isLoading: false,
             });
@@ -85,11 +87,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     },
 
     signOut: async () => {
-        // Always clear local state regardless of network errors.
-        // This ensures the user is never stuck in a broken authenticated state.
-        await authService.signOut().catch(() => {});
-        localStorage.removeItem('supabase.auth.token'); // Clear legacy key if still set
+        // Clear local state instantly and synchronously so UI responds without network delay
         set({ user: null, isAuthenticated: false, error: null });
+        localStorage.removeItem('supabase.auth.token'); // Clear legacy key if still set
+
+        // Perform Supabase sign out in the background
+        await authService.signOut().catch(() => {});
     },
 
     checkAuth: async () => {
@@ -101,7 +104,12 @@ export const useAuthStore = create<AuthState>((set) => ({
 
             if (session?.user && session?.access_token) {
                 set({
-                    user: { id: session.user.id, email: session.user.email! },
+                    // Include user_metadata so onboarding_completed and profile fields are accessible
+                    user: {
+                        id: session.user.id,
+                        email: session.user.email!,
+                        ...(session.user.user_metadata || {})
+                    } as any,
                     isAuthenticated: true,
                     isLoading: false,
                 });
@@ -115,4 +123,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     },
 
     clearError: () => set({ error: null }),
+
+    updateProfile: async (data: Record<string, any>) => {
+        const { error } = await import('../services/supabase').then(m => m.supabase.auth.updateUser({ data }));
+        if (error) throw error;
+    },
 }));

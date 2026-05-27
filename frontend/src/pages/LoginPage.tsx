@@ -17,9 +17,14 @@ export const LoginPage = () => {
         clearError();
         try {
             await signIn(email, password);
-            navigate('/dashboard');
+            // After signIn resolves, authStore has the latest user_metadata.
+            // Check onboarding_completed directly — single, clean redirect, no bounce.
+            const { user } = useAuthStore.getState();
+            const onboardingDone = (user as any)?.onboarding_completed === true;
+            navigate(onboardingDone ? '/dashboard' : '/onboarding', { replace: true });
         } catch (err) {}
     };
+
 
     return (
         <div className="relative h-screen w-full font-sans bg-slate-50 flex flex-col justify-center overflow-hidden text-slate-900">
